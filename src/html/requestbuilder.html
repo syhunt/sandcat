@@ -1,0 +1,108 @@
+<html>
+
+<head>
+<include src="Resources.pak#head.html"/>
+<link rel="stylesheet" type="text/css" href="Resources.pak#tab_navbar.css">
+<link rel="stylesheet" type="text/css" href="Resources.pak#toolbar.css">
+<script type="text/tiscript">
+$(#usecookies).checked = true;
+$(#usecred).checked = true;
+$(#ignorecache).checked = true;
+
+$(#viewheaders).onClick = function() {
+ this.checked = !this.checked;
+ if (this.checked) {
+  Sandcat.RunLua("reqbuilder.request.showheaders = true");
+ } else {
+  Sandcat.RunLua("reqbuilder.request.showheaders = false");
+ }
+}
+
+$(#viewreqdata).onClick = function() {
+ this.checked = !this.checked;
+ if (this.checked) {
+  Sandcat.RunLua("reqbuilder.request.showpostdata = true");
+ } else {
+  Sandcat.RunLua("reqbuilder.request.showpostdata = false");
+ }
+}
+
+$(#viewprefs).onClick = function() {
+ this.checked = !this.checked;
+ if (this.checked) {
+  Sandcat.RunLua("reqbuilder.request.showprefs = true");
+ } else {
+  Sandcat.RunLua("reqbuilder.request.showprefs = false");
+ }
+}
+
+$(#usecookies).onClick = function() {
+ this.checked = !this.checked;
+ if (this.checked) {
+  Sandcat.RunLua("reqbuilder.request.usecookies = true");
+ } else {
+  Sandcat.RunLua("reqbuilder.request.usecookies = false");
+ }
+}
+
+$(#usecred).onClick = function() {
+ this.checked = !this.checked;
+ if (this.checked) {
+  Sandcat.RunLua("reqbuilder.request.usecredentials = true");
+ } else {
+  Sandcat.RunLua("reqbuilder.request.usecredentials = false");
+ }
+}
+
+$(#ignorecache).onClick = function() {
+ this.checked = !this.checked;
+ if (this.checked) {
+  Sandcat.RunLua("reqbuilder.request.ignorecache = true");
+ } else {
+  Sandcat.RunLua("reqbuilder.request.ignorecache = false");
+ }
+}
+</script>
+</head>
+
+<body engine="reqbuilder.toolbar">
+  
+<div id="toolbar" class="toolbar" style="vertical-align:middle;">
+	<div .button style="foreground-image: url(Resources.pak#16\icon_addressbar.png)" onclick="reqbuilder.request.url = tab.url" titleid="for_useurl"/>
+	<div .button style="foreground-image: url(Resources.pak#16\icon_go.png)" onclick="reqbuildermenu:sendrequest()" titleid="for_sendreq"/>
+	<div .button style="foreground-image: url(Resources.pak#16\icon_load.png)" onclick="reqbuildermenu:loadrequest()" titleid="for_loadreq"/>
+	<div .sep />
+  <div .button ismain="true" id="viewreqdata" style="foreground-image: url(Resources.pak#16\icon_splitwin.png);" titleid="for_view-reqdata"/>
+  <div .button ismain="true" id="viewheaders" style="foreground-image: url(Resources.pak#16\icon_headview.png);" titleid="for_view-headers"/>
+  <div .button ismain="true" id="viewprefs" style="foreground-image: url(Resources.pak#16\icon_mask.png);" titleid="for_view-prefs"/>
+  <div .button ismain="true" id="ignorecache" style="foreground-image: url(Resources.pak#16\icon_cacheignore.png);" titleid="for_ignorecache"/>
+  <div .button ismain="true" id="usecred" style="foreground-image: url(Resources.pak#16\icon_credentials.png);" titleid="for_usecred"/>
+  <div .button ismain="true" id="usecookies" style="foreground-image: url(Resources.pak#16\icon_cookies.png);" titleid="for_usecookies"/>
+	<div .sepv />
+	<div .button style="foreground-image: url(Resources.pak#16\icon_filesplit.png)" onclick="reqbuildermenu:spliturl()" titleid="for_spliturl"/>
+	<div .button style="foreground-image: @ICON_CUT" onclick="reqbuilder.edit.cut()" titleid="for_cut"/>
+	<div .button style="foreground-image: @ICON_COPY" onclick="reqbuilder.edit.copy()" titleid="for_copy"/>
+	<div .button style="foreground-image: @ICON_PASTE" onclick="reqbuilder.edit.paste()" titleid="for_paste"/>
+</div>
+
+<popup id="for_view-headers">View Headers</popup>
+<popup id="for_usecookies">Use Cookies</popup>
+<popup id="for_spliturl">Split URL</popup>
+<popup id="for_usecred">Use Cached Credentials</popup>
+<popup id="for_ignorecache">Ignore Cache</popup>
+<popup id="for_useurl">Use Current Page</popup>
+<popup id="for_view-reqdata">View POST Data</popup>
+<popup id="for_view-prefs">View Spoofing Options</popup>
+<popup id="for_addtosel">Add To Selection</popup>
+<popup id="for_subtosel">Subtract From Selection</popup>
+<popup id="for_loadreq">Load Request</popup>
+<popup id="for_sendreq">Send Request</popup>
+<popup id="for_clear">Clear</popup>
+<popup id="for_undo">Undo</popup>
+<popup id="for_redo">Redo</popup>
+<popup id="for_copy">Copy</popup>
+<popup id="for_paste">Paste</popup>
+<popup id="for_cut">Cut</popup>
+
+</body>
+</html>

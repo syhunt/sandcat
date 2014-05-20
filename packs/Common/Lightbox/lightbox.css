@@ -1,0 +1,58 @@
+.lightbox {
+  position: fixed;
+  display: none;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  //background-image: url(Common.pak#Lightbox\lightbox-tr.png);
+  background-color:rgba(0,0,0,0.3);
+}
+
+.lightbox .inner {
+  padding: 10px;
+  height: 100%%;
+}
+
+.lightbox .header {
+  font-size: 8pt;
+  font-weight: bold;
+  height: 28px;
+  /**/background-color: threedface threedface threedshadow threedshadow;/* used with dialog 2 and 3 */
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.lightbox .header caption {
+  margin-top: 50%%;
+}
+
+
+.lightbox .body {
+  height: 100%%;
+  padding: 10px;
+}
+
+.dialog {
+  background-image: url(Common.pak#Lightbox\lightbox-dialog.png);/* square top / round bottom */
+  background-repeat: expand;
+  background-position: 38px 20px 20px 20px;
+  padding: 0px;
+}
+
+.dialog input[type="text"] {
+  width: 100%%;
+}
+
+.dialog input[type="button"] {
+  width: 55px;
+  text-align: center;
+  text-align-vertical: middle;
+  padding: 5px 10px;
+}
+
+.dialog .buttons {
+  white-space: nowrap;
+  text-align:right;
+  padding: 10px;
+}

@@ -1,0 +1,38 @@
+<html>
+<head>
+<include src="Resources.pak#head_plus.html"/>
+<include src="Resources.pak#head.html"/>
+<style>
+button.close {
+ padding:8px;
+ foreground-position:50% 50%;
+ background-image: url(theme:toolbar-button-normal);
+ foreground-image: url(Resources.pak#16\icon_close.png);
+ foreground-repeat:no-repeat;
+ vertical-align: middle;
+ float:right;
+}
+
+button.close:hover
+{
+ background-image: url(theme:toolbar-button-hover);
+}
+button.close:active
+{
+ background-image: url(theme:toolbar-button-pressed);
+}
+</style>
+<script type="text/tiscript">
+function HideCloseButton() {
+ $(#closebar).style["display"] = "none";
+}
+$(#closebar).onClick = function() { Sandcat.RunLuaQ("browser.options.showbottombar = false"); }
+</script>
+</head>
+<body engine="browser.bottombar">
+<button id="closebar" class="close"/>
+<div style="height:90%;width:*;margin-right:25px;">
+{$Content}
+</div>
+</body>
+</html>

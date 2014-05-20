@@ -1,0 +1,27 @@
+function showDialog(sel)  // this is so called "document modal loop"
+{ 
+    var dlg = sel;  
+    dlg.style#display = "block"; 
+    view.update(); 
+    var sfocus = view.focus;
+    view.eventsRoot = dlg;
+    while (dlg.isVisible) view.doEvent();
+    dlg.style#display = "none"; 
+    view.eventsRoot = null;
+    view.focus = sfocus;
+}
+  
+function showDialogNormal(sel) 
+{ 
+    var dlg = sel;
+    if (dlg.style#display != "block") {
+    dlg.style#display = "block"; 
+    }
+}
+
+function closeDialog(sel)  
+{ 
+    var dlg = sel;  
+    dlg.style#display = "none"; 
+    dlg.update(); 
+}

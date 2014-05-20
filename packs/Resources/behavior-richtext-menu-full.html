@@ -1,0 +1,22 @@
+<menu .context .richtext-context>
+  <li command="richtext:undo">Undo<span class="accesskey">Ctrl+Z</span></li>
+  <hr/>
+  <li command="richtext:cut">Cut<span class="accesskey">Ctrl+X</span></li>
+  <li command="richtext:copy">Copy<span class="accesskey">Ctrl+C</span></li>
+  <li command="richtext:paste">Paste<span class="accesskey">Ctrl+V</span></li>
+  <li>Paste special
+      <menu>
+      <li command="richtext:paste-plain-text">Paste text only</li>
+	    <li command="richtext:paste-text-as-html">Paste text as HTML</li>
+	    <li command="richtext:paste-html-no-tables">Paste without tables</li>
+	  </menu>
+  </li>
+  <hr/>
+  <li command="richtext:selectall">Select All<span class="accesskey">Ctrl+A</span></li>
+  <div .cell-selection>
+      <caption style="color:graytext">Cells:<img.hr/></caption>
+	  <li command="richtext:merge-cells">Merge<span class="accesskey">Backspace</span></li>
+	  <li command="richtext:split-cells-by-rows">Split by rows<span class="accesskey">Ctrl+1</span></li>
+	  <li command="richtext:split-cells-by-cols">Split by columns<span class="accesskey">Ctrl+2</span></li>
+  </div>
+</menu>

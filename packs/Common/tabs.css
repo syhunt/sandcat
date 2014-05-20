@@ -1,0 +1,63 @@
+.tabs 
+{
+  font:system;
+  behavior:tabs;
+  height:100%%;
+  width:100%%;
+  overflow:hidden;
+}
+
+.tabs > .strip /* tab strip */
+{
+  flow: horizontal;
+  margin-bottom:-1px;
+  padding: 2px 4px 0 8px;
+}
+
+.tabs > .strip > [panel] /* all tabs, passive by default */
+{
+  padding: 3px 8px;
+  margin-bottom:1px;
+  height: 100%%;
+  max-width: auto; /* not wider than max-intrinsic  */
+  background-image:url(theme:tab-item-normal);
+  background-repeat:stretch;
+}
+.tabs > .strip > [panel]:hover /* passive tab */
+{
+  background-image:url(theme:tab-item-hover);
+  transition:blend;
+}
+.tabs > .strip > [panel]:current  /*active tab*/
+{
+  background-image:url(theme:tab-item-selected);
+  margin:-2px -2px -1px -2px;
+  padding: 4px 10px 5px 10px; 
+  position:relative;
+}
+.tabs > .strip > [panel]:current:hover /*active tab*/
+{
+  background-image:url(theme:tab-item-selected);
+  transition:none;
+}
+
+/*.tabs:focus .strip [panel]:current 
+{
+  background-image:url(theme:tab-item-focused);
+}*/
+
+.tabs:tab-focus > .strip > [panel]:current > * /* outline active tab content if we've gotten focus by tab*/
+{
+  outline: 1px dotted invert;
+}
+
+.tabs > [name] { display:none; }
+
+.tabs > [name]:expanded 
+{ 
+  background-image:url(theme:tab-panel);
+  background-repeat:stretch;
+  padding:4px;
+  display:block; 
+  height:100%%;
+}

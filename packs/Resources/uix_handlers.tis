@@ -1,0 +1,105 @@
+type SandcatHandlers
+{
+
+ function handle_click(t,code) {
+  if (undefined != code) {
+   Sandcat.RunLua(code);
+  }
+ }
+ 
+ function handle_change(t,code) {
+  if (undefined != code) {
+   Sandcat.RunLuaQ(code);
+  }
+ }
+
+ function handle_genericclick() {
+  handle_click(this,this.attributes["onclick"]);
+ }
+ 
+ function handle_buttoncontrolevent(evt) {
+  switch(evt.type) {
+   case Event.BUTTON_CLICK: handle_click(this,this.attributes["onclick"]);
+  }
+ }
+
+ function handle_controlevent(evt) {
+  switch(evt.type) {
+   case Event.SELECT_SELECTION_CHANGED: handle_change(this,this.attributes["onchange"]); return true;
+   case Event.EDIT_VALUE_CHANGED: handle_change(this,this.attributes["onchange"]); return true;
+   case Event.BUTTON_STATE_CHANGED: handle_change(this,this.attributes["onchange"]); return true;
+  }
+ }
+
+ // tab fix (displays the tab content)
+ function expand_tab(panel) {
+  for(var btn in $$(div)) { 
+   var dclass = btn.attributes["class"];
+   if (dclass == "tab") {
+    btn.expanded = false;
+    var name = btn.attributes["name"];
+    if (name == panel) {
+     btn.expanded = true;
+    }
+   }
+  }
+ }
+ 
+ function handle_mouseevent(evt) {
+   switch(evt.type) {
+     case Event.MOUSE_DOWN: {
+       if (evt.mainButton == true) { handle_click(this,this.attributes["onclick"]); return true; }
+       }
+     case Event.MOUSE_DCLICK: {
+       if (evt.mainButton == true) { handle_click(this,this.attributes["ondblclick"]); return true; }
+       }
+   }
+ }
+ 
+ function handle_mouseevent_noret(evt) {
+   switch(evt.type) {
+     case Event.MOUSE_DOWN: {
+       if (evt.mainButton == true) { handle_click(this,this.attributes["onclick"]); }
+       }
+     case Event.MOUSE_DCLICK: {
+       if (evt.mainButton == true) { handle_click(this,this.attributes["ondblclick"]);}
+       }
+   }
+ }
+ 
+ function handle_mouseevent_retfalse(evt) {
+   switch(evt.type) {
+     case Event.MOUSE_DOWN: {
+       if (evt.mainButton == true) { handle_click(this,this.attributes["onclick"]); return false; }
+       }
+     case Event.MOUSE_DCLICK: {
+       if (evt.mainButton == true) { handle_click(this,this.attributes["ondblclick"]); return false;}
+       }
+   }
+ }
+ 
+ function handle_divmouseevent(evt) {
+   switch(evt.type) {
+     case Event.MOUSE_DOWN:
+       if (evt.mainButton == true) {
+        handle_divclick(this);
+        return true;
+       }
+     case Event.MOUSE_DCLICK:
+       if (evt.mainButton == true) {
+        handle_click(this,this.attributes["ondblclick"]);
+        return true;
+       }
+   }
+ }
+
+ function handle_divclick(e) {
+  handle_click(e,e.attributes["onclick"]);
+  var panel = e.attributes["panel"]; // tab fix
+  if (undefined != panel) {
+  e.current = true;
+  expand_tab(panel);
+  }
+ }
+
+}

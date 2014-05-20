@@ -1,0 +1,62 @@
+ function cancel_edit() {
+  Sandcat.RunLua("Preferences:EditCancel()");
+  view.close();
+ }
+ function canset_value(sel,j) {
+  var b = true;
+  if (sel.attributes["type"] == "file-path") {
+    if (j.value == "") b = false;
+  }
+  if (sel.attributes["type"] == "folder-path") {
+    if (j.value == "") b = false;
+  }
+  return b
+ }
+ function import_option(sel,j) {
+  if (sel != undefined) {
+   var id = sel.attributes["id"];
+   var cid = sel.attributes["cid"];
+   if (j.value != undefined) {
+     if (sel.tag == "option") {
+      sel.checked = j.value;
+     } else {
+      if (canset_value(sel,j) == true) {
+       sel.value = j.value;
+      }
+     }
+     if (cid == undefined) {
+      sel.attributes["cid"] = j.cid;
+     }
+    }
+   Sandcat.Debug("Reading option "+cid+"; value: "+j.value);
+   //Sandcat.Debug("Reading option "+cid+" to #"+id+" value: "+j.value);
+  }
+ }
+ function update_option(e,value) {
+   var cid = e.attributes["cid"];
+   if (cid != undefined) {
+   Sandcat.Debug("Updating option "+cid+" with new value: "+value);
+   Sandcat.PrefsSet(cid,value);
+   }
+ }
+ function handle_controlevent(evt) {
+  switch(evt.type)
+   {
+     case Event.EDIT_VALUE_CHANGED: update_option(this,this.value); return true;
+     case Event.SELECT_SELECTION_CHANGED: update_option(this,this.value); return true;
+     case Event.BUTTON_STATE_CHANGED: update_option(this,this.value); return true;
+   }
+ }
+ function handle_genericclick() {
+  update_option(this,this.value);
+ }
+ function sethandlers() {
+  for(var e in $$(button[type="checkbox"])) e.onClick = handle_genericclick;
+  for(var e in $$(input[type="checkbox"])) e.onClick = handle_genericclick;
+  for(var e in $$(input[type="color-chooser"])) e.onClick = handle_genericclick;
+  for(var e in $$(input[type="text"])) e.onControlEvent = handle_controlevent;
+  for(var e in $$(input[type="password"])) e.onControlEvent = handle_controlevent;
+  for(var e in $$(input[type="folder-path"])) e.onControlEvent = handle_controlevent;
+  for(var e in $$(input[type="file-path"])) e.onControlEvent = handle_controlevent;
+  for(var e in $$(select[type="select"])) e.onControlEvent = handle_controlevent;
+ }

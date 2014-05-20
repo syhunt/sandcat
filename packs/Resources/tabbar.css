@@ -1,0 +1,182 @@
+@const ICON_URL: url(Resources.pak#16\icon_url.png);
+@const ICON_LOADING: url(Resources.pak#16\icon_loading.png);
+@const ICON_PAUSE: url(Resources.pak#16\icon_pause.png);
+@const ICON_STOP: url(Resources.pak#16\icon_stop.png);
+@const ICON_EMPTY: url(Resources.pak#16\icon_empty.png);
+@const ICON_CHECKED: url(Resources.pak#16\icon_checked.png);
+@const ICON_CHECKED_RED: url(Resources.pak#16\icon_checkedred.png);
+
+body
+{
+  font:system;
+  margin:0;
+}
+
+code {
+ font:system;
+}
+
+menu.context > li.newtab { foreground-image:@ICON_PLUS; }
+menu.context > li.newcstab { foreground-image:@ICON_CONSOLE; }
+menu.context > li.closetab { foreground-image:@ICON_CLOSE; foreground-image-transformation: colorize(gray); }
+
+.tabs 
+{
+  font:system;
+  behavior:tabs;
+  height:*;
+  width:*;
+  overflow:hidden;
+  context-menu: selector(#tabmenuext);
+}
+
+.tabs > .strip /* the tab strip */
+{
+  flow: horizontal;
+  width:*;
+  height:*;
+  padding: 4px 10px 0 4px;
+  background-color: window window threedface threedface;
+  border-bottom:1px solid threedshadow;
+}
+
+.tabs > .strip > [panel] /* the tab having panel attribute, passive by default */
+{
+  padding: 3px 0px 5px 10px; /*3px 8px*/
+  height: *; /* span the whole row */
+  max-width: auto; /* not wider than max-intrinsic  */
+  background-color: window window threedface threedface;
+  border-radius: 6px 6px 0 0;
+  border-style:solid;
+  border-color:threedshadow;
+  border-width:1px 1px 0 1px;
+  /*margin:0 -1px;*/
+  opacity:0.90;
+  overflow:hidden;
+  /*cursor:pointer;*/
+}
+
+.tabs > .strip > [panel]:hover /* passive tab */
+{
+  /*border-top-color: orange;*/
+  /*color:blueviolet;*/
+  background-color: window window threedhighlight threedhighlight;
+  opacity:1.00;
+}
+.tabs > .strip > [panel]:current  /*active tab*/
+{
+  margin:-2px -2px -1px -2px;
+  padding: 4px 0px 5px 10px; 
+  background-color: window window threedhighlight threedhighlight;
+  /*background-color-bottom-right: threedhighlight;
+  background-color-bottom-left: threedhighlight;*/
+  position:relative;
+  opacity:1.00;
+}
+
+.tabs > .strip > [panel]:current:hover /*active tab*/
+{
+  /*color:red;*/
+}
+
+.tabs:tab-focus > .strip > [panel]:current > * /* outline active tab content if we've gotten focus by tab*/
+{
+  outline: 1px dotted invert;
+}
+
+.tabs > [name] { display:none;}
+.tabs > [name]:expanded // current panel
+{ 
+  padding:4px;
+  width:*;
+  height:*;
+  border:1px solid threedshadow;  
+  border-top-style:none;  
+  display:none;
+}
+
+
+/* tabs drag-n-drop support */
+
+.tabs .strip 
+{
+  accept-drop: selector( div[panel] ); /* accept drop of div[panel] */ 
+  outline-width: 4px;
+}
+
+.tabs .strip div[panel]
+{
+  /*draggable: only-move;*/
+}
+
+.tabs .strip div[panel]:drop-marker
+{
+}
+
+.tabpanel {
+ min-width:80px;
+ max-width:200px;
+ white-space:nowrap;
+ draggable: only-move;
+ text-overflow:ellipsis;
+ overflow:visible;
+}
+
+img.tabicon {
+ width:16px;
+ height:16px;
+ max-width:16px;
+ max-height:16px;
+ foreground-image:@ICON_EMPTY;
+ background-image:@ICON_BLANK;
+ vertical-align: middle;
+}
+
+button.closetab {
+ padding:7px;
+ /*background-color: threedhighlight;*/
+ foreground-position:50% 50%;
+ background-image: url(theme:toolbar-button-normal);
+ foreground-image-transformation: colorize(gray);
+ foreground-image: @ICON_CLOSE;
+ foreground-repeat:no-repeat;
+ vertical-align: middle;
+ /*float:right;*/
+ margin-left:*;
+ margin-right:4px;
+ width:4px;
+ min-width:4px;
+}
+
+code.tabtitle {
+  font:system;
+  /*float:left;*/
+  margin-left:3px;
+  min-width:0;
+  max-width:max-intrinsic;
+  white-space:nowrap;
+  overflow-x:hidden;
+  text-overflow:ellipsis;
+}
+
+button.closetab:hover
+{  
+ background-image: url(theme:toolbar-button-hover);
+ foreground-image-transformation: colorize(#0099FF);
+}
+button.closetab:active
+{
+ background-image: url(theme:toolbar-button-pressed);
+}
+
+div.newtab {
+ width:24px;
+}
+
+div.newtab:hover {
+ foreground-image:@ICON_PLUS;
+ foreground-position:50% 50%;
+ foreground-repeat:no-repeat;
+ foreground-image-transformation: colorize(#0099FF);
+}
+

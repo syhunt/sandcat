@@ -1,0 +1,53 @@
+<menu.popup id="pagemenu-list">
+<script type="text/tiscript">
+$(#tbookmarkpage).onClick = function() {
+ if ($(#url).value != "") {
+ $(#bookmark).style["foreground-image-transformation"] = "none";
+ Sandcat.RunLua("browser.bookmark()");
+ }
+}
+</script>
+<li id="topen" onclick="PageMenu:OpenPage()">Open...</li>
+<li id="tsavemenu" style="foreground-image: @ICON_SAVE;">Save Page
+ <menu>
+ <li id="tsavecached" style="foreground-image: url(Resources.pak#16\icon_savecached.png);" onclick="PageMenu:SaveCachedAs()">Save From Cache As...</li>
+ <hr/>
+ <li id="tsavefromweb" style="foreground-image: url(Resources.pak#16\icon_dloadpage.png);" onclick="PageMenu:SavePageAs()">Save From Web As...</li>
+ </menu>
+</li>
+<li id="tbookmarkpage" style="foreground-image: url(Resources.pak#16\icon_bookmark.png);">Bookmark Page</li>
+<hr/>
+<li id="tviewdevtools" style="foreground-image: url(Resources.pak#16\icon_devtools.png);">Developer Tools
+ <menu>
+ <li onclick="PageMenu:ViewDevTools()">View in Bottom Bar</li>
+ <li onclick="PageMenu:ViewDevTools(true)">View in New Tab</li>
+ </menu>
+</li>
+<li id="tviewsource" style="foreground-image: url(Resources.pak#16\icon_sources.png);">Source
+ <menu>
+  <li onclick="browser.newtab('view-source:'..tab.url)">View in New Tab</li>
+  <li onclick="tab:viewsource()">View in External Editor</li>
+ </menu>
+</li>
+<hr/>
+<li style="foreground-image: @ICON_RELOAD;">Reload
+ <menu>
+  <li id="treload" onclick="tab:reload()">Standard Reload</li>
+  <hr/>
+  <li id="treloadic" onclick="tab:reload(true)">Reload (Ignore Cache)</li>
+  <li id="treloadfc" onclick="tab:gotourl(tab.url,tab.source)">Reload From Cache</li>
+ </menu>
+</li>
+<li #auth onclick="tab:showauthdialog()">Authenticate...</li>
+<hr/>
+<li id="tzoom">Zoom
+ <menu>
+  <li onclick="tab.zoomlevel = tab.zoomlevel+0.5">Zoom In</li>
+  <li onclick="tab.zoomlevel = tab.zoomlevel-0.5">Zoom Out</li>
+  <hr/>
+  <li onclick="tab.zoomlevel = 0">Reset</li>
+ </menu>
+ </li>
+<li #takescreenshot style="foreground-image: url(Resources.pak#16\icon_screenshot.png);">Take Screenshot</li>
+<li #gettinyurl onclick="browser.setactivepage('log') tab:log(tab.url..' = '..scop.url.gettiny(tab.url))">Generate Tiny URL</li>
+</menu>

@@ -1,0 +1,125 @@
+type SandcatUIX
+{
+ function InsertHTML(selector,j,pos) {
+  if (pos == undefined) {
+  selector.insert(j.html);
+  } else {
+  selector.insert(j.html,pos);
+  }
+ }
+ function ShowAlert(j) {
+  view.msgbox(#alert,j.msg,j.title);
+ }
+ function ShowDialog(j) {
+  var html = Stream.openString();
+  html.println(j.html);
+  view.dialog(html);
+ }
+ function ShowDialog_URL(j) {
+  view.dialog(self.url(j.url));
+ }
+ function ShowMessage(j) {
+  view.msgbox(#information,j.msg,j.title);
+ }
+ function SetClickHandler(e,handler) {
+  if (e.onClick == undefined) {
+   if (e.attributes["onclick"] != undefined) { e.onClick = handler; }
+  }
+ }
+ function SetMouseHandler(e,handler) {
+  if (e.attributes["onclick"] != undefined) { e.onMouse = handler; }
+  if (e.attributes["ondblclick"] != undefined) { e.onMouse = handler; }
+ }
+ function SetControlEventHandler(e,handler) {
+  if (e.attributes["onchange"] != undefined) { e.onControlEvent = handler; }
+ }
+ function SetHandlers() {
+  // click event
+  for(var e in $$(widget)) SetClickHandler(e,SandcatHandlers.handle_genericclick);
+  for(var e in $$(li)) SetClickHandler(e,SandcatHandlers.handle_genericclick);
+  for(var e in $$(img)) SetClickHandler(e,SandcatHandlers.handle_genericclick);
+  for(var e in $$(picture)) SetClickHandler(e,SandcatHandlers.handle_genericclick);
+  // mouse event
+  for(var e in $$(a)) SetMouseHandler(e,SandcatHandlers.handle_mouseevent);
+  for(var e in $$(input)) SetMouseHandler(e,SandcatHandlers.handle_mouseevent_retfalse);
+  for(var e in $$(tr)) SetMouseHandler(e,SandcatHandlers.handle_mouseevent_retfalse);
+  //for(var e in $$(button)) SetMouseHandler(e,SandcatHandlers.handle_mouseevent);
+  for(var e in $$(button)) {
+   if (e.attributes["onclick"] != undefined) { e.onControlEvent = SandcatHandlers.handle_buttoncontrolevent; }
+  }
+  for(var e in $$(div)) {
+   if (e.attributes["panel"] != undefined) {
+    e.onMouse = SandcatHandlers.handle_divmouseevent; // tab fix
+   } else {
+    SetMouseHandler(e,SandcatHandlers.handle_mouseevent);
+   }
+  }
+  // control event
+  for(var e in $$(widget)) SetControlEventHandler(e,SandcatHandlers.handle_controlevent);
+  for(var e in $$(select)) SetControlEventHandler(e,SandcatHandlers.handle_controlevent);
+  for(var e in $$(plaintext)) SetControlEventHandler(e,SandcatHandlers.handle_controlevent);
+  for(var e in $$(input)) {
+   var canset = true;
+   var itype = e.attributes["type"];
+   if (itype != undefined) {
+    if (itype == "color-chooser") { canset = false; }
+   }
+   if (canset == true) {
+    SetControlEventHandler(e,SandcatHandlers.handle_controlevent);
+   }
+  }
+ }
+ function RegisterElements(eng,table,regdef) {
+  Sandcat.Debug("UIX registering "+table+" ("+eng+")");
+  for(var e in $$(*)) {
+   var id = e.attributes["id"];
+   if (undefined != id) {
+    var reg = e.attributes["reg"];
+    if (reg == undefined) {
+     reg = regdef;
+    }
+    if (reg == "true") {
+     Sandcat.CreateElement(eng,table,e.tag+"#"+id);
+    }
+   }
+  }
+ }
+ function RunScripts() {
+  for(var lua in $$("script[type='text/lua']")) Sandcat.RunLua(lua.text);
+ }
+ function LoadSettings() {
+  var scx = $("meta[name='SandcatUIX']");
+  if (scx != undefined) {
+   var regall;
+   var meta_regall = $("meta[name='uix_regall']");
+   if (meta_regall != undefined) {
+    regall = meta_regall.attributes["content"];
+   }
+   var regtab = scx.attributes["content"];
+   var ht = $("body[engine]");
+   var eng = ht.attributes["engine"];
+   if (regall == undefined) {
+    regall = "true";
+   }
+   if (eng != undefined) {
+    if (regtab != undefined) {
+    SandcatUIX.RegisterElements(eng,regtab,regall);
+    }
+   }
+  } else {
+   Sandcat.Debug("UIX meta unavailable.");
+  }
+ }
+ function Update() {
+  SandcatUIX.SetHandlers();
+ }
+ function Start() {
+  var ht = $("body[engine]");
+  var eng = "";
+  if (ht != undefined) eng = ht.attributes["engine"];
+  Sandcat.Debug("Loading UIX... "+eng);
+  SandcatUIX.SetHandlers();
+  SandcatUIX.LoadSettings();
+  SandcatUIX.RunScripts();
+ }
+}

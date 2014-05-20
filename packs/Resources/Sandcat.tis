@@ -1,0 +1,40 @@
+type Sandcat
+{
+ var AppName = "Sandcat";
+ function SendJ(json) {
+  stdout.println(String.printf("%V",json));
+ }
+ function ShowMessage(str) {
+  view.msgbox(#information,str,AppName);
+ }
+ function CreateElement(e,t,s) {
+  SendJ({"cmd":"newelement","selector":s,"engine":e,"table":t});
+ }
+ function PrefsSet(cid,value) {
+  SendJ({"cmd":"cfg","act":"set","cid":cid,"value":value});
+ }
+ function Debug(str) {
+  SendJ({"cmd":"dbg","s":str});
+ }
+ function GoToURL(url,newtab=false) {
+  SendJ({"cmd":"gotourl","url":url,"newtab":newtab});
+ }
+ function RunLua(code) {
+  SendJ({"cmd":"run","lang":"lua","code":code,"q":false});
+ }
+ function RunLuaQ(code) {
+  SendJ({"cmd":"run","lang":"lua","code":code,"q":true});
+ }
+ function Store(filename,text) {
+  SendJ({"cmd":"store","filename":filename,"text":text});
+ }
+ function Write(str) { 
+  SendJ({"cmd":"write","s":str});
+ }
+ function WriteLn(str) { 
+  SendJ({"cmd":"writeln","s":str});
+ }
+ function WriteValue(key,value) {
+  SendJ({"cmd":"writevalue","key":key,"value":value});
+ }
+}

@@ -1,0 +1,91 @@
+<title>About Syhunt %appname%</title>
+<style>
+html {
+ width:600px; 
+ height:330px; 
+}
+.scxenabler {
+ display:none;
+}
+</style>
+<script type="text/tiscript">
+$(#abtlink).onMouse = function(evt) {
+ if (evt.type == Event.MOUSE_DOWN ) {
+  if (evt.mainButton == true) {
+   Sandcat.RunLua("browser.newtab(browser.info.abouturl)");
+   view.close();
+  }
+ }
+}
+$(#crmlink).onMouse = function(evt) {
+ if (evt.type == Event.MOUSE_DOWN ) {
+  if (evt.mainButton == true) {
+   Sandcat.RunLua("browser.newtab('http://www.chromium.org')");
+   view.close();
+  }
+ }
+}
+$(#btncrmabout).onControlEvent = function(evt) {
+ if (evt.type == Event.BUTTON_CLICK ) {
+  Sandcat.RunLua("browser.newtab('chrome://version/')");
+  view.close();
+ }
+}
+</script>
+
+<div class="tabs">
+<div class="strip" role="page-tab-list">
+<div panel="panel-about" role="page-tab" selected>About</div>
+<div panel="panel-libs" role="page-tab">Third-Party Libraries</div>
+<div panel="panel-exts" role="page-tab">Extensions</div>
+</div>
+
+<!--panel-about-->
+<div name="panel-about" class="tab" selected>
+<div style="margin:10px;">
+<img filename="%iconfilename%" style="width:32px;height:32px;behavior:file-icon;-icon-size:'large';"><br><br>
+<b>Syhunt &reg; %appname%</b><br><br>
+%ver%<br><br>
+Copyright &copy; 2014 Syhunt Cyber-Security Company<br><br>
+URL: <a #abtlink href="#">%appurl%</a><br><br>
+Made possible by the <a #crmlink href="#">Chromium</a> project and other open source projects.<br><br>
+<hr width="100%">
+<p style="text-align:right;margin:0;padding:0;">
+<button #btncrmabout>About Chromium Version...</button>
+</p>
+<br>
+<font color="gray">Syhunt and Sandcat are registered trademarks of Syhunt Inf. Ltd.</font>
+</div>
+
+</div>
+<!--panel about end-->
+
+<!--panel-libs-->
+<div name="panel-libs" class="tab">
+<div style="margin:10px;width:100%%;height:100%%;">
+This software contains files and code contributed by the following authors:<br><br>
+<widget type="select" style="padding:0;">
+<table name="reportview" width="100%" cellspacing=-1px fixedrows=1>
+<tr><th style="width:200px;">Name</th><th style="width:80px;">Version</th><th style="width:*;">Author</th><th style="width:70px;"></th></tr>
+%libs%
+</table>
+</widget>
+</div>
+</div>
+<!--panel libs end-->
+
+<!--panel-libs-->
+<div name="panel-exts" class="tab">
+<div style="margin:10px;width:100%%;height:100%%;">
+The following extensions are installed:<br><br>
+<widget type="select" style="padding:0;">
+<table name="reportview" width="100%" cellspacing=-1px fixedrows=1>
+<tr><th style="width:200px;">Name</th><th style="width:80px;">Version</th><th style="width:*;">Author</th><th style="width:70px;"></th></tr>
+%extensions%
+</table>
+</widget>
+</div>
+</div>
+<!--panel libs end-->
+
+</div>

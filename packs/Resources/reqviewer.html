@@ -1,0 +1,91 @@
+<head>
+  <style>
+  input[type="text"] {height:17px;width:*;}
+  select.tag-list > option { width:*;}
+  #hexview { font-family:"Lucida Console"; }
+  #warn {
+   padding:5px;
+   background-color:#f6e9e9;
+   width:100%;
+   display:none;
+   margin-bottom:5px;
+  }
+</style>
+<link rel="stylesheet" type="text/css" href="Common.pak#tabs.css">
+<link rel="stylesheet" type="text/css" href="Common.pak#widget.editor.css">
+</head>
+<script type="text/tiscript">
+   $(#trybtn).onClick = function() { Sandcat.RunLuaQ("ReqViewer:fetchliveversion()"); }
+</script>
+<div id="urldiv">
+<select class="tag-list" type="select" style="width:80px;">
+<option selected><code id="method"></code></option>
+</select>
+<input id="url" type="text" value="" style="width:*;" readonly="true">
+<input id="logfilename" type="text" value="" style="display:none;" readonly="true"><br><br>
+</div>
+
+<div id="warn">
+<table style="width:*;">
+<tr>
+<td width="90%">No response text found for this item.</td>
+<td style="width:10%;"><input type="button" id="trybtn" value="Try Online Version"></td>
+</tr>
+</table>
+</div>
+
+<div class="tabs" style="height:*;">
+<div class="strip" role="page-tab-list">
+ <div panel="panel-preview" role="page-tab" selected>Preview</div>
+ <div panel="panel-headers" role="page-tab">Headers</div>
+ <div panel="panel-response" role="page-tab">Response Text</div>
+ <!div panel="panel-rawdata" role="page-tab"><!Raw Data><!/div>
+</div>
+<!-- tab headers tab begin -->
+<div name="panel-headers" class="tab">
+<table style="width:*;height:*;"><tr>
+<td id="tdreqhead" style="width:50%;">
+<widget class="editor" id="reqheadeditor">
+ <include src="Resources.pak#reqviewer\request.html"/>
+ <richtext id="rt_reqhead" toolbar="widget.headreqtoolbar" style="height:*;"></richtext>
+</widget>
+</td>
+<td id="tdresphead" style="width:50%;">
+<widget class="editor">
+ <include src="Resources.pak#reqviewer\response.html"/>
+ <richtext id="rt_resphead" toolbar="widget.headresptoolbar" style="height:*;" readonly="true"></richtext>
+</widget>
+</td>
+</tr></table>
+</div>
+<!-- tab headers tab end -->
+<!-- preview tab begin -->
+<div name="panel-preview" class="tab" selected>
+<widget class="editor">
+ <include src="Resources.pak#reqviewer\preview.html"/>
+ <richtext id="rt_preview" toolbar="widget.previewtoolbar" readonly="true" style="width:*;height:*;"></richtext>
+</widget>
+</div>
+<!-- preview tab end -->
+<!-- responsetext tab begin -->
+<div name="panel-response" class="tab">
+<!-- richtext id="rt_respview" readonly="true" style="width:*;height:*;"--><!--/richtext-->
+<plaintext id="reqhead" style="display:none"></plaintext>
+<plaintext id="resphead" style="display:none"></plaintext>
+<plaintext.editor id="resptext" readonly="true" style="width:*;height:*;"></plaintext>
+</div>
+<!-- responsetext tab end -->
+<!-- hexview tab begin -->
+<div name="panel-rawdata" class="tab">
+<plaintext id="hexview" readonly="true" style="width:*;height:*;"></plaintext>
+</div>
+<!-- hexview tab end -->
+</div>
+<div style="display:none;"><img id="status_icon" style="vertical-align: middle;">&nbsp;&nbsp;<code id="status"></code></div>
+<menu id="options-items" style="display:none;">
+<li onclick="ReqViewer:renderresponse(1)">Render Response</li>
+<li onclick="ReqViewer:renderresponse(2)">Render Response in New Tab</li>
+<li onclick="ReqViewer:renderresponse(3)">Render Response in Bottom Bar</li>
+<hr/>
+<li onclick="Fuzzer:loadui(ReqViewer.ui.url.value,Fuzzer.default_filters)">Load in Fuzzer</li>
+</menu>

@@ -1,0 +1,107 @@
+<html>
+<head>
+<include src="Resources.pak#head.html"/>
+<include src="Resources.pak#head_plus.html"/>
+<style>
+@const ICON_RUNNING: @ICON_TASK_RUNNING;
+@const ICON_SUSPENDED: url(Resources.pak#32/suspended.gif);
+body { margin:0; background-color:#fff; }
+#tasks { /*accept-drop: selector(div[tid]);*/ }
+div.tid {
+ background-color:#fff;
+ opacity:0.90;
+ border-bottom:1px dotted block;
+ margin:0;
+ border-color:#000;
+ padding:10px;
+ width:*;
+ color:#000; 
+ /*draggable: only-move;*/
+}
+div.dprog { display:none; width:*; margin-top:3px; }
+progress.prog { width:*;}
+div.tid:hover { border-color:gray; }
+div.tid:active { border:1px dotted block; }
+div.tid:selected { border:1px dotted block; }
+table.tbtid { }
+img.staticon { width:32px; height:32px; }
+td.stat { width:40px; }
+td.info { width:300px; }
+code.caption { font-weight:bold; overflow:hidden; text-overflow:ellipsis; }
+code.stat { overflow:hidden; text-overflow:ellipsis; color:gray; }
+code.pid { padding-left: 30px; color:green; }
+li.stop {foreground-image: @ICON_STOP;}
+img.stop { foreground-image: url(Resources.pak#16\icon_close2.png); width:14px; height:14px; }
+img.stop:hover { 	foreground-image-transformation: colorize(#0099FF); }
+li.suspend {foreground-image: url(Resources.pak#16\icon_pause.png);}
+li.remove {foreground-image: url(Resources.pak#16\icon_remove.png);}
+table.log {
+ width:*;
+ margin-left:10px;
+ height:80px;
+ overflow-y:scroll; 
+ overflow-x:hidden;
+ border:1px solid block;
+ border-color:silver;
+ color:gray;
+ vertical-scrollbar: small-v-scrollbar; 
+ visibility:hidden;
+ }
+</style>
+</head>
+
+<script type="text/tiscript">
+type Tasks
+{
+ var tasksdiv = $("#tasks");
+ function Print(tid,json) {
+  var log = $("table.log[tid='"+tid+"']");
+  //var lns = $$("table.log[tid='"+tid+"'] > tr");
+  //if (lns.length >= 500) { lns[0].remove(); }
+  if (log != undefined) {
+   log.style["visibility"] = "visible";
+   var row = new Element("tr");
+   row.insert(new Element("td"));
+   row[0].text = json.ln;
+   log.insert(row);
+   row.update();
+   row.scrollToView();
+  }
+ }
+ function Remove(tid) {
+  var tdiv = $("div.tid[tid='"+tid+"']");
+  if (tdiv != undefined) {
+   tdiv.remove();
+  }
+ }
+ function Add(j) {
+  tasksdiv.insert(
+  "<div .tid tid='"+j.tid+"' ondblclick='' style='context-menu: selector(#"+j.tid+"-menu);'>"
+  "<table .tbtid width='100%%'><tr>"
+  "<td .stat><img .staticon tid='"+j.tid+"'></td>"
+  "<td .info>"
+  "<code .caption tid='"+j.tid+"'></code><br>"
+  "<code .stat tid='"+j.tid+"'></code>"
+  "<div .dprog tid='"+j.tid+"'><progress .prog tid='"+j.tid+"' maxvalue='100' value='0'/></div>"
+  "</td>"
+  "<td width='100%'>"
+  "<table .log tid='"+j.tid+"'>"
+  "</table>"
+  "</td>"
+  "<td width='100px'><code.pid tid='"+j.tid+"'></code></td>"
+  "<td width='50px'><img .stop tid='"+j.tid+"' onclick='browser.stoptask([["+j.tid+"]])'></td>"
+  "</tr></table>"
+  "<menu.context id='"+j.tid+"-menu'>"
+  ""+j.menu+""
+  "</menu>"
+  "</div>"
+  );
+  SandcatUIX.Update();
+ }
+}
+</script>
+<body engine="tab.tasks">
+<div #tasks>
+</div>
+</body>
+</html>

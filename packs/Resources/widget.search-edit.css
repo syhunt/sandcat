@@ -1,0 +1,57 @@
+widget.search-edit,
+widget.search-edit-ro
+{
+ background-color: #fff;
+ background-repeat:stretch;
+ margin-left: 10px;
+ flow: horizontal;
+ border: 1px solid #999;
+ border-radius: 4px 4px 4px 4px;
+ height: 16px;
+ margin-top:0px;
+ padding-bottom:3px;
+}
+
+widget.search-edit:hover,
+widget.search-edit-ro:hover
+{
+	outline:1px glow #0099FF 1px;
+	border: 1px solid #999;
+}
+
+widget.search-edit > widget[type=text]
+{
+ background-image: none;
+ padding: 0px;
+ margin-top:4px;
+ width:*;
+}
+
+widget.search-edit > widget[type=text]:hover
+{
+ color: #003F7D;
+}
+
+widget.search-edit > widget[type=text]:empty
+{
+ color:silver;
+}
+	  
+widget.search-edit > widget[type=button]
+{
+ width:22px;
+ foreground-repeat:no-repeat;
+ background-image:none;
+}
+
+widget.search-edit > widget[type=button]:has-children
+{
+ width: 22px;
+ foreground-position:3px 3px;
+}
+
+widget.search-edit > widget[type=button]:has-children > text
+{
+ font:8.5pt Marlett;
+ margin:* 0 0 *;
+}

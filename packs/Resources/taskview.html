@@ -1,0 +1,37 @@
+<html>
+<head>
+<meta name="uix_regall" content="false">
+<style>
+body {margin:0;}
+li.stop {foreground-image: @ICON_STOP;}
+li.remove {foreground-image: url(Resources.pak#16\icon_remove.png);}
+</style>
+<script type="text/tiscript">
+function handle_li_click() {
+ SandcatHandlers.handle_click(this,this.attributes["onclick"]);
+ Sandcat.RunLuaQ($(#btnrefresh).attributes["onclick"]);
+}
+for(var e in $$("li[class='remove']")) e.onClick = handle_li_click;
+for(var e in $$("li[class='stop']")) e.onClick = handle_li_click;
+</script>
+</head>
+<body>
+
+<div style="width:100%%;height:100%%;">
+<widget type="select" style="padding:0;">
+<table name="reportview" width="100%" cellspacing=-1px fixedrows=1>
+<tr>
+<th style="width:200px;">Name</th>
+<th style="width:80px;">Progress</th>
+<th style="width:*;">Status</th>
+<th style="width:80px;">ID</th>
+<th style="width:80px;">PID</th>
+<th style="width:70px;"></th>
+</tr>
+%tasks%
+</table>
+</widget>
+</div>
+
+</body>
+</html>

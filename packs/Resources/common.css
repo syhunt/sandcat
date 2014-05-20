@@ -1,0 +1,27 @@
+select.file-list > option
+{
+ behavior:file-icon;
+ padding:2px 2px 2px 20px;
+ foreground-repeat: no-repeat;
+ foreground-position: 2px 50%;
+}
+
+widget.file-list.large { width:100%; height:*; flow:h-flow; border-spacing:3px; }
+
+widget.file-list.large > option {
+behavior:file-icon; -icon-size:"large"; // use large icons
+padding:40px 2px 2px 2px;
+foreground-repeat: no-repeat;
+foreground-position: 50% 2px;
+/*width:max-intrinsic;*/
+width:80px;
+height:20px;
+overflow-x: hidden;
+text-align: center;
+text-overflow: ellipsis;
+}
+
+widget[type="select"]
+{
+ width:100%%;height:100%%;
+}

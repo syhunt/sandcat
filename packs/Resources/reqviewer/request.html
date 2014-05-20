@@ -1,0 +1,17 @@
+ <widget .toolbar .headreqtoolbar>
+  <widget .tb-button onclick="ReqViewer:sendrequest()" title="Send/Replay Request"><img src="Resources.pak#16\icon_run.png" /></widget>
+  <widget .tb-button onclick="ReqViewer:loadheaders()" title="Reload Request"><img src="Resources.pak#16\icon_repeat.png" /></widget>
+  <widget .tb-button onclick="ReqViewer:editrequest('http')" title="Load in Request Builder"><img src="Resources.pak#16\icon_injection.png" /></widget>
+  <hr/>
+  <widget .tb-button onclick="ReqViewer:openrequest()" title="Open Request..."><img src="Resources.pak#16\icon_open.png" /></widget>
+  <widget .tb-button onclick="ReqViewer:saverequest()" title="Save Request As..."><img src="Resources.pak#16\icon_save.png" /></widget>
+  <hr/>
+  <widget .tb-button command=richtext:cut   title="Cut"><img style="foreground-image: @ICON_CUT" /></widget>
+  <widget .tb-button command=richtext:copy  title="Copy"><img style="foreground-image: @ICON_COPY" /></widget>
+  <widget .tb-button command=richtext:paste title="Paste"><img style="foreground-image: @ICON_PASTE" /></widget>
+  <hr/>
+  <widget .tb-button command=richtext:undo  title="Undo"><img style="foreground-image: @ICON_UNDO" /></widget>
+  <widget .tb-button command=richtext:redo  title="Redo"><img style="foreground-image: @ICON_REDO" /></widget>
+  <hr/>
+  <widget .tb-button onclick="browser.newtab(ReqViewer.ui.url.value)" title="Open URL in New Tab"><img src="Resources.pak#16\icon_opennewtab.png" /></widget>
+ </widget>

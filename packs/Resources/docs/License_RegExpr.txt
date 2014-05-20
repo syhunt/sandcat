@@ -1,0 +1,31 @@
+Copyright (c) 1999-2004 Andrey V. Sorokin, St.Petersburg, Russia
+
+ You may use this software in any kind of development,
+ including comercial, redistribute, and modify it freely,
+ under the following restrictions :
+ 1. This software is provided as it is, without any kind of
+    warranty given. Use it at Your own risk.The author is not
+    responsible for any consequences of use of this software.
+ 2. The origin of this software may not be mispresented, You
+    must not claim that You wrote the original software. If
+    You use this software in any kind of product, it would be
+    appreciated that there in a information box, or in the
+    documentation would be an acknowledgement like
+
+     Partial Copyright (c) 2004 Andrey V. Sorokin
+                                http://RegExpStudio.com
+                                mailto:anso@mail.ru
+
+ 3. You may not have any income from distributing this source
+    (or altered version of it) to other developers. When You
+    use this product in a comercial package, the source may
+    not be charged seperatly.
+ 4. Altered versions must be plainly marked as such, and must
+    not be misrepresented as being the original software.
+ 5. RegExp Studio application and all the visual components as 
+    well as documentation is not part of the TRegExpr library 
+    and is not free for usage.
+
+                                    mailto:anso@mail.ru
+                                    http://RegExpStudio.com
+                                    http://anso.da.ru/

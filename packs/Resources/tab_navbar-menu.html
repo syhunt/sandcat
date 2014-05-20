@@ -1,0 +1,34 @@
+<menu.popup id="navbarmenu-list">
+		  <li id="tnewtab" style="foreground-image: @ICON_PLUS" onclick="browser.newtab()">New Tab</li>
+		  <!--li id="tnewconsole" style="foreground-image: @ICON_CONSOLE" onclick="browser.newtabcs()"--><!--New Console Tab--><!--/li-->
+		  <li id="tnewwindow" onclick="browser.newwindow()">New Window</li>
+      <hr/>
+      <li #tcache style="foreground-image: url(Resources.pak#16\icon_storage.png);">Cache
+		   <menu #tcachemenu>
+			 <li style="foreground-image: url(Resources.pak#16\icon_appcacheview.png);" onclick="browser.newtab('chrome://appcache-internals/')">Application Cache</li>
+			 <li onclick="browser.newtab('chrome://blob-internals/')">Blob Storage</li>
+       <li onclick="browser.newtab('chrome://view-http-cache/')" style="display:none;">HTTP Cache</li>
+			 <hr/>
+       <li id="tclearpriv" onclick="Sandcat:ClearPrivateData()">Clear Browsing Data...</li>
+		   </menu>
+      </li>
+		  <hr/>
+			<li id="tbookmarks" style="foreground-image: url(Resources.pak#16\icon_bookmarks.png);" onclick="PageMenu:ViewBookmarks()">Bookmarks</li>
+			<li id="tdownloads" style="foreground-image: url(Resources.pak#16\icon_downloads.png);" onclick="PageMenu:ViewDownloads()">Downloads</li>
+			<li id="ttasks" style="foreground-image: url(Resources.pak#16\icon_tasks.png);" onclick="PageMenu:ViewTasks()">Tasks</li>
+			<li id="thistory" style="foreground-image: url(Resources.pak#16\icon_blank.png);" onclick="PageMenu:ViewHistory()">History</li>
+		  <hr/>
+      <li>Import & Export
+        <menu id="tsetiemenu">
+         <li onclick="Sandcat:ImportPreferences()">Import Preferences...</li>
+         <hr id="tsetiesep"/>
+         <li onclick="Sandcat:ExportPreferences()">Export Preferences...</li>
+         <li onclick="PageMenu:SaveCacheAs()" style="display:none;">Export Cache...</li>
+        </menu>
+      </li>
+		  <hr/>
+			<li id="tprefs" onclick="Sandcat:EditPreferences()">Preferences...</li>
+			<li id="tabout" onclick="Sandcat:ShowAbout()">About Syhunt Sandcat</li>
+			<hr/>
+			<li id="texit" onclick="browser.exit()">Exit</li>
+</menu>

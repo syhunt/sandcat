@@ -1,0 +1,26 @@
+<html>
+
+<head>
+<include src="Resources.pak#head.html"/>
+<link rel="stylesheet" type="text/css" href="Resources.pak#tabbar.css">
+<script type="text/tiscript" src="Resources.pak#tabbar.tis"/>
+</head>
+
+<body engine="tabbar">
+
+<div #tabs .tabs>
+<div #tabstrip .strip>
+</div>
+</div>
+
+<popup id="for-sandcat_newtab">New Tab</popup>
+<popup id="for-sandcat_closetab">Close Tab</popup>
+<menu.context id="tabmenuext">
+<li class="newtab" id="newtab" onclick="PageMenu.NewTab()">New Tab</li>
+<!--li id="newcstab" class="newcstab" onclick="browser.newtabcs()"--><!--New Console Tab--><!--/li-->
+<hr id="newsep"/>
+<li onclick="PageMenu:CloseAllTabs()">Close All Tabs</li>
+<li onclick="PageMenu:CloseAllButActiveTab()">Close All but Active</li>
+</menu>
+</body>
+</html>

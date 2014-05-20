@@ -1,0 +1,92 @@
+
+  widget[type="select"]
+  {
+    width:100%%;height:100%%;
+  }
+  
+  widget[name="iconview"]
+  {
+    flow:h-flow; /* left-to-right , top-to-bottom */
+  }
+  widget[name="iconview"] > option
+  {
+    width:*; /* span */
+    height:*; /* span whole row */
+    border:1px solid silver;
+    margin:1px;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+  }
+  widget[name="iconview"] > option:nth-child(4n)
+  {
+    clear:left; /* four items per row */
+  }
+
+  widget[name="listview"]
+  {
+    flow:v-flow; /* left-to-right , top-to-bottom */
+    overflow-x:auto;
+  }
+  widget[name="listview"] > option
+  {
+    width:100px; 
+    white-space:normal;
+    border:1px solid silver;
+    margin:1px;
+  }
+  
+  widget[name="listview"]
+  {
+    flow:v-flow; /* left-to-right , top-to-bottom */
+    overflow-x:auto;
+  }
+  widget[name="listview"] > option
+  {
+    width:100px; 
+    border:1px solid silver;
+    margin:1px;
+  }
+
+  table[name="reportview"]
+  {
+    width:100%%;
+    /* width:max-intrinsic; natural width */
+    height:100%%;
+    overflow:auto;
+    behavior:column-resizer;
+    /*background: url(theme:edit-normal) stretch;*/
+    padding:1px;
+    font:system;
+    line-height:1.4em;
+  }
+  table[name="reportview"] th
+  {
+    background-image: url(theme:column-header-normal);
+    background-repeat: stretch;
+    font-weight: normal;
+    height:21px;
+  }
+  table[name="reportview"] th:hover
+  {
+    background-image: url(theme:column-header-hover);
+  }
+  table[name="reportview"] th:active
+  {
+    background-image: url(theme:column-header-pressed);
+  }
+    
+  table[name="reportview"] td /* all cells */
+  {
+    padding:0 4px;
+    border-bottom:1px solid silver;
+    text-overflow:ellipsis;
+    overflow-x:hidden;
+    white-space:nowrap;
+    border:0;
+  }
+  
+  table[name="reportview"] tr:current td /* all rows */
+  {
+    background-color: highlight;
+    color: highlighttext;
+  }

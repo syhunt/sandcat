@@ -1,0 +1,59 @@
+<html>
+<head>
+
+<link rel="stylesheet" type="text/css" href="Resources.pak#pagebar.css">
+<include src="Resources.pak#head.html"/>
+<style>
+body { font:system; margin:0; }
+li.closetab { foreground-image:@ICON_CLOSE; }
+#mainpage {  }
+</style>
+</head>
+
+
+<script type="text/tiscript">
+type Tabs
+{
+ function HideAll() {
+  for(var e in $$("div[panel]")) e.style["display"] = "none";
+ }
+ function RemoveAll() {
+  for(var e in $$("div[panel]")) e.remove();
+ }
+ function Add(name,clickcode) {
+  var ts = $("div.strip");
+  ts.insert(
+  "<div panel='"+name+"' onclick='"+clickcode+"' style='context-menu: selector(#"+name+"-menu);'>"+name+"</div>",
+  ts.length-1);
+  var menus = $("#menus");
+  menus.insert(
+  "<menu.context id='"+name+"-menu'>"
+  "<li .closetab onclick='browser.closepage([["+name+"]])'>Close Page</li>"
+  "</menu>"
+  );
+  SandcatUIX.Update();
+ }
+ function Select(name) {
+  var tab = $("div[panel='"+name+"']");
+  if (tab != undefined) {
+   if (tab.current != true) tab.current = true;
+  }
+ }
+}
+</script>
+
+<body engine="browser.pagebar">
+   <div #tabs .tabs>
+      <div #tabstrip .strip>
+         <div #mainpage panel="browser" onclick="browser.setactivepage('browser')" selected>browser</div>
+         <div panel="source" onclick="browser.setactivepage('source')">source</div>
+         <div panel="resources" onclick="browser.setactivepage('resources')">resources</div>
+         <div panel="console" onclick="browser.setactivepage('console')" style="display:none;">console</div>
+         <div panel="codeedit" onclick="browser.setactivepage('codeedit')" style="display:none;">codeeditor</div>
+         <div panel="log" onclick="browser.setactivepage('log')">log</div>
+      </div>
+   </div>
+<div #menus>
+</div>
+</body>
+</html>

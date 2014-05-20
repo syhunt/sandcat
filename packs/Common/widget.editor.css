@@ -1,0 +1,145 @@
+    @const COLOR_BASE: threedface;
+    @const COLOR_SHADOW: threedshadow;
+    @const COLOR_LIGHT: threedhighlight;
+    @const COLOR_BACK_LIGHT: scrollbar;
+    @const BORDER: 1px solid @COLOR_SHADOW;
+    @const BUTTON_BACK_NORMAL: url(theme:toolbar-button-normal) stretch;	
+    @const BUTTON_BACK_HOVER: url(theme:toolbar-button-hover) stretch;
+    @const BUTTON_BACK_ACTIVE: url(theme:toolbar-button-pressed) stretch;
+    @const BUTTON_BACK_CHECKED: url(theme:toolbar-button-checked) stretch;
+	  @const BUTTON_BACK_CHECKED_HOVER: url(theme:toolbar-button-checked-hover) stretch;
+    @const BUTTON_BACK_DISABLED: url(theme:toolbar-button-disabled) stretch;
+            
+    widget.editor
+    {
+      width:*;
+      height:*;
+      min-height:100px;
+      border:@BORDER;
+      style-set: "richtext-editor"; // to isolate this thing from other styles
+    }
+
+    @set richtext-editor
+    {
+      richtext
+      {
+        padding:0;
+        background-color:window;
+        background-image:none;
+        behavior: ~ richtext-current-objects;
+        width:*;
+        height:*;
+        overflow-x:auto;
+        overflow-y:scroll;
+        font: 10pt Verdana;
+      }
+      widget.toolbar
+      {
+        flow:horizontal;
+        height:24px;
+        background-color: threedface;
+        border-bottom:@BORDER;
+        padding:2px;
+      }
+        
+      widget.tb-button
+      {
+        //prototype: ToolbarButton;
+        font-family:tahoma arial;
+        behavior: clickable;
+        padding:3px;
+        width:20px;
+        height:*;
+        text-align:center;
+        vertical-align:middle;
+        background: @BUTTON_BACK_NORMAL;
+      }
+   
+      widget.tb-button:disabled
+      {
+        background: @BUTTON_BACK_DISABLED;
+        color:threedshadow;
+      }    
+      widget.tb-button:disabled img
+      {
+        foreground-image-transformation: contrast-brightness-gamma(0.15,0.75,1.0);
+      }    
+      
+      widget.tb-button:hover:not(:disabled)         { background: @BUTTON_BACK_HOVER; }    
+      widget.tb-button:active:not(:disabled)        { background: @BUTTON_BACK_ACTIVE; padding:4px 2px 2px 4px; }    
+      widget.tb-button:checked:not(:disabled)       { background: @BUTTON_BACK_CHECKED; }    
+      widget.tb-button:checked:hover:not(:disabled) { background: @BUTTON_BACK_CHECKED_HOVER; }    
+      
+      widget.tb-button.h:not(:disabled) { color:threedshadow; }    
+      widget.tb-button.h:not(:disabled) b { color:windowtext; }    
+
+      widget.toolbar > hr
+      {
+        width:0;
+        height:*;
+        margin: 0 2px;
+        border: 1px solid;
+        border-color: @COLOR_SHADOW @COLOR_LIGHT @COLOR_LIGHT @COLOR_SHADOW;
+      }    
+      
+    } // end of @set richtext-editor
+
+    div.shortcuts
+    {
+        border:1px solid threedshadow;	
+        background: infobackground;
+        width:*;
+        height:*;
+        overflow:auto;
+    }
+    
+    div.shortcuts > caption
+    {
+      padding-left:30px;
+      font-weight:bold;
+      margin:10px 0;
+    }
+
+    div.shortcuts > ul
+    {
+	    width:*;
+	    height:*;
+      padding-left:30px;
+    }
+    div.shortcuts > ul > li
+    {
+      padding:4px 0;
+    }
+	
+    div.shortcuts kbd
+    {
+      background-color: white;
+      border: 1px solid threedshadow;
+      display: inline-block;
+      width:max-intrinsic;
+      padding:0 4px;
+    }
+    
+    div.shortcuts:tab-focus
+    {
+      border-color:orange;	
+    }
+    
+    // current objects indicator bar
+    ul#current-objects
+    {
+      flow:horizontal;
+      margin:0;
+      padding:0;
+      background-color: @COLOR_BASE;
+      overflow-x:hidden;
+    }
+    ul#current-objects > li
+    {
+      display:block;
+      width:max-intrinsic;
+      padding:2px 4px;
+      margin:2px;
+      background-color: @COLOR_BACK_LIGHT;
+      border: @BORDER;
+    }

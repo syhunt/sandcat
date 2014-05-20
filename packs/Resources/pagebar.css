@@ -1,0 +1,74 @@
+html {
+ background-color: threedface threedface window window;
+}
+
+.tabs 
+{
+ font:system;
+ behavior:tabs;
+ height:*;
+ width:*;
+ overflow:hidden;
+ border-top:1px solid threedshadow;
+ background-color: threedface threedface window window;
+}
+
+.tabs > .strip /* the tab strip */
+{
+ flow: horizontal;
+ width:*;
+ padding: 0 10px 4px 10px;
+ /*background-color: threedface threedface window window;
+ border-top:1px solid threedshadow;  */
+}
+
+.tabs > .strip > [panel] /* the tab having panel attribute, passive by default */
+{
+ padding: 2px 8px 4px 8px;
+ height: *; /* span the whole row */
+ max-width: auto; /* not wider than max-intrinsic  */
+ background-color: threedface threedface window window;
+ border-radius: 0 0 6px 6px;
+ border-style:solid;
+ border-color:threedshadow;
+ border-width:0 1px 1px 1px;
+ margin:0 -1px;
+ /*cursor:pointer;*/
+}
+
+.tabs > .strip > [panel]:hover /* passive tab */
+{
+  /*border-top-color: orange;
+  color:blueviolet;*/
+  background-color-top-right: window;
+  background-color-top-left: window;
+}
+.tabs > .strip > [panel]:current  /*active tab*/
+{
+ margin:-1px -2px -2px -2px;
+ padding: 5px 10px 4px 10px; 
+ background-color-top-right: #b0c9de;
+ background-color-top-left: #b0c9de;
+ position:relative;
+}
+
+.tabs > .strip > [panel]:current:hover /*active tab*/
+{
+  /*color:red;*/
+}
+
+.tabs:tab-focus > .strip > [panel]:current > * /* outline active tab content if we've gotten focus by tab*/
+{
+ outline: 1px dotted invert;
+}
+
+.tabs > [name] { display:none; }
+.tabs > [name]:expanded /* current panel */
+{ 
+ padding:4px;
+ display:none; /* display:block; */
+ width:*;
+ height:*;
+ border:1px solid threedshadow;  
+ border-bottom-style:none;  
+}

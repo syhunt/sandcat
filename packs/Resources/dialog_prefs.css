@@ -1,0 +1,69 @@
+body {
+ margin:0;
+ overflow:hidden;
+ width:600px; 
+ height:350px;
+ background-color:threedlightshadow;
+}
+.optgroup { padding-left:10px;padding-right:5px;padding-bottom:5px;}
+button.adv {width:*;}
+button.subopt { margin-left:20px; }
+input[type="text"] {width:*;}
+div.sep { height:3px;}
+legend.transp { background-color:transparent;}
+fieldset > legend { background-color:threedlightshadow; color:black; }
+
+#icon_general { foreground-image:url(Resources.pak#32\icon_general.png);}
+#icon_extensions { foreground-image:url(Resources.pak#32\icon_lua.png);}
+#icon_storage { foreground-image:url(Resources.pak#32\icon_storage.png);}
+#icon_content { foreground-image:url(Resources.pak#32\icon_js.png);}
+#icon_advanced { foreground-image:url(Resources.pak#32\icon_advanced.png);}
+#icon_console { foreground-image:url(Resources.pak#32\icon_console.png);}
+
+.icontabs
+{ 
+ behavior:tabs;
+ width:100%%;
+ height:100%%;
+}
+
+.icontabs > .strip
+{ 
+ flow:horizontal;
+ padding-top:0px;
+ padding-left:20px;
+ background-color: white;
+}
+
+.icontabs > .strip > [panel]
+{ 
+ color:black;
+ background:white;
+ max-width:auto;
+ padding:5px;
+ width:50px;
+}
+
+.icontabs > .strip > [panel]:hover 
+{ 
+ color:gray;
+}
+
+.icontabs > .strip [panel]:current /* selected tab */
+{ 
+ background: @COLOR_SAND;
+ color:black;
+ margin-bottom:0;
+}
+
+.icontabs > [name] { display:none; }
+
+.icontabs > [name]:expanded
+{ 
+ height:100%%;
+ display:block;
+ padding: 12px;
+ border:0;
+ background:threedlightshadow;
+ border-top:1px solid threedshadow;
+}

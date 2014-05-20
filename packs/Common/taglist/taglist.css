@@ -1,0 +1,31 @@
+  select.tag-list { 
+      padding:0; 
+      display:block; 
+      flow:horizontal; 
+      width:*; 
+      height:2.2em; 
+      overflow-x:scroll-indicator; 
+      overflow-y:none; 
+      vertical-align:middle;
+    }
+    select.tag-list > option { 
+      prototype:ArrowLabel; 
+      /*border:1px solid threedshadow;*/
+      background-color:#FFF; 
+      vertical-align:center;
+      width:max-intrinsic; 
+      height:*;
+      margin:3px; 
+      padding:1px 0.4em 0px 0.7em;
+      hit-margin:3px 6px;
+    }
+    select.tag-list > option:current 
+    { 
+      background-color:threeddarkshadow; 
+      color:highlighttext;  
+    }
+    select.tag-list:focus > option:current 
+    { 
+      background-color:highlight; 
+      color:highlighttext;  
+    }

@@ -1,0 +1,24 @@
+function FixTabs() {
+
+ for(var btn in $$(div)) {
+  var panel = btn.attributes["panel"];
+  if (undefined != panel) {
+   var selected = btn.attributes["selected"];
+   if (selected != undefined) {
+   btn.current = true;
+   }
+  }
+ }
+
+ // tab fix 2 (displays the tab content)
+ for(var btn in $$(div)) {
+  var panel = btn.attributes["class"];
+  if ("tab" == panel) {
+   var selected = btn.attributes["selected"];
+   if (selected != undefined) {
+   btn.expanded = true;
+   }
+  }
+ }
+ 
+}

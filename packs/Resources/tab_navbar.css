@@ -1,0 +1,77 @@
+@const ICON_GLOBE: url(Resources.pak#16\icon_globe.png);
+@const ICON_GOOGLE: url(Resources.pak#16\icon_google.png);
+@const ICON_RELOAD: url(Resources.pak#16\icon_reload.png);
+@const ICON_SECURE: url(Resources.pak#16\icon_secure.png);
+@const ICON_GOBACK: url(Resources.pak#16\icon_goback.png);
+@const ICON_GOFORWARD: url(Resources.pak#16\icon_goforward.png);
+@const ICON_TASK_RUNSM: url(Resources.pak#16\icon_tasksani.gif);
+@const ICON_FAVORITE: url(Resources.pak#16\icon_favorite.png);
+@const ICON_CHECKED_RED: url(Resources.pak#16\icon_checkedred.png);
+@const ICON_CHECKED: url(Resources.pak#16\icon_checked.png);
+
+html
+{
+  overflow: hidden;
+}
+
+body
+{
+  font:system;
+  background-color: threedhighlight threedhighlight threedlightshadow threedlightshadow;
+  margin:0;
+  padding: 4px 6px;
+  border-right: 1px solid threedshadow;
+  border-left: 1px solid threedhighlight;
+  border-bottom: 1px solid threedshadow;
+}
+
+.inputbox{
+	margin-left: 10px;
+	width:100%%;
+	color: #666;
+}
+.inputbox input[type=text]{
+	color: #000;
+	border: 1px solid #999;
+	background-image: none;
+	background-color: #fff;
+	border-radius: 4px 4px 4px 4px;
+	height: 16px;
+}
+.inputbox input[type=text]:hover{
+	color: #003F7D;
+  outline:1px glow #0099FF 1px;
+	border: 1px solid #999;
+}
+
+.inputbox input:empty { color:silver; }
+
+#url {
+padding-left:24px;
+foreground-image: @ICON_BLANK;
+foreground-repeat: no-repeat;
+foreground-position:3px 50%;
+context-menu: selector(menu#context-url);
+}
+
+#tasks {
+ foreground-image: @ICON_TASKS;
+ width:16px;
+ height:16px;
+ margin-right:4px;
+ margin-left:4px;
+}
+#tasks:hover {
+ width:16px;
+ height:16px;
+ foreground-image-transformation: colorize(#0099FF);
+}
+#bookmark {
+ foreground-image: @ICON_FAVORITE;
+ border-radius: 0px;
+ margin-right:0px;
+ border-right:0px;
+ background-color:white;
+ border-left:0px;
+ foreground-image-transformation: colorize(gray);
+}

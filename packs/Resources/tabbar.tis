@@ -1,0 +1,89 @@
+type Tabs
+{
+ 
+ function Tab_onMouse(evt) {
+  if( evt.type == Event.DROP ) {
+   var newtabbtn = $("div.newtab");
+   if (newtabbtn != undefined) newtabbtn.remove();
+   Tabs.AddNewTabButton();
+   return true;
+  }
+  if( evt.type == Event.DRAG_ENTER ) {
+   $("div.newtab").style["display"] = "none";
+   return true;
+  }
+  if( evt.type == Event.DRAG_LEAVE ) {
+   $("div.newtab").style["display"] = "block";
+   return true;
+  }
+ }
+ 
+ function AddNewTabButton() {
+  var ts = $("div.strip");
+  ts.insert(
+  "<div .newtab panel='newtab' onclick='PageMenu:NewTab()' titleid='for-sandcat_newtab'>"
+  "<img src='Resources.pak#16\\icon_blank.png'>"
+  "</div>"
+  );
+  Update();
+ }
+ 
+ function Update() {
+   var allbtn = $$("button[class='closetab']");
+   if (allbtn.length == 1) {
+    allbtn.first.style["visibility"] = "hidden";
+   } else {
+    for(var btn in allbtn) btn.style["visibility"] = "visible";
+   }
+  SandcatUIX.Update();
+  var ts = $("div.strip");
+  ts.onMouse = Tab_onMouse;
+ }
+ 
+ function RemoveTab(name) {
+  $("div[panel='"+name+"']").remove();
+  $("div[name='"+name+"']").remove();
+  var pop = $("popup[id='for-sandcat_"+name+"']");
+  if (pop != undefined) pop.remove();
+  Tabs.Update();
+ }
+ 
+ function HideTab(name) {
+  $("div[panel='"+name+"']").style["display"] = "none";
+ }
+ 
+ function SelectTab(name) {
+  $("div[panel='"+name+"']").current = true;
+  Tabs.Update();
+ }
+ 
+ function AddTab(name) {
+  var nt = $("div.newtab");
+  if (nt != undefined) nt.remove();
+  var ts = $("div.strip");
+  ts.insert(
+   "<div .tabpanel panel='"+name+"' style='max-width:200px;context-menu: selector(menu#context-"+name+");' titleid='for-sandcat_"+name+"' onclick='browser.gototab([["+name+"]])'>"
+   "<img .tabicon style='width:16px;height:16px;' id='"+name+"'>"
+   "<code .tabtitle id='"+name+"'>New Tab</code>"
+   "<button id='"+name+"' class='closetab' onclick='browser.closetab([["+name+"]])' titleid='for-sandcat_closetab'/>"
+   "<popup id='for-sandcat_"+name+"'>New Tab</popup>"
+   "<popup>"
+   "<menu.context id='context-"+name+"'>"
+   ""+$("#tabmenuext").html+""
+   "<hr/>"
+   "<li class='closetab' onclick='browser.closetab([["+name+"]])'>Close Tab</li>"
+   "</menu>"
+   "</popup>"
+   "</div>"
+  );
+  Tabs.AddNewTabButton();
+  var t = $("div.tabs");
+  t.insert(
+    "<div name='"+name+"' class='tab'></div>"
+  );
+  var tab = $("div[panel="+name+"]");
+  tab.current = true;
+  //Tabs.Update();
+ }
+}
+

@@ -1,0 +1,118 @@
+@set virtual-grid 
+{
+  :root 
+  {
+    prototype: VGrid;
+    
+    //background-color:window;
+    //border:1px solid threedshadow;
+    flow: horizontal;
+  }
+  :root > table 
+  { 
+    width:*;
+    height:*;
+    background-color:window;
+    overflow-x:auto; /* but x is scrollable */
+    border-spacing:0;
+  }
+  
+  :root > table > tbody
+  { 
+    width:*;
+    height:*;
+    overflow:auto;
+    border-spacing:0px;
+  }
+  
+  :root > table > thead
+  {
+    border-spacing:0;
+    behavior:column-resizer;    
+  }
+  
+  :root > table > thead > tr > th
+  {
+    /*width:*;*/
+    min-width:1em;
+    font:system;
+    line-height: 1.9em;
+    white-space:nowrap; overflow-x:hidden; text-overflow:ellipsis; /* ellipsis */
+    background: url(theme:column-header-normal) stretch;
+  }
+  
+  :root > table > thead > tr > th[sortType='ascending']
+  {
+    foreground-image:url("stock:arrow-down"); 
+    foreground-position-top: 50%;
+    foreground-position-right: 5px;
+    foreground-repeat: no-repeat;
+  }
+  
+  :root > table > thead > tr > th[sortType='descending']
+  {
+    foreground-image:url("stock:arrow-up"); 
+    foreground-position-top: 50%;
+    foreground-position-right: 5px;
+    foreground-repeat: no-repeat;  
+  }
+    
+  :root > table > thead > tr > th:hover
+  {
+    background-image: url(theme:column-header-hover);
+  }
+  :root > table > thead > tr > th:active
+  {
+    background-image: url(theme:column-header-pressed);
+  }
+    
+  :root > table > tbody > tr > td
+  {
+    height: 1.4em; 
+    white-space:nowrap; overflow-x:hidden; text-overflow:ellipsis; /* ellipsis */
+    /*border-right: 1px solid threedlight;*/
+    padding-left:3px;
+    /*font-size: 10pt;*/
+  }
+    
+  :root > table > tbody > tr
+  {
+    /*border-bottom:1px solid threedface;*/
+  }
+
+  :root > table > tbody > tr[hidden]
+  {
+    visibility:hidden;
+    /*border-bottom:transparent;*/
+  }
+    
+  :root > table > tbody > tr[beforecurrent]
+  {
+    border-bottom:transparent;
+  }
+    
+  :root > table > tbody > tr:current
+  {
+    border-style:none;
+    background-color: highlight;
+    /*border-radius:4px;*/
+    color:highlighttext;
+    /*border-bottom:transparent;*/
+  }
+ 
+  :root > table > tbody > tr:current > td
+  {
+    border-right: 1px solid transparent;
+
+  }
+    
+  :root > [type="vscrollbar"]
+  {
+    visibility:collapse; /* initially invisible */
+  }
+  
+  :root > [type="vscrollbar"][visible]
+  {
+    visibility:visible;
+  }
+}

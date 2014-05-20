@@ -1,0 +1,45 @@
+@set small-v-scrollbar
+{
+  .prev 
+  { 
+    border:1px solid #AAA;
+  }
+  
+  .next 
+  { 
+    border:1px solid #AAA; 
+  }
+  
+  .base,
+  .next-page, 
+  .prev-page 
+  { 
+    background-image:url( sb-scroll-back.png ); 
+    background-position:5px 5px 5px 5px; /*left top right bottom offsets*/
+    background-repeat:expand; 
+  }
+  .slider 
+  { 
+    border:1px solid #AAA; 
+    background-color: silver;
+    min-height:32px;
+  }
+  
+  .next:disabled, .slider:disabled, 
+  .prev:disabled  { height:0; border:none; foreground-image:none; }
+  
+  .base:disabled
+  {
+    background-image:url( sb-scroll-base.png ); 
+    background-repeat:repeat; 
+  }
+    
+  .next:hover,   .slider:hover, 
+  .prev:hover     { background-color: #EEE; }
+  
+  .next:active,  .slider:active, 
+  .prev:active    { background-color: #FFF; }
+  
+  .base { width: 7px; } /* explicit declaration of scrollbar width */
+  
+}

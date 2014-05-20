@@ -1,0 +1,40 @@
+<html>
+<head>
+<style>
+body {margin:0;}
+%style%
+</style>
+<script type="text/tiscript">
+
+function handle_urlclick(evt) {
+   switch(evt.type) {
+     case Event.MOUSE_DCLICK: {
+       if (evt.mainButton == true) { 
+         Sandcat.GoToURL(this.attributes["url"],true);
+         return false;
+         }
+       }
+   }
+}
+
+for(var e in $$("tr[url]")) { e.onMouse = handle_urlclick; }
+</script>
+</head>
+<body>
+
+<div style="width:100%%;height:100%%;">
+<widget type="select" style="padding:0;">
+<table name="reportview" width="100%" cellspacing=-1px fixedrows=1>
+<tr>
+<th style="width:300px;">Name</th>
+<th style="width:*;">Address</th>
+<th .visited style="width:200px;">Visited</th>
+<th></th>
+</tr>
+%history%
+</table>
+</widget>
+</div>
+
+</body>
+</html>

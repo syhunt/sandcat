@@ -1,0 +1,49 @@
+type SandcatDownloader
+{
+ const EmptyFilter = "All files (*.*)|*.*|";
+ const ParseErrorMsg = "Error parsing received data";
+ function PrintToFile(s,filename) {
+  var stream = Stream.openFile(filename,"w");
+  if(!stream) return;
+  stream.print(s);
+  stream.close();
+ }
+ function GetURL(method,url,sel)
+ {
+   function done(data) {
+      var r = "";
+      //if( data instanceof Error ) r = ParseErrorMsg; else
+      if( data instanceof Bytes  ) r = data.toString("UTF-8");
+      else if( data instanceof String ) r = data;
+      else if( data instanceof Stream ) r = data.toString();
+      else r = String.printf("%V",data);
+      sel.value = r;
+      var script = sel.attributes["dlscript"];
+      if (script != undefined) Sandcat.RunLua(script);
+   }
+   var req = self.request(done, method, url);
+ }
+ function DownloadFile(url,destfile)
+ {
+   function done(data) {
+      if( data instanceof Error ) 
+       PrintToFile(ParseErrorMsg,destfile); // Error parsing received data
+      else if( data instanceof Bytes  ) data.save(destfile);
+      else if( data instanceof String ) PrintToFile(data,destfile);
+      else if( data instanceof Stream ) PrintToFile(data.toString(),destfile);
+      else PrintToFile(String.printf("%V",data),destfile); // Parsed data, print it as JSON
+   }
+   var req = self.request(done, #get, url);
+ }
+ function SaveURL_As(url,filter = EmptyFilter)
+ {
+    var destname = crackUrl(url);
+    var suggestion = destname.name_ext;
+    if (destname.ext == "") suggestion = destname.hostname+".html";
+    var destfile = view.selectFile(#save, filter, destname.ext, suggestion);
+    if (destfile != undefined) { DownloadFile(url,destfile); }
+ }
+ function SaveURL_AsJSON(j) {
+  SaveURL_As(j.url);
+ }
+}

@@ -1,0 +1,50 @@
+@const COLOR_SAND: #e9ddc5;
+@const GRAD_SAND: #efece5 #efece5 #d1c9b2 #d1c9b2;
+@const ICON_SANDCAT: url(Resources.pak#16\icon_sandcat.png);
+@const ICON_BLANK: url(Resources.pak#16\icon_blank.png);
+@const ICON_CLOSE: url(Resources.pak#16\icon_close.png);
+@const ICON_COPY: url(Resources.pak#16\icon_copy.png);
+@const ICON_CUT: url(Resources.pak#16\icon_cut.png);
+@const ICON_PASTE: url(Resources.pak#16\icon_paste.png);
+@const ICON_UNDO: url(Resources.pak#16\icon_undo.png);
+@const ICON_REDO: url(Resources.pak#16\icon_redo.png);
+@const ICON_EMPTY: url(Resources.pak#16\icon_empty.png);
+@const ICON_ERASE: url(Resources.pak#16\icon_erase.png);
+@const ICON_PLUS: url(Resources.pak#16\icon_plus.png);
+@const ICON_SAVE: url(Resources.pak#16\icon_save.png);
+@const ICON_STOP: url(Resources.pak#16\icon_stop.png);
+@const ICON_HELP: url(Resources.pak#16\icon_help.png);
+@const ICON_CONSOLE: url(Resources.pak#16\icon_console.png);
+@const ICON_TASK_RUNNING: url(Resources.pak#32/loading.gif);
+@const ICON_TASKS: url(Resources.pak#16\icon_tasks.png);
+@const MENU_EDIT: url(Resources.pak#behavior-edit-menu.html);
+@const MENU_EDIT_RICHTEXT: url(Resources.pak#behavior-richtext-menu.html);
+@const MENU_EDIT_TEXT: url(Resources.pak#behavior-text-menu.html);
+
+@set std-edit { :root { context-menu:@MENU_EDIT; } }
+@set std-number-edit { :root { context-menu:@MENU_EDIT; } }
+@set std-select-dropdown { :root[editable] > caption { context-menu:@MENU_EDIT; } }
+@set std-richtext { :root { context-menu:@MENU_EDIT_RICHTEXT; } }
+@set std-textarea { :root { context-menu:@MENU_EDIT_TEXT; } }
+@set std-time-edit { :root { context-menu:@MENU_EDIT; } }
+
+html { font-size: 8pt; font:system;}
+a:link   { color: #063B83; text-decoration: none; }
+a:hover  { color: #063B83; text-decoration: underline; }
+a:visited { color: #063B83; text-decoration: none; }
+div.container { width:100%%; height:100%%; }
+img.shell-icon { width:20px; height:20px; behavior: shell-icon; vertical-align:middle; }
+frame { border:1px solid black; }
+frame:busy { foreground-image:url(res:activity.gif); foreground-repeat: no-repeat; foreground-position: 2px 2px; }
+form { behavior:form; }
+code { font:system; }
+span.accesskey { color:windowtext; }
+menu > option:current span.accesskey, li:current span.accesskey { color:highlighttext; }
+menu > option:disabled span.accesskey, li:disabled span.accesskey { color:threedshadow; }
+plaintext { color:windowtext; }
+plaintext.editor { font-family:"Courier New"; font-size:13px; }
+input[type="file-path"]:empty > button { foreground: url(Resources.pak#16\icon_file_small.png) no-repeat 50% 50%; }
+input[type="folder-path"]:empty > button { foreground: url(Resources.pak#16\icon_folder_medium.png) no-repeat 50% 50%; }
+input[type="text"]:empty { color:silver; }
+img.lvfileicon { behavior:file-icon;vertical-align:middle; }
+

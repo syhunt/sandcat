@@ -1,0 +1,166 @@
+<html>
+<head>
+<title>Preferences</title>
+<link rel="stylesheet" type="text/css" href="Resources.pak#dialog_prefs.css">
+<script type="text/tiscript" src="{$PluginsDir}Resources.pak#dialog_prefs.tis"/>
+<script type="text/tiscript">
+ self.onControlEvent = function(evt)
+ {
+      if( evt.type == Event.DOCUMENT_COMPLETE ) {
+       importsettings();
+       sethandlers();
+      }
+ }
+
+ $(#ok).onClick = function() { view.close(); }
+ $(#cancel).onClick = function() { cancel_edit(); }
+ $(#btnadvjs).onClick = function() { this.popup( $(popup#advjs)); } 
+ $(#btnadvimg).onClick = function() { this.popup( $(popup#advimg)); } 
+ $(#btnadvfile).onClick = function() { this.popup( $(popup#advfile)); }
+ $(#btnviewappcache).onClick = function() { Sandcat.RunLua("browser.newtab('chrome://appcache-internals/')"); cancel_edit(); }
+ $(#btnclearpriv).onClick = function() { Sandcat.RunLua("Sandcat:ClearPrivateData()"); } 
+ $(#btncsdefcolors).onClick = function() {
+  // ToDo: make the color-chooser onChange work
+  var bgcolor = $(#csbgcolor);
+  var fontcolor = $(#csfontcolor);
+  bgcolor.value = "#262626";
+  fontcolor.value = "#ffffff";
+  update_option(bgcolor,bgcolor.value);
+  update_option(fontcolor,fontcolor.value);
+ }
+</script>
+</head>
+<body marginwidth="0" marginheight="0">
+<div #icontabs class="icontabs">
+<div #mainstrip class="strip">
+<div panel="panel-general" accesskey="G" selected><center><img #icon_general><br>General</center></div>
+<div panel="panel-content" accesskey="C"><center><img #icon_content><br>Content</center></div>
+<div panel="panel-storage" accesskey="S"><center><img #icon_storage><br>Storage</center></div>
+<div panel="panel-extensions" accesskey="E"><center><img #icon_extensions><br>Extensions</center></div>
+<div panel="panel-console" accesskey="O"><center><img #icon_console><br>Console</center></div>
+<div panel="panel-advanced" accesskey="A"><center><img #icon_advanced><br>Advanced</center></div>
+</div>
+
+<div name="panel-general" class="tab" selected>
+<fieldset><legend>Startup</legend>
+<div .optgroup>
+<select class="tag-list" type="select" cid="sandcat.startup.welcomemethod">
+<option value="blank" selected>Start with a blank page</option>
+<option value="homepage">Start with home page</option>
+</select><br><br>
+Home page: <input type="text" cid="sandcat.startup.homepage">
+</div>
+</fieldset>
+<fieldset><br>
+<div .optgroup>
+Custom user agent: <input type="text" cid="sandcat.browser.useragent"><br>
+</div>
+</fieldset>
+</div>
+
+<!-- engine tab begin-->
+<div name="panel-content" class="tab" >
+<fieldset><br>
+<div .optgroup>
+<button .adv type="checkbox" cid="chrome.options.javascript.enabled">Enable JavaScript</button><button #btnadvjs>Advanced...</button><br>
+<popup #advjs>
+<button type="checkbox" cid="chrome.options.javascript.access_clipboard">Allow access to Clipboard</button><br>
+<button type="checkbox" cid="chrome.options.javascript.close_windows">Allow to close windows</button><br>
+<button type="checkbox" cid="chrome.options.javascript.open_windows">Allow to open windows</button><br>
+<button type="checkbox" cid="chrome.options.javascript.dom_paste">Enable DOM paste</button>
+</popup>
+<div .sep/>
+<button .adv type="checkbox" cid="chrome.options.image.loading">Load images</button><button #btnadvimg>Advanced...</button><br>
+<popup #advimg>
+<button type="checkbox" cid="chrome.options.image.shrink_stand_alone_to_fit">Shrink to fit</button>
+</popup>
+<div .sep/>
+<button type="checkbox" cid="chrome.options.plugins">Enable plugins</button>(Flash, Media Player, etc.)<br>
+<div .sep/>
+<button type="checkbox" cid="chrome.options.java">Enable Java</button><br>
+<div .sep/>
+<button type="checkbox" cid="chrome.options.webgl">Enable WebGL</button><br>
+<div .sep/>
+<button type="checkbox" cid="chrome.options.author_and_user_styles">Enable author & user styles</button><br>
+</div>
+</fieldset>
+</div>
+<!-- engine tab end-->
+
+<!-- storage tab begin-->
+<div name="panel-storage" class="tab">
+<fieldset><br>
+<div .optgroup>
+<button .adv type="checkbox" cid="chrome.options.application_cache">Use application cache</button><button #btnviewappcache>View AppCache</button><br>
+<!--button type="checkbox" cid="chrome.options.page_cache">Enable page cache</button><br-->
+<button type="checkbox" cid="chrome.options.databases">Enable databases</button><br>
+<button type="checkbox" cid="chrome.options.local_storage">Enable local storage</button><br><br>
+</div>
+<p #cachebuttons style="margin:0;">
+<button #btnclearpriv>Clear Browsing Data...</button>
+</p>
+</fieldset>
+</div>
+<!-- storage tab end-->
+
+<!-- extensions tab begin-->
+<div name="panel-extensions" class="tab">
+<button type="checkbox" cid="sandcat.extensions.enabled"><b>Enable Sandcat extensions</b> (requires restart)</button><br><br>
+<widget type="select" style="padding:0;width:100%;height:*;">
+<table name="reportview" style="width:100%;height:*;" cellspacing=-1px fixedrows=1>
+<tr><th style="width:200px;">Name</th><th style="width:80px;">Version</th><th style="width:*;">Author</th><th style="width:70px;"></th></tr>
+%extensions%
+</table>
+</widget>
+</div>
+<!-- advanced tab end-->
+
+<!-- advanced tab begin-->
+<div name="panel-advanced" class="tab">
+<fieldset><legend>Browsing</legend>
+<div .optgroup>
+<button type="checkbox" cid="chrome.options.accelerated_compositing">Enable accelerated compositing</button><br>
+<button type="checkbox" cid="chrome.options.caret_browsing">Enable caret browsing</button><br>
+<button type="checkbox" cid="chrome.options.tab_to_links">Enable 'tab through links'</button><br>
+<button type="checkbox" cid="chrome.options.text_area_resize">Enable text area resize</button><br>
+</div>
+</fieldset>
+<fieldset><legend>Security</legend>
+<div .optgroup>
+<button type="checkbox" cid="chrome.options.websecurity">Enable web security</button>(same origin policy)<br>
+<button #btnadvfile style="float:right;">File Access...</button>
+<popup #advfile>
+<button type="checkbox" cid="chrome.options.fileurl.access">Allow file access from file URLs</button><br>
+<button type="checkbox" cid="chrome.options.fileurl.universal_access">Allow universal access from file URLs</button>
+</popup>
+</div>
+</fieldset>
+<button type="checkbox" cid="sandcat.startup.multiwin">Open new instance as window instead of tab</button><br>
+<!--button type="checkbox" cid="chrome.options.developer_tools">Enable Developer Tools</button><br-->
+</div>
+<!-- advanced tab end-->
+
+<!-- console tab begin-->
+<div name="panel-console" class="tab">
+<fieldset><legend>Colors</legend>
+<div .optgroup>
+Background color:
+<input type="color-chooser" id="csbgcolor" cid="sandcat.console.bgcolor" /><br><br>
+Font color:
+<input type="color-chooser" id="csfontcolor" cid="sandcat.console.font.color" /><br>
+<button #btncsdefcolors style="float:right;">Restore Default</button>
+</div>
+</fieldset>
+</div>
+<!-- console tab end-->
+
+<!--tabs end-->
+</div>
+
+<p style="text-align:right">
+<button #ok role="default-button" style="width:50px;margin-right:5px;">OK</button>
+<button #cancel style="width:50px;margin-right:10px;">Cancel</button>
+</p>
+
+</body>
+</html>

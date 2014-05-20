@@ -1,0 +1,75 @@
+.toolbar{
+	flow:horizontal;
+	white-space: nowrap;
+	text-align: left;
+	vertical-align:middle;
+}
+.sep{
+	width: 0px;
+	height: 80%;
+	margin: 0 4px;
+	vertical-align: middle;
+}
+.sepv{
+	width: 0px;
+	height: 100%;
+	margin: 0 4px;
+	border-left: 1px dotted #ccc;
+	border-right: 1px dotted #fff;
+	vertical-align: middle;
+}
+.button[ismain="true"] {
+ border: 1px solid threedshadow;
+}
+
+.button
+{
+	width: 22px;
+	height: 22px;
+	margin-right:2px;
+	vertical-align: middle;
+	behavior: clickable;
+	transition: blend;
+	/*cursor: pointer;*/
+	foreground-repeat:no-repeat;
+	foreground-position: 50% 50%;
+	border: 1px solid transparent;
+	/*border: 1px solid threedshadow;*/
+	background-image: url(theme:toolbar-button-normal);
+  background-repeat:stretch;
+  border-radius: 4px 4px 4px 4px;
+}
+.button:hover
+{
+	outline:1px glow #0099FF 1px;
+	background-image: url(theme:toolbar-button-hover);
+	background-repeat:stretch;
+	foreground-image-transformation: colorize(#0099FF);
+}
+.button:active
+{
+	border: 1px solid threedshadow;
+	foreground-position:4px 2px 2px 4px; 
+  background-image: url(theme:toolbar-button-pressed);
+  background-repeat:stretch;
+}
+.button:checked
+{
+  background-image: url(theme:toolbar-button-checked);
+}
+.button:checked:hover
+{
+  background-image: url(theme:toolbar-button-checked-hover);
+}
+.button:has-children > text
+{
+ font:8.5pt Marlett;
+ margin:* 0 0 *;
+ padding-left:4px;
+ padding-bottom:6px;
+}
+.button:has-children
+{
+ width: 30px;
+ foreground-position:3px 3px;
+}

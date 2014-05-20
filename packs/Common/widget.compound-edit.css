@@ -1,0 +1,33 @@
+widget.compound-edit, widget.compound-edit-ro
+		{
+				background-repeat:stretch;
+				padding:3px;
+        margin:4px;
+				flow: horizontal;
+		}
+				
+		widget.compound-edit-ro { background-image:url(theme:edit-disabled); }
+		widget.compound-edit    { background-image:url(theme:edit-normal); }
+
+		widget.compound-edit[has-focus],
+		widget.compound-edit-ro[has-focus]
+		{
+		  outline: 4px glow highlight;
+		}
+
+		widget.compound-edit > widget[type=text]
+		{
+			background-image: none;
+			padding: 0px;
+			margin:* 2px; // put it in the middle of the container (vertically)
+			width:*;
+			focus-on!:  self.parent().has-focus = true;
+			focus-off!: self.parent().has-focus = null;
+		}	
+	  
+    widget.compound-edit > widget[type=button]
+		{
+		  width:max-intrinsic;
+		  focus-on!:  self.parent().has-focus = true;
+                  focus-off!: self.parent().has-focus = null;
+		}

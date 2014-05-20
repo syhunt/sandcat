@@ -1,0 +1,60 @@
+   <menu.popup id="headersmenuflt-list">
+     <li #fltbymtd>By Method
+      <menu>
+      <li onclick="tab.headersfilter = 'method:GET'">GET</li>
+      <li onclick="tab.headersfilter = 'method:POST'">POST</li>
+      <li onclick="tab.headersfilter = 'method:HEAD'">HEAD</li>
+      </menu>
+     </li>
+     <li #fltbywebtype>By Web Type
+      <menu>
+      <li onclick="tab.headersfilter = 'type:htm|css|javascript|json|xml ext:htm|css|js|xml'">All Web Types</li>
+      <hr/>
+      <li onclick="tab.headersfilter = 'type:htm ext:htm'">HTML</li>
+      <li onclick="tab.headersfilter = 'type:css ext:css'">CSS</li>
+      <li onclick="tab.headersfilter = 'type:javascript ext:js'">JavaScript</li>
+      <li onclick="tab.headersfilter = 'type:json ext:json'">JSON</li>
+      <li onclick="tab.headersfilter = 'type:xml ext:xml'">XML</li>
+      </menu>
+     </li>
+     <li #fltbymediatype>By Media Type
+      <menu>
+      <li onclick="tab.headersfilter = 'type:image|audio|video'">All Media Types</li>
+      <hr/>
+      <li onclick="tab.headersfilter = 'type:image ext:bmp|gif|ico|jpg|jpeg|png|svg'">Image</li>
+      <li onclick="tab.headersfilter = 'type:audio'">Audio</li>
+      <li onclick="tab.headersfilter = 'type:video'">Video</li>
+      </menu>
+     </li>
+     <li #fltbyscriptext>By Script Extension
+      <menu>
+      <li onclick="tab.headersfilter = 'ext:asp|js|lua|lp|pl|php|py|psp|rb|vbs'">All Script Extensions</li>
+      <hr/>
+      <li onclick="tab.headersfilter = 'ext:asp'">ASP / ASP.Net</li>
+      <li onclick="tab.headersfilter = 'ext:js'">JavaScript</li>
+      <li onclick="tab.headersfilter = 'ext:jsp'">JSP</li>
+      <li onclick="tab.headersfilter = 'ext:lua|lp'">Lua</li>
+      <li onclick="tab.headersfilter = 'ext:pl'">Perl</li>
+      <li onclick="tab.headersfilter = 'ext:php'">PHP</li>
+      <li onclick="tab.headersfilter = 'ext:py|psp'">Python</li>
+      <li onclick="tab.headersfilter = 'ext:rb'">Ruby</li>
+      <li onclick="tab.headersfilter = 'ext:vbs'">VBScript</li>
+      </menu>
+     </li>
+     <li #fltbysite>By Site
+      <menu>
+      <li onclick="tab.headersfilter = 'site:'..scop.url.crack(tab.url).host">Current Site</li>
+      </menu>
+     </li>
+     <li #fltbystatus>By Status
+      <menu>
+      <li onclick="tab.headersfilter = 'status:200'">Found</li>
+      <hr/>
+      <li onclick="tab.headersfilter = 'status:404'">Not Found</li>
+      <li onclick="tab.headersfilter = 'status:403'">Forbidden</li>
+      <li onclick="tab.headersfilter = 'status:500'">Internal Server Error</li>
+      </menu>
+     </li>
+     <hr/>
+     <li #clearhdrflt onclick="tab.headersfilter = ''">Clear Filter</li>
+   </menu>

@@ -1,0 +1,74 @@
+	#thebar 
+	{
+	  width:100%%;	  
+	  height:max-intrinsic;
+    min-height:48px;
+	  margin:0;
+    padding:0;    
+	  border:1px solid #bdbccc;
+	  background-color: #fff;
+	  behavior:expandable-list;
+	  flow:horizontal;
+	  overflow-y:hidden;
+	  overflow-x:hidden;
+	}
+	
+	#thebar > li 
+	{
+	   transition:slide; /* sliding! */
+	   flow:horizontal;
+	   list-style-type:none;
+	   width:min-intrinsic; /* natural width */
+     background-color: #F4F3F9;
+     height:100%%;
+	} 
+
+  #thebar > li > .caption
+	{
+	  width:48px;
+	  height:100%%;
+	  text-align:center;
+	  vertical-align:middle;
+	  background-image:url(images/outlook/tab.png);
+	  background-repeat:expand stretch-left stretch-right stretch-middle;
+	  background-position:3px 3px 3px 3px;
+	} 
+
+  #thebar > li:collapsed > .caption:hover
+	{
+	  transition:blend;
+    background-image:url(images/outlook/tab-hover.png);
+	} 
+  
+  #thebar > li:collapsed > .caption:active
+	{
+    background-image:url(theme:button-pressed);
+	} 
+	
+  #thebar > li:expanded
+	{
+      width:100%%; /* whole idea - it takes all available space */ 	  
+	}
+  
+   #thebar > li:expanded > .caption
+	{
+	  background-image:none; 
+	} 
+
+	
+	#thebar > li > .content 
+	{
+    //display:none;	 /* hidden by default */ 
+    visibility: collapse;
+    vertical-align: middle;
+    white-space: nowrap;
+	  height:100%%; 
+	  width:0;
+	}
+	#thebar > li:expanded > .content 
+	{
+    //display:block; /* visible */
+    visibility: visible;
+    overflow-x:hidden;
+	  width:100%%; 
+	}

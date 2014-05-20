@@ -1,0 +1,38 @@
+<title>Clear Browsing Data</title>
+<style>
+html {
+ width:300px;
+}
+</style>
+<script type="text/tiscript">
+$(#clear).onClick = function() {
+ var v = view.msgbox( #alert, "All selected items will be deleted permanently.<br><br>Do you want to proceed?", "Warning", [#yes, #no]);
+ if (v == #yes) {
+  Sandcat.RunLua("browser.cleardata('beginclear')");
+  if ($(#cache).checked) { Sandcat.RunLua("browser.cleardata('cache')"); }
+  if ($(#appcache).checked) { Sandcat.RunLua("browser.cleardata('appcache')"); }
+  if ($(#cookies).checked) { Sandcat.RunLua("browser.cleardata('cookies')"); }
+  if ($(#databases).checked) { Sandcat.RunLua("browser.cleardata('databases')"); }
+  if ($(#history).checked) { Sandcat.RunLua("browser.cleardata('history')"); }
+  if ($(#settings).checked) { Sandcat.RunLua("browser.cleardata('settings')"); }
+  Sandcat.RunLua("browser.cleardata('check')");
+  view.close();
+ }
+}
+$(#cancel).onClick = function() {
+ view.close();
+}
+</script>
+
+<button #cache type="checkbox" checked>Cache</button><br>
+<button #appcache type="checkbox" checked>Application Cache</button><br>
+<button #cookies type="checkbox" checked>Cookies</button><br>
+<button #databases type="checkbox" checked>Databases</button><br>
+<button #history type="checkbox" checked>History</button><br>
+<button #settings type="checkbox">Settings</button>
+<br><br>
+
+<p style="text-align:right;margin:0;">
+<button #clear role="default-button" style="width:50px;margin-right:5px;">Clear Now</button>
+<button #cancel style="width:50px;">Cancel</button>
+</p>
