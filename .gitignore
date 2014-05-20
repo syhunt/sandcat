@@ -3,7 +3,6 @@ __history/
 *.exe
 *.bat
 *.dll
-*.dpr
 *.~*
 *.dproj
 *.local
