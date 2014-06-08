@@ -125,12 +125,12 @@ var
       // checks if host and port were provided and reconstruct from them
       if (request.host <> emptystr) and (request.SentHead <> emptystr) then
       begin
-        request.URL := hostport2url(request.host, strtointsafe(request.port));
-        request.URL := request.URL + GetPathFromRequest(request.SentHead);
+        request.URL := generateurl(request.host, strtointsafe(request.port));
+        request.URL := request.URL + ExtractHTTPRequestPath(request.SentHead);
       end;
     end;
     if request.StatusCode = 0 then // get it from the response headers
-      request.StatusCode := GetStatusCodeFromResponse(request.RcvdHead);
+      request.StatusCode := ExtractHTTPResponseStatusCode(request.RcvdHead);
     if request.MimeType = emptystr then // get it from the response headers
       request.MimeType := trim(getfield('Content-Type', request.RcvdHead));
   end;
@@ -228,7 +228,7 @@ begin
   r.RcvdHead := pkt.Values['ResponseHeaders'];
   r.response := pkt.Values['Response'];
   r.responsefilename := pkt.Values['ResponseFilename'];
-  r.StatusCode := GetStatusCodeFromResponse(r.RcvdHead);
+  r.StatusCode := ExtractHTTPResponseStatusCode(r.RcvdHead);
   r.MimeType := trim(getfield('Content-Type', r.RcvdHead));
   r.Length := Length(r.response);
   r.isredir := false;

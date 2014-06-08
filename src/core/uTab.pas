@@ -270,8 +270,8 @@ end;
 // can be used for storing user preferences for each specific host:port
 function TSandcatTab.GetSitePrefsFile: string;
 begin
-  Result := Format('%s [%s].json', [GetHostFromURL(GetURL),
-    GetPortFromURL(GetURL)]);
+  Result := Format('%s [%s].json', [ExtractURLHost(GetURL),
+    ExtractURLPort(GetURL)]);
   Result := GetSandcatDir(SCDIR_CONFIGSITE, true) + Result;
 end;
 
@@ -889,7 +889,7 @@ begin
       if extracturlfilename(URL) = emptystr then
         Result := URL + cFavIconFileName
       else
-        Result := replacestr(URL + ' ', '/' + getpathfromurl(URL) + ' ',
+        Result := replacestr(URL + ' ', '/' + ExtractURLPath(URL) + ' ',
           '/' + cFavIconFileName);
       Result := htmlescape(Result);
       Result := 'url(' + Result + ')';

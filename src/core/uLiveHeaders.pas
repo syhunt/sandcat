@@ -311,14 +311,14 @@ begin
   foundext := true;
   foundtype := true;
   URL := request.URL;
-  if pos(Filter.SearchStr, GetPathFromURL(URL)) <> 0 then
+  if pos(Filter.SearchStr, ExtractURLPath(URL)) <> 0 then
     matched := true;
   if beginswithcmd(Filter.Text) then
     matched := true;
   if matched then
   begin // matched begin
     result := true;
-    if (Filter.Site <> emptystr) and (pos(Filter.Site, GetHostFromURL(URL)) = 0)
+    if (Filter.Site <> emptystr) and (pos(Filter.Site, ExtractURLHost(URL)) = 0)
     then
       result := false;
     if (Filter.Method <> emptystr) then
