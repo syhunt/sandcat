@@ -587,7 +587,7 @@ begin
         d.Icon := ICON_CHECKED;
         if fullPath <> emptystr then
         begin
-          d.SetScript('ondblclick', 'Downloader:launch(scop.base64.decode[[' +
+          d.SetScript('ondblclick', 'Downloader:launch(slx.base64.decode[[' +
             base64encode(fullPath) + ']])');
           d.DownloadFilename := fullPath;
         end;

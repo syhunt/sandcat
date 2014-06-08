@@ -54,12 +54,12 @@ function Previewer:HandleCodeRay(f,format)
  if source ~= '' then
   if string.len(source) < 1024*50 then
    if format == 'java_script' then
-    source = scop.html.beautifyjs(source)
+    source = slx.html.beautifyjs(source)
    elseif format == 'css' then
-    source = scop.html.beautifycss(source)
+    source = slx.html.beautifycss(source)
    end
    html = rbutils.coderay_highlight(source,format)
-   html = stringop.replace(html,'<pre>','<pre style="background-color:white;border:0;">')
+   html = slx.string.replace(html,'<pre>','<pre style="background-color:white;border:0;">')
    f.previewhtml = html
   else
    f.previewhtml = self:NoHighlight(source)
@@ -94,14 +94,14 @@ function Previewer:HandleJSON(f)
 end
 
 function Previewer:HandleFlash(f)
- local resp=app.ask_yn('Render "'..scop.url.crack(f.url).filename..'"?','Previewer')
+ local resp=app.ask_yn('Render "'..slx.url.crack(f.url).filename..'"?','Previewer')
  if resp == true then
   browser.showurl(f.url)
  end
 end
 
 function Previewer:HandleImage(f)
- f.previewhtml = '<pre style="background-color:white;padding:5px;border:0;"><img src="'..scop.html.escape(f.url)..'"></pre>'
+ f.previewhtml = '<pre style="background-color:white;padding:5px;border:0;"><img src="'..slx.html.escape(f.url)..'"></pre>'
 end
 
 function Previewer:HandleArchive(f)
@@ -109,7 +109,7 @@ function Previewer:HandleArchive(f)
 end
 
 function Previewer:NoHighlight(s)
- local html = scop.html.escape(s)
+ local html = slx.html.escape(s)
  html = '<pre style="background-color:white;border:0;">'..html..'</pre>'
  return html
 end

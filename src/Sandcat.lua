@@ -21,7 +21,7 @@ function Sandcat:Init()
  self.Preview.Handlers = {}
  self.Preview.Types = {}
  self.Preview.Extensions = {}
- self.Preview.About = scl.stringlist:new()
+ self.Preview.About = slx.string.list:new()
  browser.info = _appinfo
  browser.jsvalues = _jsvalues
  browser.options = _appoptions
@@ -62,12 +62,12 @@ function Sandcat:RegisterPreviewHandler(id,func,extlist,typelist)
   self.Preview.Handlers[id]=func
   self.Preview.About:add('<tr role="option"><td>'..id..'</td><td>'..extlist..'</td></tr>')
   self.Preview.About:sort()
-  local slp = scl.listparser:new()
+  local slp = slx.string.loop:new()
   -- associates extensions with handler
   local s = ''
   slp.commatext = extlist
   while slp:parsing() do
-    s = stringop.trim(slp.current)
+    s = slx.string.trim(slp.current)
     if s ~= '' then
      self.Preview.Extensions[s]=id
     end
@@ -76,7 +76,7 @@ function Sandcat:RegisterPreviewHandler(id,func,extlist,typelist)
    if typelist ~= nil then
       slp:load(typelist)
       while slp:parsing() do
-       s = stringop.trim(slp.current)
+       s = slx.string.trim(slp.current)
        if s ~= '' then
         self.Preview.Types[s]=id
        end
@@ -107,7 +107,7 @@ end
 function Sandcat:ImportPreferences()
  local file = app.openfile(self.cfg_expfilter,self.cfg_expextension)
  if file ~= '' then
-  prefs.load(scop.file.getcontents(file))
+  prefs.load(slx.file.getcontents(file))
   prefs.update()
  end
 end
@@ -115,7 +115,7 @@ end
 function Sandcat:ExportPreferences()
  local destfile = app.savefile(self.cfg_expfilter,self.cfg_expextension)
  if destfile ~= '' then
-  local sl = scl.stringlist:new()
+  local sl = slx.string.list:new()
   sl.text = prefs.getall()
   sl:savetofile(destfile)
   sl:release()
@@ -124,11 +124,11 @@ end
 
 function Sandcat:IsURLLoaded(warnuser)
  local valid = false
- if stringop.beginswith(tab.url,'http') then
+ if slx.string.beginswith(tab.url,'http') then
   valid = true
- elseif stringop.beginswith(tab.url,'file') then
+ elseif slx.string.beginswith(tab.url,'file') then
   valid = true
- elseif stringop.beginswith(tab.url,'chrome') then
+ elseif slx.string.beginswith(tab.url,'chrome') then
   valid = true
  end
  
@@ -184,13 +184,13 @@ end
 
 function Sandcat:ShowPreviewHandlers()
  local html = Sandcat:getfile('dialog_preview_handlers.html')
- html = stringop.replace(html,'%handlerlist%',Sandcat.Preview.About.text)
+ html = slx.string.replace(html,'%handlerlist%',Sandcat.Preview.About.text)
  app.showdialogx(html)
 end
 
 function Sandcat:ShowErrorLog()
  local html = Sandcat:getfile('dialog_error.html')
- html = stringop.replace(html,'%errorlist%',browser.info.errorlog)
+ html = slx.string.replace(html,'%errorlist%',browser.info.errorlog)
  app.showdialogx(html)
  browser.statbar:eval('HideNotification()')
 end
@@ -200,7 +200,7 @@ function Sandcat:ShowLicense(pak,file)
 end
 
 function Sandcat:ShowText(tabtitle,text)
- local html = scl.stringlist:new()
+ local html = slx.string.list:new()
  html:add('<plaintext.editor readonly="true">')
  html:add(text)
  html:add('</plaintext>')

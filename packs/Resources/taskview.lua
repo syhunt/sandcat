@@ -3,8 +3,8 @@ TaskView.uitable = 'TaskView.ui'
 
 function TaskView:loadlist(newtab,tabtitle,list)
  local html = Sandcat:getfile('taskview.html')
- local slp = scl.listparser:new()
- local htmllist = scl.stringlist:new()
+ local slp = slx.string.loop:new()
+ local htmllist = slx.string.list:new()
  local info = {}
  local tid = ''
  local pid = ''
@@ -18,12 +18,12 @@ function TaskView:loadlist(newtab,tabtitle,list)
   end
   htmllist:add('<tr role="option" style="context-menu: selector(#'..tid..'-menu);" ')
   if info.ondblclick ~= '' then
-   htmllist:add('ondblclick="'..scop.html.escape(info.ondblclick)..'" ')
+   htmllist:add('ondblclick="'..slx.html.escape(info.ondblclick)..'" ')
   end
   htmllist:add('>')
-  htmllist:add('<td><img .lvfileicon src="'..info.progressicon..'"> <img .lvfileicon src="'..info.icon..'" filename="'..scop.html.escape(info.filename)..'">&nbsp;'..scop.html.escape(info.caption)..'</td>')
-  htmllist:add('<td>'..scop.html.escape(info.progressdesc)..'</td>')
-  htmllist:add('<td>'..scop.html.escape(info.status)..'</td>')
+  htmllist:add('<td><img .lvfileicon src="'..info.progressicon..'"> <img .lvfileicon src="'..info.icon..'" filename="'..slx.html.escape(info.filename)..'">&nbsp;'..slx.html.escape(info.caption)..'</td>')
+  htmllist:add('<td>'..slx.html.escape(info.progressdesc)..'</td>')
+  htmllist:add('<td>'..slx.html.escape(info.status)..'</td>')
   htmllist:add('<td>'..tid..'</td>')
   htmllist:add('<td>'..pid..'</td>')
   if info.menuhtml ~= '' then
@@ -33,7 +33,7 @@ function TaskView:loadlist(newtab,tabtitle,list)
   end
   htmllist:add('</tr>')
  end
- html = stringop.replace(html,'%tasks%',htmllist.text)
+ html = slx.string.replace(html,'%tasks%',htmllist.text)
  --app.showmessage(html)
  if newtab == nil then
   local j = {}

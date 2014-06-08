@@ -4,7 +4,7 @@ end
 
 function PrintURLInfo()
   print(tab.url..' loaded.')
-  local server = scop.http.getheader(tab.rcvdheaders,'Server')
+  local server = slx.http.getheader(tab.rcvdheaders,'Server')
   server = trim(server)
   if server ~= '' then
    print('Server: '..server)

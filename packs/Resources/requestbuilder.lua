@@ -14,8 +14,8 @@ end
 function reqbuildermenu:spliturl()
  local text = reqbuilder.edit.gettext()
  if text ~= '' then
-  text = stringop.replace(text,'?','?'..string.char(10))
-  text = stringop.replace(text,'&',string.char(10)..'&')
+  text = slx.string.replace(text,'?','?'..string.char(10))
+  text = slx.string.replace(text,'&',string.char(10)..'&')
   reqbuilder.edit.settext(text)
  end
 end

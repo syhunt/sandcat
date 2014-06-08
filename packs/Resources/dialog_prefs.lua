@@ -16,8 +16,8 @@ end
 function Preferences:EditCustomFile(pak,filename,id,options,jsonfile)
  if jsonfile ~= '' then
   local browsercfg = prefs.getall() -- Preferences backup
-  if scop.file.exists(jsonfile) then
-   prefs.load(scop.file.getcontents(jsonfile))
+  if slx.file.exists(jsonfile) then
+   prefs.load(slx.file.getcontents(jsonfile))
   else
    prefs.load('')
   end
@@ -36,9 +36,9 @@ function Preferences:EditCustom(pak,filename,id,options,iscustomfile)
  end
  self.backup = prefs.getall()
  html = browser.var_replace(html) -- must be first
- html = stringop.replace(html,'%extensions%',browser.info.extensions)
+ html = slx.string.replace(html,'%extensions%',browser.info.extensions)
  script = self:GetImportScript(options)
- html = stringop.replace(html,'importsettings();',script)
+ html = slx.string.replace(html,'importsettings();',script)
  app.showdialogx(html,id)
  if iscustomfile == false then
   if self.backup ~= prefs.getall() then
@@ -48,11 +48,11 @@ function Preferences:EditCustom(pak,filename,id,options,iscustomfile)
 end
 
 function Preferences:GetOptionsImport(list,options)
- local slp = scl.listparser:new()
+ local slp = slx.string.loop:new()
  slp:load(options)
  while slp:parsing() do
   local s = slp.current
-  s = stringop.trim(s)
+  s = slx.string.trim(s)
   if s ~= '' then
    self:ImportOption(list,"[cid='"..s.."']",s)
   end
@@ -62,7 +62,7 @@ end
 
 function Preferences:GetOptionValue(cid)
  local s = ''
- local j = scl.json:new()
+ local j = slx.json.object:new()
  j.cid = cid
  j.value = prefs.get(cid)
  s = j:getjson_unquoted()
@@ -72,7 +72,7 @@ end
 
 function Preferences:GetImportScript(options)
  local s = ''
- local sl = scl.stringlist:new()
+ local sl = slx.string.list:new()
  self:GetOptionsImport(sl,options)
  s = sl.text
  sl:release()
