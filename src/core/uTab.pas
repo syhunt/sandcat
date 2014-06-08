@@ -271,7 +271,7 @@ end;
 function TSandcatTab.GetSitePrefsFile: string;
 begin
   Result := Format('%s [%s].json', [ExtractURLHost(GetURL),
-    ExtractURLPort(GetURL)]);
+    IntToStr(ExtractURLPort(GetURL))]);
   Result := GetSandcatDir(SCDIR_CONFIGSITE, true) + Result;
 end;
 
