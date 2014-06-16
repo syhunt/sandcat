@@ -68,7 +68,7 @@ function ReqViewer:highlightrequest(s)
  s = slx.string.replace(s,'POST','<b>POST</b>')
  s = slx.string.replace(s,'HEAD','<b>HEAD</b>')
  s = slx.string.replace(s,'HTTP/1.1','<b>HTTP/1.1</b>')
- s = stringoing.replace(s,'HTTP/1.0','<b>HTTP/1.0</b>')
+ s = slx.string.replace(s,'HTTP/1.0','<b>HTTP/1.0</b>')
  return '<font color="black">'..s..'</font>'
 end
 
