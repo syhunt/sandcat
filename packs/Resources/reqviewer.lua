@@ -139,7 +139,7 @@ function ReqViewer:handlepreview()
  data.contenttype = slx.http.getheader(ui.resphead.value,'Content-Type')
  local ct = data.contenttype
  local ctsub = ''
- if stristring.occur(ct,';') ~= 0 then
+ if slx.string.occur(ct,';') ~= 0 then
   ct = slx.string.before(ct,';')
  end
  ctsub = slx.string.after(ct,'/')
