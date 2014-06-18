@@ -37,15 +37,14 @@ type
 type
   TSCBXHRObject = class(TLuaObject)
   private
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload;
-    function GetPropValue(propName: AnsiString): Variant; override;
-    function SetPropValue(propName: AnsiString; const AValue: Variant)
-      : boolean; override;
   public
     XHR: TSandcatXHRRequest;
+    constructor Create(LuaState: PLua_State;
+      AParent: TLuaObject = nil); overload; override;
+    function GetPropValue(propName: String): Variant; override;
+    function SetPropValue(propName: String; const AValue: Variant)
+      : boolean; override;
     destructor Destroy; override;
-  published
   end;
 
 procedure RegisterSCBHTTPRequest_Sandcat(L: PLua_State);
@@ -244,11 +243,11 @@ var
   r: TSCBXHRObject;
 begin
   r := TSCBXHRObject(LuaToTLuaObject(L, 1));
-  plua_pushstring(L, r.XHR.Send(lua_tostring(L, 2)));
+  lua_pushstring(L, r.XHR.Send(lua_tostring(L, 2)));
   result := 1;
 end;
 
-function TSCBXHRObject.GetPropValue(propName: AnsiString): Variant;
+function TSCBXHRObject.GetPropValue(propName: String): Variant;
 begin
   if CompareText(propName, 'callback') = 0 then
     result := XHR.LuaScript_RequestSent
@@ -274,30 +273,30 @@ begin
     result := inherited GetPropValue(propName);
 end;
 
-function TSCBXHRObject.SetPropValue(propName: AnsiString;
+function TSCBXHRObject.SetPropValue(propName: String;
   const AValue: Variant): boolean;
 begin
   result := true;
   if CompareText(propName, 'callback') = 0 then
-    XHR.LuaScript_RequestSent := AnsiString(AValue)
+    XHR.LuaScript_RequestSent := String(AValue)
   else if CompareText(propName, 'details') = 0 then
-    XHR.Details := AnsiString(AValue)
+    XHR.Details := String(AValue)
   else if CompareText(propName, 'filter') = 0 then
-    XHR.UserFilter := AnsiString(AValue)
+    XHR.UserFilter := String(AValue)
   else if CompareText(propName, 'method') = 0 then
-    XHR.Method := AnsiString(AValue)
+    XHR.Method := String(AValue)
   else if CompareText(propName, 'password') = 0 then
-    XHR.Password := AnsiString(AValue)
+    XHR.Password := String(AValue)
   else if CompareText(propName, 'postdata') = 0 then
-    XHR.PostData := AnsiString(AValue)
+    XHR.PostData := String(AValue)
   else if CompareText(propName, 'requestheaders') = 0 then
-    XHR.ReqHeaders := AnsiString(AValue)
+    XHR.ReqHeaders := String(AValue)
   else if CompareText(propName, 'tab') = 0 then
-    XHR.Tab := tabmanager.gettab(AnsiString(AValue))
+    XHR.Tab := tabmanager.gettab(String(AValue))
   else if CompareText(propName, 'url') = 0 then
-    XHR.URL := AnsiString(AValue)
+    XHR.URL := String(AValue)
   else if CompareText(propName, 'username') = 0 then
-    XHR.Username := AnsiString(AValue)
+    XHR.Username := String(AValue)
   else
     result := inherited SetPropValue(propName, AValue);
 end;

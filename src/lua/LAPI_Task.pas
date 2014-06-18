@@ -36,14 +36,13 @@ type
   private
     fCaption: string;
     fStatus: string;
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload;
-    function GetPropValue(propName: ansistring): Variant; override;
-    function SetPropValue(propName: ansistring; const AValue: Variant)
-      : Boolean; override;
   public
+    constructor Create(LuaState: PLua_State;
+      AParent: TLuaObject = nil); overload;  override;
+    function GetPropValue(propName: string): Variant; override;
+    function SetPropValue(propName: string; const AValue: Variant)
+      : Boolean; override;
     destructor Destroy; override;
-  published
   end;
 
 function RunTaskSeparateProcess(tid, script: string; tabhandle: Integer;
@@ -55,7 +54,7 @@ implementation
 
 uses
   uTab, uSettings, uMain, LAPI_Browser, CatFiles, CatUI, CatZIP, CatStrings,
-  CatTasks, CatChromium, PLua, uConst, CatUtils, CatLuaUtils;
+  CatTasks, CatChromium, PLua, uConst, CatUtils;
 
 var
   UserParams: TSandJSON;
@@ -108,14 +107,14 @@ end;
 function lua_method_printsuccess(L: PLua_State): Integer; cdecl;
 begin
   SendJSONCmdStr('special', 'paintgreen');
-  SendJSONCmdStr('writeln', pLuaAnyToString(L, 1));
+  SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
   Result := 1;
 end;
 
 function lua_method_printfailure(L: PLua_State): Integer; cdecl;
 begin
   SendJSONCmdStr('special', 'paintred');
-  SendJSONCmdStr('writeln', pLuaAnyToString(L, 1));
+  SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
   Result := 1;
 end;
 
@@ -141,25 +140,25 @@ end;
 
 function lua_task_writeln(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr('writeln', pLuaAnyToString(L, 1));
+  SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
   Result := 1;
 end;
 
 function lua_task_write(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr('write', pLuaAnyToString(L, 1));
+  SendJSONCmdStr('write', plua_AnyToString(L, 1));
   Result := 1;
 end;
 
 function lua_console_writeln(L: PLua_State): Integer; cdecl;
 begin
-  SendCDMessage(tabhandle, SCBM_LOGWRITELN, pLuaAnyToString(L, 1));
+  SendCDMessage(tabhandle, SCBM_LOGWRITELN, plua_AnyToString(L, 1));
   Result := 1;
 end;
 
 function lua_console_write(L: PLua_State): Integer; cdecl;
 begin
-  SendCDMessage(tabhandle, SCBM_LOGWRITE, pLuaAnyToString(L, 1));
+  SendCDMessage(tabhandle, SCBM_LOGWRITE, plua_AnyToString(L, 1));
   Result := 1;
 end;
 
@@ -177,10 +176,10 @@ begin
   if UserParams.HasPath(lua_tostring(L, 1)) then
   begin
     s := UserParams.sObject.s[lua_tostring(L, 1)];
-    plua_pushstring(L, s);
+    lua_pushstring(L, s);
   end
   else
-    plua_pushstring(L, lua_tostring(L, 2));
+    lua_pushstring(L, lua_tostring(L, 2));
   Result := 1;
 end;
 
@@ -217,10 +216,10 @@ begin
   if UserParams.HasPath(lua_tostring(L, 2)) then
   begin
     s := UserParams.sObject.s[lua_tostring(L, 2)];
-    plua_pushstring(L, s);
+    lua_pushstring(L, s);
   end
   else
-    plua_pushstring(L, emptystr);
+    lua_pushstring(L, emptystr);
   Result := 1;
 end;
 
@@ -234,7 +233,7 @@ end;
 
 function lua_getappdir(L: PLua_State): Integer; cdecl;
 begin
-  plua_pushstring(L, extractfilepath(paramstr(0)));
+  lua_pushstring(L, extractfilepath(paramstr(0)));
   Result := 1;
 end;
 
@@ -272,7 +271,7 @@ begin
   fLuaWrap.RegisterLuaTable('params', @lua_Params_getParam,
     @lua_Params_SetParam);
   UserParams := TSandJSON.Create;
-  fLuaWrap.LoadScript(emptystr);
+  fLuaWrap.LoadScript(ansistring(emptystr));
 end;
 
 destructor TSandcatTaskProcess.Destroy;
@@ -333,7 +332,7 @@ begin
   fLuaWrap.ExecuteCmd('task.params = params');
   fLuaWrap.ExecuteCmd('task.id = tid');
   fLuaWrap.ExecuteCmd('task.pid = pid');
-  fLuaWrap.ExecuteCmd(j.ReadString(tid, 'initscript', emptystr));
+  fLuaWrap.ExecuteCmd(ansistring(j.ReadString(tid, 'initscript', emptystr)));
   UserParams.text := base64decode(j.ReadString(tid, 'params', emptystr));
   script := base64decode(j.ReadString(tid, 'script', emptystr));
   fLuaWrap.ExecuteCmd(ansistring(script));
@@ -357,7 +356,7 @@ begin
   begin
     script := tstringlist.Create;
     script.text := GetTextFileFromZIP(pakfile, lua_tostring(L, 3));
-    plua_pushstring(L, script.text);
+    lua_pushstring(L, script.text);
     script.free;
   end;
   Result := 1;
@@ -374,9 +373,7 @@ begin
     script := tstringlist.Create;
     script.text := GetTextFileFromZIP(extfile, lua_tostring(L, 3));
     showmessage(script.text);
-    luaL_loadbuffer(L, pAnsiChar(script.text), Length(script.text),
-      pAnsiChar(emptystr));
-    lua_pcall(L, 0, 0, 0);
+    plua_dostring(L,script.text);
     script.free;
   end;
   Result := 1;
@@ -503,7 +500,7 @@ type
   TProps = (prop_status, prop_caption);
 
 function TSandcatTaskProcessLuaObject.GetPropValue
-  (propName: ansistring): Variant;
+  (propName: string): Variant;
 begin
   case TProps(GetEnumValue(TypeInfo(TProps), 'prop_' + lowercase(propName))) of
     prop_caption:
@@ -515,7 +512,7 @@ begin
   end;
 end;
 
-function TSandcatTaskProcessLuaObject.SetPropValue(propName: ansistring;
+function TSandcatTaskProcessLuaObject.SetPropValue(propName: string;
   const AValue: Variant): Boolean;
   procedure setstatus(s: string);
   begin
@@ -532,9 +529,9 @@ begin
   Result := true;
   case TProps(GetEnumValue(TypeInfo(TProps), 'prop_' + lowercase(propName))) of
     prop_caption:
-      setcaption(ansistring(AValue));
+      setcaption(string(AValue));
     prop_status:
-      setstatus(ansistring(AValue));
+      setstatus(string(AValue));
   else
     Result := inherited SetPropValue(propName, AValue);
   end;

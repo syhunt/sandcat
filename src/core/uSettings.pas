@@ -37,7 +37,6 @@ type
     destructor Destroy; override;
     property Preferences: TCatPreferences read fPreferences;
     property StartupHomepage: string read GetStartupHomepage;
-  published
   end;
 
 const // Sandcat Settings
@@ -470,13 +469,13 @@ end;
 function lua_sandcatsettings_getalljson(L: plua_State): integer; cdecl;
 begin
   // If param 1 is provided and is false, returns default settings
-  plua_pushstring(L, Settings.Preferences.Current.Text);
+  lua_pushstring(L, Settings.Preferences.Current.Text);
   result := 1;
 end;
 
 function lua_sandcatsettings_getalldefaultjson(L: plua_State): integer; cdecl;
 begin
-  plua_pushstring(L, Settings.Preferences.Default.Text);
+  lua_pushstring(L, Settings.Preferences.Default.Text);
   result := 1;
 end;
 
@@ -494,7 +493,7 @@ end;
 
 function lua_sandcatsettings_getfilename(L: plua_State): integer; cdecl;
 begin
-  plua_pushstring(L, Settings.Preferences.filename);
+  lua_pushstring(L, Settings.Preferences.filename);
   result := 1;
 end;
 

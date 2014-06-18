@@ -32,8 +32,8 @@ procedure SetUserCSS(s: string);
 
 implementation
 
-uses uMain, CatStrings, CatUI, CatFiles, uConst, uSettings,
-  uZones, pngimage, CatZIP, CatLuaUtils, CatCLUtils;
+uses uMain, pLua, CatStrings, CatUI, CatFiles, uConst, uSettings,
+  uZones, pngimage, CatZIP, CatCLUtils;
 
 function BeginsWithSpecialParam(param: string): boolean;
 begin

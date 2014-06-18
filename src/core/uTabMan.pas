@@ -66,9 +66,9 @@ type
       const updatenavbar: boolean = true);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
+    // properties
     property ActiveTab: TSandcatTab read fActiveTab;
     property ActiveTabID: string read fActiveTabName write fActiveTabName;
-  published
   end;
 
 implementation

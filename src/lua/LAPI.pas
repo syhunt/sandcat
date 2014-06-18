@@ -122,7 +122,7 @@ const
   );
 begin
   lual_register(L, PAnsiChar('app'), @app_table);
-  plua_pushstring(L,extractfilepath(paramstr(0)));
+  lua_pushstring(L,extractfilepath(paramstr(0)));
   lua_setfield(L,-2,'dir');
 end;
 

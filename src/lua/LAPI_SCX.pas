@@ -16,15 +16,15 @@ type
   private
     FPackFilename: string;
     FFilename: string;
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload;
-    function GetPropValue(propName: AnsiString): Variant; override;
-    function SetPropValue(propName: AnsiString; const AValue: Variant)
-      : Boolean; override;
     procedure SetFilename(s: string);
   public
+    constructor Create(LuaState: PLua_State;
+      AParent: TLuaObject = nil); overload; override;
+    function GetPropValue(propName: String): Variant; override;
+    function SetPropValue(propName: String; const AValue: Variant)
+      : Boolean; override;
     destructor Destroy; override;
-  published
+    // properties
     property Filename: string read FFilename write SetFilename;
     property PakFilename: string read FPackFilename;
   end;
@@ -49,7 +49,7 @@ begin
     FPackFilename := pak;
 end;
 
-function TSCXObject.GetPropValue(propName: AnsiString): Variant;
+function TSCXObject.GetPropValue(propName: String): Variant;
 begin
   case TProps(GetEnumValue(TypeInfo(TProps), 'prop_' + lowercase(propName))) of
     prop_filename:
@@ -59,13 +59,13 @@ begin
   end;
 end;
 
-function TSCXObject.SetPropValue(propName: AnsiString;
+function TSCXObject.SetPropValue(propName: String;
   const AValue: Variant): Boolean;
 begin
   result := true;
   case TProps(GetEnumValue(TypeInfo(TProps), 'prop_' + lowercase(propName))) of
     prop_filename:
-      Filename := AnsiString(AValue);
+      Filename := String(AValue);
   else
     result := inherited SetPropValue(propName, AValue);
   end;
@@ -99,7 +99,7 @@ const
     s := emptystr;
     if scx.PakFilename <> emptystr then
       s := GetTextFileFromZIP(scx.PakFilename, lua_tostring(L, 2));
-    plua_pushstring(L, s);
+    lua_pushstring(L, s);
     result := 1;
   end;
   function method_addtoimagelist(L: PLua_State): integer; cdecl;

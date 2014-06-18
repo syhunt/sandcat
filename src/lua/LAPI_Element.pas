@@ -14,11 +14,6 @@ uses
 type
   TSCBUIElementObject = class(TLuaObject)
   private
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload;
-    function GetPropValue(propName: AnsiString): Variant; override;
-    function SetPropValue(propName: AnsiString; const AValue: Variant)
-      : Boolean; override;
   public
     Engine: string;
     Selector: string;
@@ -29,25 +24,28 @@ type
     procedure SetElementValue(Selector, NewValue: Variant);
     function GetElementAttribute(Selector, Name: string): Variant;
     procedure SetElementAttribute(Selector, Name: string; NewValue: Variant);
+    constructor Create(LuaState: PLua_State;
+      AParent: TLuaObject = nil); overload; override;
+    function GetPropValue(propName: String): Variant; override;
+    function SetPropValue(propName: String; const AValue: Variant)
+      : Boolean; override;
     destructor Destroy; override;
-  published
   end;
 
 type
   TSCBUIEngineObject = class(TLuaObject)
   private
     function GetUIXTable: string;
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload;
-    function GetPropValue(propName: AnsiString): Variant; override;
-    function SetPropValue(propName: AnsiString; const AValue: Variant)
-      : Boolean; override;
   public
     Engine: string;
     EngineID: integer;
     procedure SetEngine(Name: string);
+    constructor Create(LuaState: PLua_State;
+      AParent: TLuaObject = nil); overload; override;
+    function GetPropValue(propName: String): Variant; override;
+    function SetPropValue(propName: String; const AValue: Variant)
+      : Boolean; override;
     destructor Destroy; override;
-  published
   end;
 
 procedure RegisterSCBUIElement_Sandcat(L: PLua_State);
@@ -164,7 +162,7 @@ begin
   if s <> nil then
   begin
     res := s.eval(str);
-    plua_pushstring(L, res);
+    lua_pushstring(L, res);
   end;
   result := 1;
 end;
@@ -235,10 +233,9 @@ end;
 function method_engine_loadurl(L: PLua_State): integer; cdecl;
 var
   s: string;
-var
-  o: TSCBUIEngineObject;
+  //o: TSCBUIEngineObject;
 begin
-  o := TSCBUIEngineObject(LuaToTLuaObject(L, 1));
+  //o := TSCBUIEngineObject(LuaToTLuaObject(L, 1));
   s := lua_tostring(L, 2);
   GetEngine(L).loadurl(s);
   result := 1;
@@ -303,7 +300,7 @@ begin
     SetElementAttribute(Selector, 'disabled', 'True');
 end;
 
-function TSCBUIElementObject.GetPropValue(propName: AnsiString): Variant;
+function TSCBUIElementObject.GetPropValue(propName: String): Variant;
   function getvalueastext: string;
   begin
     result := GetElementValue(Selector);
@@ -326,16 +323,16 @@ begin
     result := inherited GetPropValue(propName);
 end;
 
-function TSCBUIElementObject.SetPropValue(propName: AnsiString;
+function TSCBUIElementObject.SetPropValue(propName: String;
   const AValue: Variant): Boolean;
 begin
   result := true;
   if CompareText(propName, 'enabled') = 0 then
     EnableElement(AValue)
   else if CompareText(propName, 'engine') = 0 then
-    SetEngine(AnsiString(AValue))
+    SetEngine(String(AValue))
   else if CompareText(propName, 'selector') = 0 then
-    Selector := AnsiString(AValue)
+    Selector := String(AValue)
   else if CompareText(propName, 'value') = 0 then
     SetElementValue(Selector, AValue)
   else
@@ -373,7 +370,7 @@ begin
   Engine := name;
 end;
 
-function TSCBUIEngineObject.GetPropValue(propName: AnsiString): Variant;
+function TSCBUIEngineObject.GetPropValue(propName: String): Variant;
 begin
   if CompareText(propName, 'name') = 0 then
     result := Engine
@@ -383,12 +380,12 @@ begin
     result := inherited GetPropValue(propName);
 end;
 
-function TSCBUIEngineObject.SetPropValue(propName: AnsiString;
+function TSCBUIEngineObject.SetPropValue(propName: String;
   const AValue: Variant): Boolean;
 begin
   result := true;
   if CompareText(propName, 'name') = 0 then
-    SetEngine(AnsiString(AValue))
+    SetEngine(String(AValue))
   else
     result := inherited SetPropValue(propName, AValue);
 end;

@@ -54,18 +54,18 @@ end;
 function lua_activecodeedit_gettext(L: PLua_State): integer; cdecl;
 begin
   if uix.ActiveMemo <> nil then
-    plua_pushstring(L, uix.ActiveMemo.lines.Text)
+    lua_pushstring(L, uix.ActiveMemo.lines.Text)
   else
-    plua_pushstring(L, emptystr);
+    lua_pushstring(L, emptystr);
   result := 1;
 end;
 
 function lua_activecodeedit_getseltext(L: PLua_State): integer; cdecl;
 begin
   if uix.ActiveMemo <> nil then
-    plua_pushstring(L, uix.ActiveMemo.SelText)
+    lua_pushstring(L, uix.ActiveMemo.SelText)
   else
-    plua_pushstring(L, emptystr);
+    lua_pushstring(L, emptystr);
   result := 1;
 end;
 

@@ -14,12 +14,12 @@ uses
 type
   TSCBTabObject = class(TLuaObject)
   private
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload;
-    function GetPropValue(propName: AnsiString): Variant; override;
-    function SetPropValue(propName: AnsiString; const AValue: Variant)
-      : Boolean; override;
   public
+    constructor Create(LuaState: PLua_State;
+      AParent: TLuaObject = nil); overload; override;
+    function GetPropValue(propName: String): Variant; override;
+    function SetPropValue(propName: String; const AValue: Variant)
+      : Boolean; override;
     destructor Destroy; override;
   end;
 
@@ -28,9 +28,8 @@ procedure RegisterSCBTab_Sandcat(L: PLua_State);
 implementation
 
 uses
-  uMain, uTaskMan, uTab, plua, CatFiles, CatLuaUtils, uMisc,
-  CatStrings, uUIComponents, CatChromium, uSettings,
-  uConst, uZones;
+  uMain, uTaskMan, uTab, plua, CatFiles, uMisc, CatStrings, uUIComponents,
+  CatChromium, uSettings, uConst, uZones;
 
 function method_gotourl(L: PLua_State): integer; cdecl;
 begin
@@ -166,8 +165,8 @@ function method_logerrortoconsole(L: PLua_State): integer; cdecl;
 var
   b: Boolean;
 begin
-  extensions.ScriptExceptionHandler(lua_tostring(L, 2), lua_tointeger(L, 3),
-    lua_tostring(L, 4), b);
+  extensions.ScriptExceptionHandler(ansistring(lua_tostring(L, 2)), lua_tointeger(L, 3),
+    ansistring(lua_tostring(L, 4)), b);
   Result := 1;
 end;
 
@@ -225,7 +224,7 @@ var
   s: string;
 begin
   s := tabmanager.ActiveTab.Cache.gettextfile(lua_tostring(L, 2));
-  plua_pushstring(L, s);
+  lua_pushstring(L, s);
   Result := 1;
 end;
 
@@ -241,7 +240,7 @@ begin
     outfilename := outdir + inttostr(tabmanager.ActiveTab.handle) + '.resp';
     tabmanager.ActiveTab.Cache.extractfile(lua_tostring(L, 2), outfilename);
   end;
-  plua_pushstring(L, outfilename);
+  lua_pushstring(L, outfilename);
   Result := 1;
 end;
 
@@ -281,7 +280,7 @@ end;
 
 function method_getparam(L: PLua_State): integer; cdecl;
 begin
-  plua_pushstring(L, tabmanager.ActiveTab.UserData.getvalue(lua_tostring(L, 2),
+  lua_pushstring(L, tabmanager.ActiveTab.UserData.getvalue(lua_tostring(L, 2),
     emptystr));
   Result := 1;
 end;
@@ -447,7 +446,7 @@ type
     showtree, siteprefsfilename, Source, sourcefilename, statuscode, status,
     title, updatesource, url, urldev, urllist, zoomlevel);
 
-function TSCBTabObject.GetPropValue(propName: AnsiString): Variant;
+function TSCBTabObject.GetPropValue(propName: String): Variant;
 begin
   case TProps(GetEnumValue(TypeInfo(TProps), lowercase(propName))) of
     // activepage  :       result := tabmanager.ActiveTab.SubTabs.ActivePage;
@@ -510,23 +509,23 @@ begin
   end;
 end;
 
-function TSCBTabObject.SetPropValue(propName: AnsiString;
+function TSCBTabObject.SetPropValue(propName: String;
   const AValue: Variant): Boolean;
 begin
   Result := true;
   case TProps(GetEnumValue(TypeInfo(TProps), lowercase(propName))) of
-    // activepage:         tabmanager.ActiveTab.SetsubPage(AnsiString(avalue));
+    // activepage:         tabmanager.ActiveTab.SetsubPage(String(avalue));
     downloadfiles:
       if tabmanager.ActiveTab.Chrome <> nil then
         tabmanager.ActiveTab.Chrome.EnableDownloads := AValue;
     icon:
-      tabmanager.ActiveTab.SetIcon(AnsiString(AValue), true);
+      tabmanager.ActiveTab.SetIcon(String(AValue), true);
     loadend:
       tabmanager.ActiveTab.usertabscript.Lua_LoadEnd_RunOnce :=
-        AnsiString(AValue);
+        String(AValue);
     loadendjs:
       tabmanager.ActiveTab.usertabscript.JS_LoadEnd_RunOnce :=
-        AnsiString(AValue);
+        String(AValue);
     capture:
       tabmanager.ActiveTab.Requests.logrequests := AValue;
     capturebrowser:
@@ -536,21 +535,21 @@ begin
       if tabmanager.ActiveTab.Chrome <> nil then
         tabmanager.ActiveTab.Chrome.LogURLs := AValue;
     headersfilter:
-      tabmanager.ActiveTab.liveheaders.FilterEdit.Text := AnsiString(AValue);
+      tabmanager.ActiveTab.liveheaders.FilterEdit.Text := String(AValue);
     logtext:
-      tabmanager.ActiveTab.log.lines.Text := AnsiString(AValue);
+      tabmanager.ActiveTab.log.lines.Text := String(AValue);
     Source:
       begin
         tabmanager.ActiveTab.AdjustHighlighter;
-        tabmanager.ActiveTab.SourceInspect.Source.Text := AnsiString(AValue);
+        tabmanager.ActiveTab.SourceInspect.Source.Text := String(AValue);
       end;
     showtree:
       tabmanager.ActiveTab.ShowSideTree(AValue);
     status:
-      StatBar.text:=AnsiString(AValue);
+      StatBar.text:=String(AValue);
     // ToDo: associate with current tab
     title:
-      tabmanager.ActiveTab.SetTitle(AnsiString(AValue));
+      tabmanager.ActiveTab.SetTitle(String(AValue));
     updatesource:
       tabmanager.ActiveTab.CanUpdateSource := AValue;
     zoomlevel:

@@ -130,7 +130,7 @@ begin
     @lua_method_getjsvalue);
   Register_Sandcat(fLuaWrap.LuaState);
   fLuaWrap.Value['ProgDir'] := progdir;
-  fLuaWrap.ExecuteCmd(GetResourceAsString('SANDCAT', 'Lua'));
+  fLuaWrap.ExecuteCmd(ansistring(GetResourceAsString('SANDCAT', 'Lua')));
   fLuaWrap.ExecuteCmd('Sandcat:Init()');
   // fLuaWrap.ExecuteCmd(GetPakResourceAsString('Sandcat.lua'));
 end;
@@ -138,7 +138,7 @@ end;
 procedure TSandcatExtensions.RunLua(const cmd: string);
 begin
   if fCanRunLua then
-    fLuaWrap.ExecuteCmd(cmd);
+    fLuaWrap.ExecuteCmd(ansistring(cmd));
 end;
 
 // Loads script code from extension package (.scx) and executes it
@@ -148,12 +148,12 @@ var
   script: TStringList;
 begin
   extensionfilename := GetSandcatDir(SCDIR_PLUGINS) + pakname ;
-  fLuaWrap.LoadScript(emptystr);
+  fLuaWrap.LoadScript(ansistring(emptystr));
   if fileexists(extensionfilename) then
   begin
     script := TStringList.Create;
     script.Text := GetTextFileFromZIP(extensionfilename, scriptname);
-    fLuaWrap.ExecuteCmd(script.Text);
+    fLuaWrap.ExecuteCmd(ansistring(script.Text));
     script.free;
   end;
 end;
@@ -166,7 +166,7 @@ begin
     // debug(cmd,'Lua');
     if pakname <> emptystr then
       LoadPakScript(pakname, scriptname);
-    fLuaWrap.ExecuteCmd(cmd);
+    fLuaWrap.ExecuteCmd(ansistring(cmd));
     if EnableConsoleInteraction then
       contentarea.Console_Output(false);
   end;

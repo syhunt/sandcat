@@ -72,15 +72,15 @@ begin
   case TReqOptionType(GetEnumValue(TypeInfo(TReqOptionType),
     'ropt_' + lowercase(s))) of
     ropt_url:
-      plua_pushstring(L, BottomBar.ReqBuilder.urledit.text);
+      lua_pushstring(L, BottomBar.ReqBuilder.urledit.text);
     ropt_headers:
-      plua_pushstring(L, BottomBar.ReqBuilder.getheaders);
+      lua_pushstring(L, BottomBar.ReqBuilder.getheaders);
     ropt_postdata:
-      plua_pushstring(L, BottomBar.ReqBuilder.getpostdata);
+      lua_pushstring(L, BottomBar.ReqBuilder.getpostdata);
     ropt_referer:
-      plua_pushstring(L, BottomBar.ReqBuilder.RefererEdit.text);
+      lua_pushstring(L, BottomBar.ReqBuilder.RefererEdit.text);
     ropt_agent:
-      plua_pushstring(L, BottomBar.ReqBuilder.AgentEdit.text);
+      lua_pushstring(L, BottomBar.ReqBuilder.AgentEdit.text);
     ropt_usecookies:
       lua_pushboolean(L, BottomBar.ReqBuilder.Prefs['usecookies']);
     ropt_usecredentials:
@@ -134,7 +134,7 @@ var
 begin
   s := lua_tostring(L, 2);
   { case TOptionType(GetEnumValue(TypeInfo(TOptionType), 'opt_'+lowercase(s))) of
-    opt_showheaders: plua_pushstring(L,rudLibName);
+    opt_showheaders: lua_pushstring(L,rudLibName);
     end; }
   result := 1;
 end;
@@ -322,7 +322,7 @@ begin
     script := tstringlist.create;
     script.text := GetTextFileFromZIP(extfile, lua_tostring(L, 2));
     // showmessage('pushing:'+s);
-    plua_pushstring(L, script.text);
+    lua_pushstring(L, script.text);
     script.free;
   end;
   result := 1;
@@ -435,7 +435,7 @@ var
   s: string;
 begin
   s := sanddlg.DlgReplace(lua_tostring(L, 1));
-  plua_pushstring(L, s);
+  lua_pushstring(L, s);
   result := 1;
 end;
 

@@ -83,7 +83,7 @@ type
     procedure Stop(const reason: string = ''; const quickstop: boolean = false);
     constructor Create(const tid: string);
     destructor Destroy; override;
-  published
+    // properties
     property Caption: string read fCaption;
     property DownloadFilename: string read fDownloadFilename
       write fDownloadFilename;
@@ -99,15 +99,14 @@ type
 type
   TSandcatTaskLuaObject = class(TLuaObject)
   private
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload;
-    function GetPropValue(propName: AnsiString): Variant; override;
-    function SetPropValue(propName: AnsiString; const AValue: Variant)
-      : boolean; override;
   public
     Task: TSandcatTask;
+    constructor Create(LuaState: PLua_State;
+      AParent: TLuaObject = nil); overload; override;
+    function GetPropValue(propName: String): Variant; override;
+    function SetPropValue(propName: String; const AValue: Variant)
+      : boolean; override;
     destructor Destroy; override;
-  published
   end;
 
 type
@@ -134,7 +133,6 @@ type
     procedure SetTaskParam_JSON(const json:string);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
-  published
     property Running: boolean read fRunning write fRunning;
   end;
 
@@ -187,7 +185,7 @@ function lua_bgtasksuspend(L: PLua_State): integer; cdecl;
 implementation
 
 uses uMain, uZones, uTab, uMisc, LAPI_Task, CatHTTP, CatUI, pLua, uConst,
-  CatTime, CatStrings, CatTasks, CatLuaUtils, CatChromium;
+  CatTime, CatStrings, CatTasks, CatChromium;
 
 var
   tasks_shutdown: boolean = false;
@@ -671,8 +669,8 @@ var
 
 begin
   lua_newtable(L);
-  pLua_SetFieldStr(L, 'caption', fCaption);
-  pLua_SetFieldStr(L, 'menuhtml', fMenuHTML);
+  plua_SetFieldValue(L, 'caption', fCaption);
+  plua_SetFieldValue(L, 'menuhtml', fMenuHTML);
   if fIcon = emptystr then
   begin
     if fIsDownload then
@@ -680,11 +678,11 @@ begin
     else
       fIcon := ICON_LUA;
   end;
-  pLua_SetFieldStr(L, 'icon', fIcon);
-  pLua_SetFieldStr(L, 'filename', fDownloadFilename);
-  pLua_SetFieldStr(L, 'status', fStatus);
-  pLua_SetFieldStr(L, 'onclick', fScripts.OnClick);
-  pLua_SetFieldStr(L, 'ondblclick', fScripts.OnDoubleClick);
+  plua_SetFieldValue(L, 'icon', fIcon);
+  plua_SetFieldValue(L, 'filename', fDownloadFilename);
+  plua_SetFieldValue(L, 'status', fStatus);
+  plua_SetFieldValue(L, 'onclick', fScripts.OnClick);
+  plua_SetFieldValue(L, 'ondblclick', fScripts.OnDoubleClick);
   if fEnabled then
   begin
     progress_icon := ICON_TASK_RUNNING;
@@ -704,9 +702,9 @@ begin
     else
       progress_desc := 'Done.';
   end;
-  pLua_SetFieldStr(L, 'progressicon', progress_icon);
-  pLua_SetFieldStr(L, 'progressdesc', progress_desc);
-  pLua_SetFieldInt(L, 'pid', fPID);
+  plua_SetFieldValue(L, 'progressicon', progress_icon);
+  plua_SetFieldValue(L, 'progressdesc', progress_desc);
+  plua_SetFieldValue(L, 'pid', fPID);
 end;
 
 function TSandcatTask.GetInfo: string;
@@ -1140,7 +1138,7 @@ var
 begin
   Task := tasks.SelectTask(lua_tostring(L, 1));
   if Task <> nil then
-    plua_pushstring(L, Task.fStatus);
+    lua_pushstring(L, Task.fStatus);
   result := 1;
 end;
 
@@ -1160,7 +1158,7 @@ var
 begin
   Task := tasks.SelectTask(lua_tostring(L, 1));
   if Task <> nil then
-    plua_pushstring(L, Task.fCaption);
+    lua_pushstring(L, Task.fCaption);
   result := 1;
 end;
 
@@ -1252,7 +1250,7 @@ begin
   Task := tasks.SelectTask(lua_tostring(L, 1));
   if Task <> nil then
     s := Task.GetParam(lua_tostring(L, 2), lua_tostring(L, 3));
-  plua_pushstring(L, s);
+  lua_pushstring(L, s);
   result := 1;
 end;
 
@@ -1262,7 +1260,7 @@ var
 begin
   sl := TStringList.Create;
   tasks.GetTaskList(sl);
-  plua_pushstring(L, sl.Text);
+  lua_pushstring(L, sl.Text);
   sl.Free;
   result := 1;
 end;
@@ -1273,7 +1271,7 @@ var
 begin
   sl := TStringList.Create;
   tasks.GetDownloadList(sl);
-  plua_pushstring(L, sl.Text);
+  lua_pushstring(L, sl.Text);
   sl.Free;
   result := 1;
 end;
@@ -1296,7 +1294,7 @@ var
   Task: TSandcatTask;
 begin
   Task := tasks.AddTask(lua_tostring(L, 1), false);
-  plua_pushstring(L, AnsiString(Task.ftid));
+  lua_pushstring(L, Task.ftid);
   result := 1;
 end;
 
@@ -1305,7 +1303,7 @@ var
   Task: TSandcatTask;
 begin
   Task := tasks.AddTask(lua_tostring(L, 1), true);
-  plua_pushstring(L, AnsiString(Task.ftid));
+  lua_pushstring(L, Task.ftid);
   result := 1;
 end;
 
@@ -1333,12 +1331,12 @@ begin
   RegisterTLuaObject(L, aObjectName, @Create, @register_methods);
 end;
 
-function TSandcatTaskLuaObject.GetPropValue(propName: AnsiString): Variant;
+function TSandcatTaskLuaObject.GetPropValue(propName: String): Variant;
 begin
   result := inherited GetPropValue(propName);
 end;
 
-function TSandcatTaskLuaObject.SetPropValue(propName: AnsiString;
+function TSandcatTaskLuaObject.SetPropValue(propName: String;
   const AValue: Variant): boolean;
 begin
   result := inherited SetPropValue(propName, AValue);

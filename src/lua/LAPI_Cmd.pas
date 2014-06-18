@@ -15,14 +15,13 @@ uses
 type
   TSCBCmdObject = class(TLuaObject)
   private
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload;
-    function GetPropValue(propName: AnsiString): Variant; override;
-    function SetPropValue(propName: AnsiString; const AValue: Variant)
-      : Boolean; override;
   public
+    constructor Create(LuaState: PLua_State;
+      AParent: TLuaObject = nil); overload; override;
+    function GetPropValue(propName: String): Variant; override;
+    function SetPropValue(propName: String; const AValue: Variant)
+      : Boolean; override;
     destructor Destroy; override;
-  published
   end;
 
 procedure RegisterSCBCmd_Sandcat(L: PLua_State);
@@ -37,7 +36,7 @@ begin
   // RegisterMethod(L,'methodname',method_func, classTable);
 end;
 
-function TSCBCmdObject.GetPropValue(propName: AnsiString): Variant;
+function TSCBCmdObject.GetPropValue(propName: String): Variant;
 begin
   if CompareText(propName, 'name') = 0 then
     result := before(SandConsole.LastCommand, ' ')
@@ -47,11 +46,10 @@ begin
     result := inherited GetPropValue(propName);
 end;
 
-function TSCBCmdObject.SetPropValue(propName: AnsiString;
+function TSCBCmdObject.SetPropValue(propName: String;
   const AValue: Variant): Boolean;
 begin
-  result := true;
-  // if CompareText(propName, 'propname') = 0 then someproc(AnsiString(avalue)) else
+  // if CompareText(propName, 'propname') = 0 then someproc(String(avalue)) else
   // end else
   result := inherited SetPropValue(propName, AValue);
 end;

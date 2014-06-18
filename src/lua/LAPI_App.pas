@@ -86,44 +86,44 @@ begin
   case TAppInfoType(GetEnumValue(TypeInfo(TAppInfoType),
     'info_' + lowercase(s))) of
     info_abouturl:
-      plua_pushstring(L, vAppURL);
+      lua_pushstring(L, vAppURL);
     info_cachedir:
-      plua_pushstring(L, GetSandcatDir(SCDIR_CACHE));
+      lua_pushstring(L, GetSandcatDir(SCDIR_CACHE));
     info_commands:
-      plua_pushstring(L, extensions.GetCommandList);
+      lua_pushstring(L, extensions.GetCommandList);
     info_configdir:
-      plua_pushstring(L, GetSandcatDir(SCDIR_CONFIG));
+      lua_pushstring(L, GetSandcatDir(SCDIR_CONFIG));
     info_downloads:
-      plua_pushstring(L, getdownloadlist);
+      lua_pushstring(L, getdownloadlist);
     info_exefilename:
-      plua_pushstring(L, vExeFileName);
+      lua_pushstring(L, vExeFileName);
     info_extensions:
-      plua_pushstring(L, extensions.GetList);
+      lua_pushstring(L, extensions.GetList);
     info_errorlog:
-      plua_pushstring(L, extensions.ErrorList.Text);
+      lua_pushstring(L, extensions.ErrorList.Text);
     info_fullname:
-      plua_pushstring(L, vAppNameShort);
+      lua_pushstring(L, vAppNameShort);
     info_iconfilename:
-      plua_pushstring(L, vExeFileName);
+      lua_pushstring(L, vExeFileName);
     info_initmode:
-      plua_pushstring(L, extensions.CurrentInitMode);
+      lua_pushstring(L, extensions.CurrentInitMode);
     info_libraries:
-      plua_pushstring(L, extensions.LibraryList);
+      lua_pushstring(L, extensions.LibraryList);
     info_name:
-      plua_pushstring(L, vAppNameShortest);
+      lua_pushstring(L, vAppNameShortest);
     info_options:
-      plua_pushstring(L, settings.preferences.CIDList);
+      lua_pushstring(L, settings.preferences.CIDList);
     info_proxy:
-      plua_pushstring(L, vProxyServer);
+      lua_pushstring(L, vProxyServer);
     info_tasks:
-      plua_pushstring(L, gettasklist);
+      lua_pushstring(L, gettasklist);
     info_useragent:
-      plua_pushstring(L, settings.preferences.GetValue(SCO_USERAGENT,
+      lua_pushstring(L, settings.preferences.GetValue(SCO_USERAGENT,
         emptystr));
     info_version:
-      plua_pushstring(L, GetFileVersion(vExeFileName));
+      lua_pushstring(L, GetFileVersion(vExeFileName));
     info_tempscript:
-      plua_pushstring(L, extensions.TempScript);
+      lua_pushstring(L, extensions.TempScript);
   end;
   result := 1;
 end;
@@ -139,9 +139,9 @@ begin
   if wintitle = emptystr then
     wintitle := 'Edit List';
   if ShowEditListDialog(prevlist, exampletext, wintitle, caption, s) then
-    plua_pushstring(L, s)
+    lua_pushstring(L, s)
   else
-    plua_pushstring(L, prevlist);
+    lua_pushstring(L, prevlist);
   result := 1;
 end;
 
@@ -163,13 +163,13 @@ begin
   if caption = emptystr then
     caption := vAppNameShort;
   s := inputbox(caption, lua_tostring(L, 1), lua_tostring(L, 2));
-  plua_pushstring(L, s);
+  lua_pushstring(L, s);
   result := 1;
 end;
 
 function app_gettitle(L: plua_State): integer; cdecl;
 begin
-  plua_pushstring(L, Application.Title);
+  lua_pushstring(L, Application.Title);
   result := 1;
 end;
 
@@ -235,9 +235,9 @@ begin
   if caption = emptystr then
     caption := '';
   if SelectDirectory(caption, dir, dir) = true then
-    plua_pushstring(L, dir)
+    lua_pushstring(L, dir)
   else
-    plua_pushstring(L, emptystr);
+    lua_pushstring(L, emptystr);
   result := 1;
 end;
 
@@ -255,9 +255,9 @@ begin
   sd.Filter := lua_tostring(L, 1);
   // eg filter  format: 'Sandcat Configuration File (*.xcfg)|*.xcfg'
   if sd.execute then
-    plua_pushstring(L, sd.FileName)
+    lua_pushstring(L, sd.FileName)
   else
-    plua_pushstring(L, emptystr);
+    lua_pushstring(L, emptystr);
   sd.Free;
   result := 1;
 end;
@@ -278,9 +278,9 @@ begin
   sd.Filter := lua_tostring(L, 1);
   // eg filter  format: 'Sandcat Configuration File (*.xcfg)|*.xcfg'
   if sd.execute then
-    plua_pushstring(L, sd.FileName)
+    lua_pushstring(L, sd.FileName)
   else
-    plua_pushstring(L, emptystr);
+    lua_pushstring(L, emptystr);
   sd.Free;
   result := 1;
 end;

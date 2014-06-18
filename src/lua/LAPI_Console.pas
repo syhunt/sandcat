@@ -27,7 +27,7 @@ function lua_console_setcurrentline(L: plua_State): integer; cdecl;
 
 implementation
 
-uses uMain, pLua, CatHTTP, CatLuaUtils, uZones, CatConsole;
+uses uMain, pLua, CatHTTP, uZones, CatConsole;
 
 function lua_addconsolecommand(L: plua_State): integer; cdecl;
 begin
@@ -48,33 +48,33 @@ end;
 function lua_console_setcolor(L: plua_State): integer; cdecl;
 begin
   if sandconsole <> nil then
-    sandconsole.console.Color := HtmlColorToColor(plua_tostring(L, 1));
+    sandconsole.console.Color := HtmlColorToColor(lua_tostring(L, 1));
   result := 1;
 end;
 
 function lua_console_setfontcolor(L: plua_State): integer; cdecl;
 begin
   if sandconsole <> nil then
-    sandconsole.console.Font.Color := HtmlColorToColor(plua_tostring(L, 1));
+    sandconsole.console.Font.Color := HtmlColorToColor(lua_tostring(L, 1));
   result := 1;
 end;
 
 function lua_console_setcurrentline(L: plua_State): integer; cdecl;
 begin
   if sandconsole <> nil then
-    sandconsole.SetCurrentLine(plua_tostring(L, 1));
+    sandconsole.SetCurrentLine(lua_tostring(L, 1));
   result := 1;
 end;
 
 function lua_console_writeln(L: plua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.LogWriteLn(pLuaAnyToString(L, 1));
+  tabmanager.ActiveTab.LogWriteLn(plua_AnyToString(L, 1));
   result := 1;
 end;
 
 function lua_console_write(L: plua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.logwrite(pLuaAnyToString(L, 1));
+  tabmanager.ActiveTab.logwrite(plua_AnyToString(L, 1));
   result := 1;
 end;
 
@@ -88,8 +88,8 @@ function lua_console_sethandler(L: plua_State): integer; cdecl;
 begin
   if sandconsole <> nil then
   begin
-    sandconsole.customhandler := plua_tostring(L, 1);
-    sandconsole.setprompt(plua_tostring(L, 1));
+    sandconsole.customhandler := lua_tostring(L, 1);
+    sandconsole.setprompt(lua_tostring(L, 1));
   end;
   result := 1;
 end;
@@ -100,7 +100,7 @@ var
 begin
   if sandconsole <> nil then
     s := sandconsole.customhandler;
-  plua_pushstring(L, s);
+  lua_pushstring(L, s);
   result := 1;
 end;
 
