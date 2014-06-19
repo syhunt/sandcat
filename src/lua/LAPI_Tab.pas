@@ -165,8 +165,8 @@ function method_logerrortoconsole(L: PLua_State): integer; cdecl;
 var
   b: Boolean;
 begin
-  extensions.ScriptExceptionHandler(ansistring(lua_tostring(L, 2)), lua_tointeger(L, 3),
-    ansistring(lua_tostring(L, 4)), b);
+  extensions.ScriptExceptionHandler(lua_tostring(L, 2), lua_tointeger(L, 3),
+    lua_tostring(L, 4), b);
   Result := 1;
 end;
 

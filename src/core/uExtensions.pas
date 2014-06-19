@@ -56,8 +56,8 @@ type
     procedure RunLua(const cmd: string);
     procedure RunLuaCmd(const cmd: string; const pakname: string = '';
       const scriptname: string = '');
-    procedure ScriptExceptionHandler(Title: ansistring; line: Integer;
-      msg: ansistring; var handled: boolean);
+    procedure ScriptExceptionHandler(Title: string; line: Integer;
+      msg: string; var handled: boolean);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
     // properties
@@ -130,7 +130,7 @@ begin
     @lua_method_getjsvalue);
   Register_Sandcat(fLuaWrap.LuaState);
   fLuaWrap.Value['ProgDir'] := progdir;
-  fLuaWrap.ExecuteCmd(ansistring(GetResourceAsString('SANDCAT', 'Lua')));
+  fLuaWrap.ExecuteCmd(GetResourceAsString('SANDCAT', 'Lua'));
   fLuaWrap.ExecuteCmd('Sandcat:Init()');
   // fLuaWrap.ExecuteCmd(GetPakResourceAsString('Sandcat.lua'));
 end;
@@ -138,7 +138,7 @@ end;
 procedure TSandcatExtensions.RunLua(const cmd: string);
 begin
   if fCanRunLua then
-    fLuaWrap.ExecuteCmd(ansistring(cmd));
+    fLuaWrap.ExecuteCmd(cmd);
 end;
 
 // Loads script code from extension package (.scx) and executes it
@@ -148,12 +148,12 @@ var
   script: TStringList;
 begin
   extensionfilename := GetSandcatDir(SCDIR_PLUGINS) + pakname ;
-  fLuaWrap.LoadScript(ansistring(emptystr));
+  fLuaWrap.LoadScript(emptystr);
   if fileexists(extensionfilename) then
   begin
     script := TStringList.Create;
     script.Text := GetTextFileFromZIP(extensionfilename, scriptname);
-    fLuaWrap.ExecuteCmd(ansistring(script.Text));
+    fLuaWrap.ExecuteCmd(script.Text);
     script.free;
   end;
 end;
@@ -166,7 +166,7 @@ begin
     // debug(cmd,'Lua');
     if pakname <> emptystr then
       LoadPakScript(pakname, scriptname);
-    fLuaWrap.ExecuteCmd(ansistring(cmd));
+    fLuaWrap.ExecuteCmd(cmd);
     if EnableConsoleInteraction then
       contentarea.Console_Output(false);
   end;
@@ -197,8 +197,8 @@ begin
   end;
 end;
 
-procedure TSandcatExtensions.ScriptExceptionHandler(Title: ansistring;
-  line: Integer; msg: ansistring; var handled: boolean);
+procedure TSandcatExtensions.ScriptExceptionHandler(Title: string;
+  line: Integer; msg: string; var handled: boolean);
 begin
   LogScriptError('Lua', inttostr(line), format('%s: %s', [Title, msg]));
   handled := true;

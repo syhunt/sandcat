@@ -26,8 +26,8 @@ type
     procedure Run(const tid: string);
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure ScriptExceptionHandler(Title: ansistring; Line: Integer;
-      Msg: ansistring; var handled: Boolean);
+    procedure ScriptExceptionHandler(Title: string; Line: Integer;
+      Msg: string; var handled: Boolean);
   end;
 
 type
@@ -200,8 +200,8 @@ begin
   Result := 1;
 end;
 
-procedure TSandcatTaskProcess.ScriptExceptionHandler(Title: ansistring;
-  Line: Integer; Msg: ansistring; var handled: Boolean);
+procedure TSandcatTaskProcess.ScriptExceptionHandler(Title: string;
+  Line: Integer; Msg: string; var handled: Boolean);
 begin
   SendCDMessage(tabhandle, SCBM_LOGWRITELN, 'Task Error: ' + inttostr(Line) + ' '
     + format('%s: %s', [Title, Msg]));
@@ -270,7 +270,7 @@ begin
   fLuaWrap.RegisterLuaTable('params', @lua_Params_getParam,
     @lua_Params_SetParam);
   UserParams := TSandJSON.Create;
-  fLuaWrap.LoadScript(ansistring(emptystr));
+  fLuaWrap.LoadScript(emptystr);
 end;
 
 destructor TSandcatTaskProcess.Destroy;
@@ -331,10 +331,10 @@ begin
   fLuaWrap.ExecuteCmd('task.params = params');
   fLuaWrap.ExecuteCmd('task.id = tid');
   fLuaWrap.ExecuteCmd('task.pid = pid');
-  fLuaWrap.ExecuteCmd(ansistring(j.ReadString(tid, 'initscript', emptystr)));
+  fLuaWrap.ExecuteCmd(j.ReadString(tid, 'initscript', emptystr));
   UserParams.text := base64decode(j.ReadString(tid, 'params', emptystr));
   script := base64decode(j.ReadString(tid, 'script', emptystr));
-  fLuaWrap.ExecuteCmd(ansistring(script));
+  fLuaWrap.ExecuteCmd(script);
   if TaskStopped = false then
     fLuaWrap.ExecuteCmd('task:stop(task.status)');
   fLuaWrap.ExecuteCmd('task:release()');
