@@ -67,8 +67,8 @@ type
     procedure FilterEditChange(Sender: TObject);
     procedure PauseBtnClick(Sender: TObject);
     procedure ClearBtnClick(Sender: TObject);
-    procedure HeadersListViewChange(Sender: TObject; Item: TListItem;
-      Change: TItemChange);
+    //procedure HeadersListViewChange(Sender: TObject; Item: TListItem;
+    //  Change: TItemChange);
     procedure HeadersListViewClick(Sender: TObject);
     procedure HeadersListviewColumnClick(Sender: TObject; Column: TListColumn);
     procedure FilteredListviewColumnClick(Sender: TObject; Column: TListColumn);
@@ -85,7 +85,7 @@ type
     procedure AddRequestToList(const lv: TListView; const request: TSandcatRequest);
     procedure ApplyFilter(const s: string);
     procedure Clear;
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     property FilterEdit: TEdit read fFilterEdit;
@@ -168,11 +168,11 @@ begin
   TListView(Sender).CustomSort(@Filtered_SortByColumn, Column.Index);
 end;
 
-procedure TLiveHeaders.HeadersListViewChange(Sender: TObject; Item: TListItem;
+{procedure TLiveHeaders.HeadersListViewChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 begin
   HeadersListViewClick(Sender);
-end;
+end;  }
 
 procedure TLiveHeaders.HeadersListViewClick(Sender: TObject);
 begin
@@ -466,7 +466,7 @@ begin
   fFilterLv.Clear;
 end;
 
-constructor TLiveHeaders.Create(AOwner: TWinControl);
+constructor TLiveHeaders.Create(AOwner: TComponent);
   procedure AddColumn(lv: TListView; c: string; w: integer = 0);
   begin
     with lv.Columns.Add do

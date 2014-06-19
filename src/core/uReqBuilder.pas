@@ -42,7 +42,7 @@ type
     procedure SetPOSTData(s: string);
     procedure SetUserAgent(s: string);
     procedure SetWordWrap(b: boolean);
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
@@ -132,7 +132,7 @@ begin
   uix.ActiveMemo := HeadersEdit;
 end;
 
-constructor TSandRequestPanel.Create(AOwner: TWinControl);
+constructor TSandRequestPanel.Create(AOwner: TComponent);
   procedure SetMemoDefaults(m: TMemo; a: TAlign; texthint: string = '');
   begin
     m.Parent := self;

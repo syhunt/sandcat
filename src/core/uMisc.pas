@@ -157,9 +157,8 @@ end;
 function CaptureChromeBitmap(tab: TSandcatTab; filename: string = ''): string;
 var
   Bitmap: TBitmap;
-  FromLeft, FromTop: integer;
   dir: string;
-  PNG: TPNGObject;
+  PNG: TPNGImage;
 begin
   debug('sbt.capture');
   dir := GetSandcatDir(SCDIR_TEMP) + 'Capture\';
@@ -167,7 +166,7 @@ begin
   if filename = emptystr then
     filename := dir + inttostr(tab.handle) + '.png';
   application.ProcessMessages;
-  PNG := TPNGObject.create;
+  PNG := TPNGImage.create;
   Bitmap := TBitmap.create;
   try
     Bitmap.Width := tab.Chrome.crm.Width;

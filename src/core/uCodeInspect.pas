@@ -51,7 +51,7 @@ type
     procedure LoadTabs(const csv: string; const aliaslist: string = '');
     procedure SetImageList(const il: TImageList);
     procedure SetSource(const s: string);
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     property activetab: string read GetActiveTab;
@@ -69,6 +69,8 @@ var
   v, c: Integer;
 begin
   Val(s, v, c);
+  if v=0 then begin // hide H2077 compiler warning
+  end;
   result := c = 0;
 end;
 
@@ -192,7 +194,7 @@ begin
 end;
 {$ENDIF}
 
-constructor TSyCodeInspector.Create(AOwner: TWinControl);
+constructor TSyCodeInspector.Create(AOwner: TComponent);
   procedure ConfigLV(lv: TListView);
   begin
     lv.Align := alClient;

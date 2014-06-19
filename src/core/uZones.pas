@@ -53,7 +53,7 @@ type
     procedure LoadingStateChange(const isLoading, canGoBack,
       canGoForward: boolean);
     procedure UpdateSearchEngine;
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // properties
     property ConsoleVisible: boolean read fConsoleVisible
@@ -83,7 +83,7 @@ type
     procedure SetTabTitle(const tabid, newtitle: string);
     procedure EvalTIS(const s: string);
     procedure Load;
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Engine: TSandUIEngine read fEngine;
   end;
@@ -100,7 +100,7 @@ type
     procedure SetText(const s: string);
   public
     procedure Load;
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // properties
     property Engine: TSandUIEngine read fEngine;
@@ -118,7 +118,7 @@ type
   public
     procedure Clear;
     procedure LoadDir(const dir: string);
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Tree: TTreeView read fTV;
   end;
@@ -150,7 +150,7 @@ type
     procedure ViewConsole(const visible: boolean = true);
     procedure SetActivePage(const name: string);
     procedure Shutdown;
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Note: TNoteBook read fNote;
     property TabsNotebook: TNoteBook read fTabsNotebook;
@@ -179,7 +179,7 @@ type
     procedure ViewBottomBar(const b: boolean = true);
     procedure ShowExploitBar;
     procedure ShowURL(const URL: string; const source: string = '');
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Engine: TSandUIEngine read fEngine;
     property Note: TNoteBook read fNote;
@@ -201,7 +201,7 @@ type
     procedure ShowPage(const name: string; const visible: boolean);
     procedure SelectPage(const name: string);
     procedure Load;
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Engine: TSandUIEngine read fEngine;
     property StripVisible: boolean read fStripVisible write SetStripVisible;
@@ -411,6 +411,7 @@ var
   ms: tmemorystream;
   idx: string;
 begin
+  result:=-1;
   if Pak = emptystr then
     exit;
   ms := tmemorystream.Create;
@@ -652,7 +653,7 @@ end;
 
 procedure TSandcatUIX.StdErr(ASender: TObject; const msg: WideString);
 begin
-  if pos('assuming namespace declaration', shortstring(msg)) = 0 then
+  if pos('assuming namespace declaration', string(msg)) = 0 then
     Debug(msg, 'TIS Warning');
 end;
 
@@ -691,7 +692,6 @@ var
   e: ISandUIElement;
   urlext, dir, filename: string;
   eng: TSandUIEngine;
-  cacheres: TStringList;
 begin
   // cacheres:=tstringlist.Create;
   eng := ExtensionPage;
@@ -1033,7 +1033,7 @@ begin
     e.Attr['novalue'] := format('Search with %s', [vSearchEngine_Name]);
 end;
 
-constructor TSandcatNavigationBar.Create(AOwner: TWinControl);
+constructor TSandcatNavigationBar.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlStyle := ControlStyle + [csAcceptsControls];
@@ -1088,7 +1088,7 @@ begin
   fEngine.LoadHTML(GetResourceAsString('STATBAR', 'HTML'), pluginsdir);
 end;
 
-constructor TSandcatStatusbar.Create(AOwner: TWinControl);
+constructor TSandcatStatusbar.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlStyle := ControlStyle + [csAcceptsControls];
@@ -1106,7 +1106,7 @@ end;
 // TSandcatSideBar                                                         //
 // ------------------------------------------------------------------------//
 
-constructor TSandcatSidebar.Create(AOwner: TWinControl);
+constructor TSandcatSidebar.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   Width := 300;
@@ -1333,8 +1333,6 @@ end;
 procedure TSandcatContentArea.CreatePage(const SubTabName: string);
 var
   new: TSandUIEngine;
-var
-  e: ISandUIElement;
   backref: string;
 begin
   if PageExists(SubTabName) = false then
@@ -1367,7 +1365,7 @@ begin
     SandConsole.Free;
 end;
 
-constructor TSandcatContentArea.Create(AOwner: TWinControl);
+constructor TSandcatContentArea.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlStyle := ControlStyle + [csAcceptsControls];
@@ -1458,7 +1456,7 @@ begin
   fEngine.LoadHTML(GetResourceAsString('PAGEBAR', 'HTML'), pluginsdir);
 end;
 
-constructor TSandcatPageBar.Create(AOwner: TWinControl);
+constructor TSandcatPageBar.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlStyle := ControlStyle + [csAcceptsControls];
@@ -1482,7 +1480,6 @@ end;
 
 procedure TSandcatBottomBar.LoadBottomBar(const HTML: string);
 var
-  sl: TStringList;
   ht: string;
 begin
   ViewBottomBar(true);
@@ -1580,7 +1577,7 @@ begin
   fReqBuilder.SetWordWrap(true);
 end;
 
-constructor TSandcatBottomBar.Create(AOwner: TWinControl);
+constructor TSandcatBottomBar.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlStyle := ControlStyle + [csAcceptsControls];
@@ -1682,7 +1679,7 @@ begin
   fEngine.LoadHTML(GetResourceAsString('TABBAR', 'HTML'), pluginsdir);
 end;
 
-constructor TSandcatTabstrip.Create(AOwner: TWinControl);
+constructor TSandcatTabstrip.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ControlStyle := ControlStyle + [csAcceptsControls];

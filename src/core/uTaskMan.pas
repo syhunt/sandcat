@@ -54,7 +54,6 @@ type
     fTabMsgHandle: HWND;
     fTID: string;
     function Format(const s: string): string;
-    function GetInfo: string;
     procedure GetInfoL(L: PLua_State);
     function GetParam(const name, default: string): string;
     procedure DoSpecial(const s: string);
@@ -120,7 +119,7 @@ type
     procedure KillActiveTasks;
     procedure RemoveTask(const tid: string);
     procedure ShutDown;
-    procedure StopTask(const tid: string);
+    //procedure StopTask(const tid: string);
     procedure SuspendTask(const tid: string; const resume: boolean = false);
     procedure SuspendResumeTask(const tid: string);
     procedure TaskStopped(const tid: string);
@@ -351,14 +350,14 @@ begin
   end;
 end;
 
-procedure TSandcatTaskManager.StopTask(const tid: string);
+{procedure TSandcatTaskManager.StopTask(const tid: string);
 var
   Task: TSandcatTask;
 begin
   Task := SelectTask(tid);
   if Task <> nil then
     Task.Stop;
-end;
+end;  }
 
 procedure TSandcatTaskManager.SuspendResumeTask(const tid: string);
 var
@@ -402,7 +401,6 @@ var
   Task: TSandcatTask;
   taskid,menu: string;
   tab: TSandcatTab;
-  e: ISandUIElement;
   j: TSandJSON;
   function myformat(s: string): string;
   begin
@@ -643,7 +641,7 @@ begin
   pData := PCopyDataStruct(message.LParam);
   if (pData = nil) then
     exit;
-  str := StrPas(PAnsiChar(pData^.lpData));
+  str := string(StrPas(PAnsiChar(pData^.lpData)));
   CopyDataMessage(pData^.dwData, str);
   message.result := 1;
 end;
@@ -705,57 +703,6 @@ begin
   plua_SetFieldValue(L, 'progressicon', progress_icon);
   plua_SetFieldValue(L, 'progressdesc', progress_desc);
   plua_SetFieldValue(L, 'pid', fPID);
-end;
-
-function TSandcatTask.GetInfo: string;
-var
-  j: TSandJSON;
-  progress_desc, progress_icon: string;
-  function getprog: string;
-  begin
-    result := inttostr(getpercentage(fProgressPos, fProgressMax)) + '%';
-  end;
-
-begin
-  j := TSandJSON.Create;
-  j['caption'] := fCaption;
-  j['menuhtml'] := fMenuHTML;
-  if fIcon = emptystr then
-  begin
-    if fIsDownload then
-      fIcon := ICON_DOWNLOADS
-    else
-      fIcon := ICON_LUA;
-  end;
-  j['icon'] := fIcon;
-  j['filename'] := fDownloadFilename;
-  j['status'] := fStatus;
-  j['onclick'] := fScripts.OnClick;
-  j['ondblclick'] := fScripts.OnDoubleClick;
-  if fEnabled then
-  begin
-    progress_icon := ICON_TASK_RUNNING;
-    if fHasProgressBar then
-      progress_desc := getprog()
-    else
-      progress_desc := 'Running';
-  end
-  else
-  begin
-    if fStopped then
-      progress_icon := ICON_BLANK
-    else
-      progress_icon := ICON_CHECKED;
-    if fHasProgressBar then
-      progress_desc := 'Done (' + getprog() + ').'
-    else
-      progress_desc := 'Done.';
-  end;
-  j['progressicon'] := progress_icon;
-  j['progressdesc'] := progress_desc;
-  j['pid'] := fPID;
-  result := j.Text;
-  j.Free;
 end;
 
 procedure TSandcatTask.TaskUpdated;

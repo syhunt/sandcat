@@ -386,8 +386,6 @@ begin
 end;
 
 function lua_scriptlogerror(L: plua_State): integer; cdecl;
-var
-  b: boolean;
 begin
   extensions.LogScriptError('Runik', inttostr(lua_tointeger(L, 1)),
     lua_tostring(L, 2));

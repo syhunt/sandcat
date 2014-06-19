@@ -27,7 +27,7 @@ type
   public
     procedure AddMessage(s: string; pid, imgindex: integer);
     procedure Clear;
-    constructor Create(AOwner: TWinControl);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
@@ -65,7 +65,7 @@ begin
   fFilterLv.Clear;
 end;
 
-constructor TTaskMessages.Create(AOwner: TWinControl);
+constructor TTaskMessages.Create(AOwner: TComponent);
   procedure AddColumn(lv: TListView; c: string; w: integer = 0);
   begin
     with lv.Columns.Add do

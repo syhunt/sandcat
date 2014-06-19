@@ -145,8 +145,7 @@ begin
   pData := PCopyDataStruct(message.LParam);
   if (pData = nil) then
     exit;
-  s := StrPas({$IFDEF UNICODE}PAnsiChar(pData^.lpData){$ELSE}StrPas
-    (pData^.lpData){$ENDIF});
+  s := string(StrPas(PAnsiChar(pData^.lpData)));
   case pData^.dwData of
     SCBF_CMDLINEPARAMS:
       begin

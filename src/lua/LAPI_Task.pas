@@ -22,7 +22,6 @@ type
   private
     fLoaded: Boolean;
     fLuaWrap: TSandLua;
-    FWndHandle: HWND;
   public
     procedure Run(const tid: string);
     constructor Create(AOwner: TComponent); override;

@@ -102,8 +102,8 @@ type
     procedure AddPageResource(const URL: string);
     procedure BrowserMessage(const msg: integer; const str: string);
     procedure CopyDataMessage(const msg: integer; const str: string);
-    procedure CodeEditDropFiles(Sender: TObject; X, Y: integer;
-      AFiles: TUnicodeStrings);
+    //procedure CodeEditDropFiles(Sender: TObject; X, Y: integer;
+    //  AFiles: TUnicodeStrings);
     procedure InitChrome;
     procedure CreateLiveHeaders;
     procedure CreateMainPanel;
@@ -347,14 +347,14 @@ begin
   fTreeSplitter.Left := fSideTree.Left + 1;
 end;
 
-// Handles file drops in the code editor
+{// Handles file drops in the code editor
 procedure TSandcatTab.CodeEditDropFiles(Sender: TObject; X, Y: integer;
   AFiles: TUnicodeStrings);
 begin
-  { CodeEdit_DroppedFiles := trim(AFiles.Text);
+    CodeEdit_DroppedFiles := trim(AFiles.Text);
     if CodeEdit_DropEnd <> emptystr then
-    Extensions.RunLuaCmd(CodeEdit_DropEnd); }
-end;
+    Extensions.RunLuaCmd(CodeEdit_DropEnd);
+end;  }
 
 // Loads a custom extension page (used by Sandcat extensions)
 procedure TSandcatTab.LoadExtensionPage(const html: string);
@@ -661,7 +661,7 @@ begin
   pData := PCopyDataStruct(message.LParam);
   if (pData = nil) then
     exit;
-  str := StrPas(PAnsiChar(pData^.lpData));
+  str := string(StrPas(PAnsiChar(pData^.lpData)));
   CopyDataMessage(pData^.dwData, str);
   message.Result := 1;
 end;
@@ -680,7 +680,7 @@ begin
           pData := PCopyDataStruct(AMsg.LParam);
           if (pData = nil) then
             exit;
-          str := StrPas(PAnsiChar(pData^.lpData));
+          str := string(StrPas(PAnsiChar(pData^.lpData)));
           BrowserMessage(pData^.dwData, str);
           AMsg.Result := 1;
         end;

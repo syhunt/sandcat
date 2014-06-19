@@ -35,7 +35,7 @@ type
       const response: string);
     constructor Create(AOwner: TWinControl; MsgHandle: HWND);
     destructor Destroy; override;
-  published
+    // properties
     property LogRequests: boolean read fLogRequests write fLogRequests;
   end;
 
