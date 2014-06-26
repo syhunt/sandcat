@@ -67,17 +67,17 @@ var
 begin
   def := tabmanager.GetTabDefaultSettings;
   idx := lua_gettop(L);
-  result.activepage := pLua_GetFieldStr(L, idx, 'activepage', def.activepage);
-  result.HTML := pLua_GetFieldStr(L, idx, 'html');
-  result.icon := pLua_GetFieldStr(L, idx, 'icon');
-  result.LoadNew := pLua_GetFieldBool(L, idx, 'loadnew', def.LoadNew);
-  result.ShowNavBar := pLua_GetFieldBool(L, idx, 'shownavbar', def.ShowNavBar);
-  result.ShowPageStrip := pLua_GetFieldBool(L, idx, 'showpagestrip',
+  result.activepage := pLua_GetFieldValueStr(L, idx, 'activepage', def.activepage);
+  result.HTML := pLua_GetFieldValueStr(L, idx, 'html');
+  result.icon := pLua_GetFieldValueStr(L, idx, 'icon');
+  result.LoadNew := pLua_GetFieldValueBool(L, idx, 'loadnew', def.LoadNew);
+  result.ShowNavBar := pLua_GetFieldValueBool(L, idx, 'shownavbar', def.ShowNavBar);
+  result.ShowPageStrip := pLua_GetFieldValueBool(L, idx, 'showpagestrip',
     def.ShowPageStrip);
-  result.Table := pLua_GetFieldStr(L, idx, 'table');
-  result.Tag := pLua_GetFieldStr(L, idx, 'tag');
-  result.Title := pLua_GetFieldStr(L, idx, 'title');
-  result.Toolbar := pLua_GetFieldStr(L, idx, 'toolbar');
+  result.Table := pLua_GetFieldValueStr(L, idx, 'table');
+  result.Tag := pLua_GetFieldValueStr(L, idx, 'tag');
+  result.Title := pLua_GetFieldValueStr(L, idx, 'title');
+  result.Toolbar := pLua_GetFieldValueStr(L, idx, 'toolbar');
 end;
 
 function BuildRequestFromLuaTable(L: PLua_State): TCatChromiumRequest;
@@ -85,15 +85,15 @@ var
   idx: integer;
 begin
   idx := lua_gettop(L);
-  result.method := pLua_GetFieldStr(L, idx, REQUESTKEY_METHOD);
-  result.url := pLua_GetFieldStr(L, idx, REQUESTKEY_URL);
-  result.postdata := pLua_GetFieldStr(L, idx, REQUESTKEY_POSTDATA);
-  result.headers := pLua_GetFieldStr(L, idx, REQUESTKEY_HEADERS);
-  result.ignorecache := pLua_GetFieldBool(L, idx, REQUESTKEY_IGNORECACHE, true);
-  result.usecookies := pLua_GetFieldBool(L, idx, REQUESTKEY_USECOOKIES, true);
-  result.usecachedcredentials := pLua_GetFieldBool(L, idx,
+  result.method := pLua_GetFieldValueStr(L, idx, REQUESTKEY_METHOD);
+  result.url := pLua_GetFieldValueStr(L, idx, REQUESTKEY_URL);
+  result.postdata := pLua_GetFieldValueStr(L, idx, REQUESTKEY_POSTDATA);
+  result.headers := pLua_GetFieldValueStr(L, idx, REQUESTKEY_HEADERS);
+  result.ignorecache := pLua_GetFieldValueBool(L, idx, REQUESTKEY_IGNORECACHE, true);
+  result.usecookies := pLua_GetFieldValueBool(L, idx, REQUESTKEY_USECOOKIES, true);
+  result.usecachedcredentials := pLua_GetFieldValueBool(L, idx,
     REQUESTKEY_USEAUTH, true);
-  result.details := pLua_GetFieldStr(L, idx, REQUESTKEY_DETAILS);
+  result.details := pLua_GetFieldValueStr(L, idx, REQUESTKEY_DETAILS);
 end;
 
 function BuildRequestFromJSON(json: string): TCatChromiumRequest;
@@ -136,16 +136,16 @@ var
   idx: integer;
 begin
   idx := lua_gettop(L);
-  result.details := pLua_GetFieldStr(L, idx, REQUESTKEY_DETAILS);
-  result.tab := pLua_GetFieldStr(L, idx, REQUESTKEY_TAB);
-  result.filters := pLua_GetFieldStr(L, idx, REQUESTKEY_FILTER);
-  result.username := pLua_GetFieldStr(L, idx, REQUESTKEY_USERNAME);
-  result.password := pLua_GetFieldStr(L, idx, REQUESTKEY_PASSWORD);
-  result.headers := pLua_GetFieldStr(L, idx, REQUESTKEY_HEADERS);
-  result.callback := pLua_GetFieldStr(L, idx, REQUESTKEY_CALLBACK);
-  result.method := pLua_GetFieldStr(L, idx, REQUESTKEY_METHOD, 'GET');
-  result.url := pLua_GetFieldStr(L, idx, REQUESTKEY_URL);
-  result.postdata := pLua_GetFieldStr(L, idx, REQUESTKEY_POSTDATA);
+  result.details := pLua_GetFieldValueStr(L, idx, REQUESTKEY_DETAILS);
+  result.tab := pLua_GetFieldValueStr(L, idx, REQUESTKEY_TAB);
+  result.filters := pLua_GetFieldValueStr(L, idx, REQUESTKEY_FILTER);
+  result.username := pLua_GetFieldValueStr(L, idx, REQUESTKEY_USERNAME);
+  result.password := pLua_GetFieldValueStr(L, idx, REQUESTKEY_PASSWORD);
+  result.headers := pLua_GetFieldValueStr(L, idx, REQUESTKEY_HEADERS);
+  result.callback := pLua_GetFieldValueStr(L, idx, REQUESTKEY_CALLBACK);
+  result.method := pLua_GetFieldValueStr(L, idx, REQUESTKEY_METHOD, 'GET');
+  result.url := pLua_GetFieldValueStr(L, idx, REQUESTKEY_URL);
+  result.postdata := pLua_GetFieldValueStr(L, idx, REQUESTKEY_POSTDATA);
 end;
 
 procedure SetUserCSS(s: string);
