@@ -183,8 +183,8 @@ function lua_bgtasksuspend(L: PLua_State): integer; cdecl;
 
 implementation
 
-uses uMain, uZones, uTab, uMisc, LAPI_Task, CatHTTP, CatUI, pLua, uConst,
-  CatTime, CatStrings, CatTasks, CatChromium;
+uses uMain, uZones, uTab, uMisc, LAPI_Task, CatHTTP, CatUI, pLua, pLuaTable,
+  uConst, CatTime, CatStrings, CatTasks, CatChromium;
 
 var
   tasks_shutdown: boolean = false;

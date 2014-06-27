@@ -32,7 +32,7 @@ procedure SetUserCSS(s: string);
 
 implementation
 
-uses uMain, pLua, CatStrings, CatUI, CatFiles, uConst, uSettings,
+uses uMain, pLua, pLuaTable, CatStrings, CatUI, CatFiles, uConst, uSettings,
   uZones, pngimage, CatZIP, CatCLUtils;
 
 function BeginsWithSpecialParam(param: string): boolean;
@@ -61,46 +61,45 @@ end;
 
 function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
 var
-  idx: integer;
-var
   def: TCustomTabSettings;
+  t: TLuaTable;
 begin
   def := tabmanager.GetTabDefaultSettings;
-  idx := lua_gettop(L);
-  result.activepage := pLua_GetFieldValueStr(L, idx, 'activepage', def.activepage);
-  result.HTML := pLua_GetFieldValueStr(L, idx, 'html');
-  result.icon := pLua_GetFieldValueStr(L, idx, 'icon');
-  result.LoadNew := pLua_GetFieldValueBool(L, idx, 'loadnew', def.LoadNew);
-  result.ShowNavBar := pLua_GetFieldValueBool(L, idx, 'shownavbar', def.ShowNavBar);
-  result.ShowPageStrip := pLua_GetFieldValueBool(L, idx, 'showpagestrip',
-    def.ShowPageStrip);
-  result.Table := pLua_GetFieldValueStr(L, idx, 'table');
-  result.Tag := pLua_GetFieldValueStr(L, idx, 'tag');
-  result.Title := pLua_GetFieldValueStr(L, idx, 'title');
-  result.Toolbar := pLua_GetFieldValueStr(L, idx, 'toolbar');
+  t := TLuaTable.Create(L, true);
+  result.activepage := t.readstring('activepage', def.activepage);
+  result.HTML := t.readstring('html');
+  result.icon := t.readstring('icon');
+  result.LoadNew := t.readbool('loadnew', def.LoadNew);
+  result.ShowNavBar := t.readbool('shownavbar', def.ShowNavBar);
+  result.ShowPageStrip := t.readbool('showpagestrip', def.ShowPageStrip);
+  result.Table := t.readstring('table');
+  result.Tag := t.readstring('tag');
+  result.Title := t.readstring('title');
+  result.Toolbar := t.readstring('toolbar');
+  t.Free;
 end;
 
 function BuildRequestFromLuaTable(L: PLua_State): TCatChromiumRequest;
 var
-  idx: integer;
+  t: TLuaTable;
 begin
-  idx := lua_gettop(L);
-  result.method := pLua_GetFieldValueStr(L, idx, REQUESTKEY_METHOD);
-  result.url := pLua_GetFieldValueStr(L, idx, REQUESTKEY_URL);
-  result.postdata := pLua_GetFieldValueStr(L, idx, REQUESTKEY_POSTDATA);
-  result.headers := pLua_GetFieldValueStr(L, idx, REQUESTKEY_HEADERS);
-  result.ignorecache := pLua_GetFieldValueBool(L, idx, REQUESTKEY_IGNORECACHE, true);
-  result.usecookies := pLua_GetFieldValueBool(L, idx, REQUESTKEY_USECOOKIES, true);
-  result.usecachedcredentials := pLua_GetFieldValueBool(L, idx,
-    REQUESTKEY_USEAUTH, true);
-  result.details := pLua_GetFieldValueStr(L, idx, REQUESTKEY_DETAILS);
+  t := TLuaTable.Create(L, true);
+  result.method := t.readstring(REQUESTKEY_METHOD);
+  result.url := t.readstring(REQUESTKEY_URL);
+  result.postdata := t.readstring(REQUESTKEY_POSTDATA);
+  result.headers := t.readstring(REQUESTKEY_HEADERS);
+  result.ignorecache := t.readbool(REQUESTKEY_IGNORECACHE, true);
+  result.usecookies := t.readbool(REQUESTKEY_USECOOKIES, true);
+  result.usecachedcredentials := t.readbool(REQUESTKEY_USEAUTH, true);
+  result.details := t.readstring(REQUESTKEY_DETAILS);
+  t.Free;
 end;
 
 function BuildRequestFromJSON(json: string): TCatChromiumRequest;
 var
   j: TSandJSON;
 begin
-  j := TSandJSON.create;
+  j := TSandJSON.Create;
   j.text := json;
   result.method := j.GetValue(REQUESTKEY_METHOD, 'GET');
   result.url := j.GetValue(REQUESTKEY_URL, emptystr);
@@ -117,7 +116,7 @@ function BuildXHRFromJSON(json: string): TCatChromiumXHR;
 var
   j: TSandJSON;
 begin
-  j := TSandJSON.create(json);
+  j := TSandJSON.Create(json);
   result.details := j.GetValue(REQUESTKEY_DETAILS, emptystr);
   result.tab := j.GetValue(REQUESTKEY_TAB, emptystr);
   result.filters := j.GetValue(REQUESTKEY_FILTER, emptystr);
@@ -133,19 +132,20 @@ end;
 
 function BuildXHRFromLuaTable(L: PLua_State): TCatChromiumXHR;
 var
-  idx: integer;
+  t: TLuaTable;
 begin
-  idx := lua_gettop(L);
-  result.details := pLua_GetFieldValueStr(L, idx, REQUESTKEY_DETAILS);
-  result.tab := pLua_GetFieldValueStr(L, idx, REQUESTKEY_TAB);
-  result.filters := pLua_GetFieldValueStr(L, idx, REQUESTKEY_FILTER);
-  result.username := pLua_GetFieldValueStr(L, idx, REQUESTKEY_USERNAME);
-  result.password := pLua_GetFieldValueStr(L, idx, REQUESTKEY_PASSWORD);
-  result.headers := pLua_GetFieldValueStr(L, idx, REQUESTKEY_HEADERS);
-  result.callback := pLua_GetFieldValueStr(L, idx, REQUESTKEY_CALLBACK);
-  result.method := pLua_GetFieldValueStr(L, idx, REQUESTKEY_METHOD, 'GET');
-  result.url := pLua_GetFieldValueStr(L, idx, REQUESTKEY_URL);
-  result.postdata := pLua_GetFieldValueStr(L, idx, REQUESTKEY_POSTDATA);
+  t := TLuaTable.Create(L, true);
+  result.details := t.readstring(REQUESTKEY_DETAILS);
+  result.tab := t.readstring(REQUESTKEY_TAB);
+  result.filters := t.readstring(REQUESTKEY_FILTER);
+  result.username := t.readstring(REQUESTKEY_USERNAME);
+  result.password := t.readstring(REQUESTKEY_PASSWORD);
+  result.headers := t.readstring(REQUESTKEY_HEADERS);
+  result.callback := t.readstring(REQUESTKEY_CALLBACK);
+  result.method := t.readstring(REQUESTKEY_METHOD, 'GET');
+  result.url := t.readstring(REQUESTKEY_URL);
+  result.postdata := t.readstring(REQUESTKEY_POSTDATA);
+  t.Free;
 end;
 
 procedure SetUserCSS(s: string);
@@ -166,8 +166,8 @@ begin
   if filename = emptystr then
     filename := dir + inttostr(tab.handle) + '.png';
   application.ProcessMessages;
-  PNG := TPNGImage.create;
-  Bitmap := TBitmap.create;
+  PNG := TPNGImage.Create;
+  Bitmap := TBitmap.Create;
   try
     Bitmap.Width := tab.Chrome.crm.Width;
     Bitmap.Height := tab.Chrome.crm.Height;
