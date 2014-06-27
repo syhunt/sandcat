@@ -10,7 +10,13 @@ interface
 
 uses
   Windows, Classes, Dialogs, Messages, Forms, SysUtils, Controls, Variants,
-  uUIComponents, CatPrefs;
+  uUIComponents, CatPrefs, ceflib;
+
+type
+  TSandcatProxySettings = record
+   Server:string;
+   Anonymize:boolean;
+  end;
 
 type
   TSandcatSettings = class
@@ -54,23 +60,48 @@ const // Sandcat Settings
   SCO_FORM_WIDTH = 'sandcat.form.width';
   SCO_USERAGENT = 'sandcat.browser.useragent';
   SCO_PROXY_SERVER = 'sandcat.browser.proxy.server';
+  SCO_PROXY_ANONYMIZE = 'sandcat.browser.proxy.anonymize';
   SCO_SEARCHENGINE_NAME = 'sandcat.search.name';
   SCO_SEARCHENGINE_ICON = 'sandcat.search.icon';
   SCO_SEARCHENGINE_QUERYURL = 'sandcat.search.queryurl';
 
 var
   IsSandcatPortable: boolean = false;
-  vProxyServer: string;
 
 function GetCustomUserAgent: string;
-function GetProxyServer: string;
+function GetProxySettings: TSandcatProxySettings;
 function GetSandcatDir(dir: integer; Create: boolean = false): string;
 function IsMultipleInstancesAllowed: boolean;
+procedure OnbeforeCmdLine(const processType: ustring;
+  const commandLine: ICefCommandLine);
 
 implementation
 
 uses uMain, uMisc, uConst, CatChromium, CatUI, CatTime, CatStrings,
   CatFiles, CatHTTP;
+
+procedure OnbeforeCmdLine(const processType: ustring;
+  const commandLine: ICefCommandLine);
+var
+  proxy: TSandcatProxySettings;
+begin
+  proxy := GetProxySettings;
+  if proxy.Server <> emptystr then
+  begin
+    commandLine.AppendSwitchWithValue('proxy-server', proxy.Server);
+    commandLine.AppendSwitchWithValue('host-resolver-rules',
+      'MAP * 0.0.0.0 , EXCLUDE 127.0.0.1');
+    if proxy.Anonymize = true then
+    begin
+      // Prevent plugins from running
+      commandLine.AppendSwitch('disable-plugins');
+      // Disable restoring session state (cookies, session storage, etc.) when
+      // restoring the browsing session
+      commandLine.AppendSwitch('disable-restore-session-state');
+    end;
+  end;
+  // if commandLine.IsValid then ShowMessage(commandLine.CommandLineString);
+end;
 
 function IsMultipleInstancesAllowed: boolean;
 var
@@ -88,7 +119,7 @@ begin
   j.Free;
 end;
 
-function GetProxyServer: string;
+function GetProxySettings: TSandcatProxySettings;
 var
   j: TSandJSON;
   jf: string;
@@ -97,7 +128,8 @@ begin
   j := TSandJSON.Create;
   if fileexists(jf) then
     j.loadfromfile(jf);
-  result := j.getvalue(SCO_PROXY_SERVER, emptystr);
+  result.Server := j.getvalue(SCO_PROXY_SERVER, emptystr);
+  result.Anonymize := j.getvalue(SCO_PROXY_ANONYMIZE, false);
   j.Free;
 end;
 
@@ -335,6 +367,8 @@ var
     fPreferences.RegisterDefault(SCO_STARTUP_WELCOME_METHOD, 'blank');
     fPreferences.RegisterDefault(SCO_STARTUP_HOMEPAGE, emptystr);
     fPreferences.RegisterDefault(SCO_USERAGENT, emptystr);
+    fPreferences.RegisterDefault(SCO_PROXY_SERVER, emptystr);
+    fPreferences.RegisterDefault(SCO_PROXY_ANONYMIZE, false);
     fPreferences.RegisterDefault(SCO_EXTENSIONS_ENABLED, true);
     fPreferences.RegisterDefault(SCO_STARTUP_MULTIPLE_INSTANCES, false);
     fPreferences.RegisterDefault(SCO_CONSOLE_BGCOLOR, '#262626');
@@ -354,7 +388,6 @@ begin
     sandbrowser.Height); // int
   sandbrowser.Width := fPreferences.Current.getvalue(SCO_FORM_WIDTH,
     sandbrowser.Width); // int
-  vProxyServer := fPreferences.Current.getvalue(SCO_PROXY_SERVER, emptystr);
   // str
   vSearchEngine_Name := fPreferences.Current.getvalue(SCO_SEARCHENGINE_NAME,
     vSearchEngine_Name); // str
@@ -394,7 +427,6 @@ begin
   fPreferences.setvalue(SCO_FORM_WIDTH, R.Right - R.Left); // int
   fPreferences.setvalue(SCO_FORM_TOP, R.Top); // int
   fPreferences.setvalue(SCO_FORM_LEFT, R.Left); // int
-  fPreferences.setvalue(SCO_PROXY_SERVER, vProxyServer); // str
   if vSearchEngine_Name <> emptystr then
     fPreferences.setvalue(SCO_SEARCHENGINE_NAME, vSearchEngine_Name); // str
   if vSearchEngine_QueryURL <> emptystr then

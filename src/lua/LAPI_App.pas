@@ -114,7 +114,8 @@ begin
     info_options:
       lua_pushstring(L, settings.preferences.CIDList);
     info_proxy:
-      lua_pushstring(L, vProxyServer);
+      lua_pushstring(L, settings.preferences.GetValue(SCO_PROXY_SERVER,
+        emptystr));
     info_tasks:
       lua_pushstring(L, gettasklist);
     info_useragent:

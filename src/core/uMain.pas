@@ -72,7 +72,8 @@ procedure Debug(const s: string; const component: string = 'UI');
 
 implementation
 
-uses uConst, uUIComponents, CatChromium, uMisc, CatStrings, CatFiles, CatCLUtils,
+uses uConst, uUIComponents, CatChromium, uMisc, CatStrings, CatFiles,
+  CatCLUtils,
   CatUI, ceflib, CatTasks, CatStdSysMenu;
 
 {$R *.dfm}
@@ -89,11 +90,10 @@ begin
   PluginsDir := GetSandcatDir(SCDIR_PLUGINS);
   CefSingleProcess := false;
   CefCache := GetSandcatDir(SCDIR_CACHE);
-  CefLocalesDirPath := progdir+'Packs\CEF\Locales\';
+  CefLocalesDirPath := ProgDir + 'Packs\CEF\Locales\';
   CefResourcesDirPath := ProgDir + 'Packs\CEF\Resources\';
   CefUserAgent := GetCustomUserAgent;
-  // TODO: figure out how to pass CLI proxy settings from here:
-  // --proxy-server="socks5://localhost:9050"
+  CefOnBeforeCommandLineProcessing := OnbeforeCmdLine;
 
   if not CefLoadLibDefault then
     result := true // This is a CEF renderer process

@@ -25,10 +25,7 @@ function lua_inserthtmlfile(L: plua_State): integer; cdecl;
 function lua_newtab(L: plua_State): integer; cdecl;
 function lua_tabs_addcustom(L: plua_State): integer; cdecl;
 function lua_gototab(L: plua_State): integer; cdecl;
-function lua_setuseragent(L: plua_State): integer; cdecl;
 function lua_setsearchengine(L: plua_State): integer; cdecl;
-function lua_proxyenable(L: plua_State): integer; cdecl;
-function lua_pluginsenable(L: plua_State): integer; cdecl;
 
 function lua_addtodebuglog(L: plua_State): integer; cdecl;
 function lua_enabledebugmode(L: plua_State): integer; cdecl;
@@ -432,15 +429,6 @@ begin
   result := 1;
 end;
 
-function lua_setuseragent(L: plua_State): integer; cdecl;
-var
-  s: string;
-begin
-  s := lua_tostring(L, 1);
-  settings.preferences[SCO_USERAGENT] := s;
-  result := 1;
-end;
-
 function lua_var_replace(L: plua_State): integer; cdecl;
 var
   s: string;
@@ -450,18 +438,12 @@ begin
   result := 1;
 end;
 
-function lua_proxyenable(L: plua_State): integer; cdecl;
-begin
-  vProxyServer := lua_tostring(L, 1);
-  result := 1;
-end;
-
-function lua_pluginsenable(L: plua_State): integer; cdecl;
+{function lua_pluginsenable(L: plua_State): integer; cdecl;
 begin
   settings.preferences[CRMO_PLUGINS] := lua_toboolean(L, 1);
   tabmanager.ReconfigureAllTabs;
   result := 1;
-end;
+end; }
 
 function lua_enabledebugmode(L: plua_State): integer; cdecl;
 begin
