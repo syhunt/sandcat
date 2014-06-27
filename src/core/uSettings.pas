@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Classes, Dialogs, Messages, Forms, SysUtils, Controls, Variants,
-  Lua, uUIComponents, CatPrefs;
+  uUIComponents, CatPrefs;
 
 type
   TSandcatSettings = class
@@ -66,23 +66,11 @@ function GetCustomUserAgent: string;
 function GetProxyServer: string;
 function GetSandcatDir(dir: integer; Create: boolean = false): string;
 function IsMultipleInstancesAllowed: boolean;
-function lua_sandcatsettings_get(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_getdefault(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_set(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_getalljson(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_getalldefaultjson(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_save(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_settext(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_getfilename(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_registerdefault(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_update(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_savetofile(L: plua_State): integer; cdecl;
-function lua_sandcatsettings_loadfromfile(L: plua_State): integer; cdecl;
 
 implementation
 
 uses uMain, uMisc, uConst, CatChromium, CatUI, CatTime, CatStrings,
-  CatFiles, pLua, CatHTTP;
+  CatFiles, CatHTTP;
 
 function IsMultipleInstancesAllowed: boolean;
 var
@@ -171,7 +159,7 @@ var
 const
   defaultmethod = 'blank';
 begin
-  result:=emptystr;
+  result := emptystr;
   method := Settings.Preferences.getvalue(SCO_STARTUP_WELCOME_METHOD,
     defaultmethod);
   if method = defaultmethod then
@@ -438,94 +426,6 @@ begin
   DeleteFolder(GetSandcatDir(SCDIR_HEADERS));
   forcedir(GetSandcatDir(SCDIR_HEADERS));
   inherited;
-end;
-
-// Lua Library ------------------------------------------------------------//
-
-function lua_sandcatsettings_savetofile(L: plua_State): integer; cdecl;
-begin
-  if lua_tostring(L, 1) <> emptystr then
-    Settings.Preferences.SaveToFile(lua_tostring(L, 1));
-  result := 1;
-end;
-
-function lua_sandcatsettings_loadfromfile(L: plua_State): integer; cdecl;
-begin
-  if lua_tostring(L, 1) <> emptystr then
-    Settings.Preferences.loadfromfile(lua_tostring(L, 1));
-  result := 1;
-end;
-
-function lua_sandcatsettings_get(L: plua_State): integer; cdecl;
-begin
-  if lua_isnone(L, 2) then
-    plua_pushvariant(L, Settings.Preferences.getvalue(lua_tostring(L, 1)))
-  else
-    plua_pushvariant(L, Settings.Preferences.getvalue(lua_tostring(L, 1),
-      plua_tovariant(L, 2)));
-  result := 1;
-end;
-
-function lua_sandcatsettings_getalljson(L: plua_State): integer; cdecl;
-begin
-  // If param 1 is provided and is false, returns default settings
-  lua_pushstring(L, Settings.Preferences.Current.Text);
-  result := 1;
-end;
-
-function lua_sandcatsettings_getalldefaultjson(L: plua_State): integer; cdecl;
-begin
-  lua_pushstring(L, Settings.Preferences.Default.Text);
-  result := 1;
-end;
-
-function lua_sandcatsettings_save(L: plua_State): integer; cdecl;
-begin
-  Settings.Save;
-  result := 1;
-end;
-
-function lua_sandcatsettings_settext(L: plua_State): integer; cdecl;
-begin
-  Settings.Preferences.loadfromstring(lua_tostring(L, 1));
-  result := 1;
-end;
-
-function lua_sandcatsettings_getfilename(L: plua_State): integer; cdecl;
-begin
-  lua_pushstring(L, Settings.Preferences.filename);
-  result := 1;
-end;
-
-function lua_sandcatsettings_getdefault(L: plua_State): integer; cdecl;
-begin
-  plua_pushvariant(L, Settings.Preferences.Default[lua_tostring(L, 1)]);
-  result := 1;
-end;
-
-function lua_sandcatsettings_registerdefault(L: plua_State): integer; cdecl;
-begin
-  // s:=plua_tovariant(L,2);
-  // debug('registering default: '+lua_tostring(L,1)+' value:'+s,'Settings');
-  if lua_isnone(L, 3) then
-    Settings.Preferences.RegisterDefault(lua_tostring(L, 1),
-      plua_tovariant(L, 2), false)
-  else
-    Settings.Preferences.RegisterDefault(lua_tostring(L, 1),
-      plua_tovariant(L, 2), lua_toboolean(L, 3));
-  result := 1;
-end;
-
-function lua_sandcatsettings_set(L: plua_State): integer; cdecl;
-begin
-  Settings.Preferences[lua_tostring(L, 1)] := plua_tovariant(L, 2);
-  result := 1;
-end;
-
-function lua_sandcatsettings_update(L: plua_State): integer; cdecl;
-begin
-  Settings.Update;
-  result := 1;
 end;
 
 // ------------------------------------------------------------------------//

@@ -54,9 +54,6 @@ type
     fTabMsgHandle: HWND;
     fTID: string;
     function Format(const s: string): string;
-    procedure GetInfoL(L: PLua_State);
-    function GetParam(const name, default: string): string;
-    procedure DoSpecial(const s: string);
     procedure MonitorEval(const tis: string);
     procedure QueueTIS(const s: string);
     procedure RemoveMonitor;
@@ -74,6 +71,9 @@ type
     procedure Write(const s: string);
     procedure WriteLn(const s: string);
   public
+    function GetParam(const name, default: string): string;
+    procedure DoSpecial(const s: string);
+    procedure GetInfoL(L: PLua_State);
     procedure RunScript(const s: string);
     procedure SetParam(const name, value: string);
     procedure SetParams(const json: string);
@@ -83,29 +83,17 @@ type
     constructor Create(const tid: string);
     destructor Destroy; override;
     // properties
-    property Caption: string read fCaption;
+    property Caption: string read fCaption write SetCaption;
     property DownloadFilename: string read fDownloadFilename
       write fDownloadFilename;
     property Enabled: boolean read fEnabled;
     property Icon: string read fIcon write SetIcon;
     property IsDownload: boolean read fIsDownload;
     property IsSuspended: boolean read fSuspended;
+    property MsgHandle: HWND read fMsgHandle;
     property OnStop: TSandcatTaskOnStop read fOnStop write fOnStop;
     property Status: string read fStatus write SetStatus;
     property TID: string read fTID;
-  end;
-
-type
-  TSandcatTaskLuaObject = class(TLuaObject)
-  private
-  public
-    Task: TSandcatTask;
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload; override;
-    function GetPropValue(propName: String): Variant; override;
-    function SetPropValue(propName: String; const AValue: Variant)
-      : boolean; override;
-    destructor Destroy; override;
   end;
 
 type
@@ -117,19 +105,19 @@ type
     function CountActive: integer;
     function TaskExists(const tid: string): boolean;
     procedure KillActiveTasks;
-    procedure RemoveTask(const tid: string);
     procedure ShutDown;
-    //procedure StopTask(const tid: string);
-    procedure SuspendTask(const tid: string; const resume: boolean = false);
-    procedure SuspendResumeTask(const tid: string);
     procedure TaskStopped(const tid: string);
   public
     function AddTask(const MenuHTML: string; const Hidden: boolean = false): TSandcatTask;
     function SelectTask(const tid: string): TSandcatTask;
     procedure GetDownloadList(var sl: TStringList);
     procedure GetTaskList(var sl: TStringList);
+    procedure RemoveTask(const tid: string);
     procedure RunJSONCmd(const json: string);
     procedure SetTaskParam_JSON(const json:string);
+    procedure StopTask(const tid: string);
+    procedure SuspendResumeTask(const tid: string);
+    procedure SuspendTask(const tid: string; const resume: boolean = false);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
     property Running: boolean read fRunning write fRunning;
@@ -158,28 +146,6 @@ type
 const
   SCTASK_WRITELN = 1;
   SCTASK_LOGREQUEST_DYNAMIC = 2;
-
-procedure RegisterSandcatTaskObject(L: PLua_State);
-function lua_addbackgroundtask(L: PLua_State): integer; cdecl;
-function lua_addbackgroundtask_hidden(L: PLua_State): integer; cdecl;
-function lua_bgtasksetstatus(L: PLua_State): integer; cdecl;
-function lua_bgtasksetcaption(L: PLua_State): integer; cdecl;
-function lua_bgtaskseticon(L: PLua_State): integer; cdecl;
-function lua_bgtaskremove(L: PLua_State): integer; cdecl;
-function lua_bgtaskrunscript(L: PLua_State): integer; cdecl;
-function lua_bgtaskstop(L: PLua_State): integer; cdecl;
-function lua_bgtasksetparam(L: PLua_State): integer; cdecl;
-function lua_bgtasksetparams(L: PLua_State): integer; cdecl;
-function lua_bgtaskgetparam(L: PLua_State): integer; cdecl;
-function lua_bgtaskspecial(L: PLua_State): integer; cdecl;
-function lua_bgtaskgethandle(L: PLua_State): integer; cdecl;
-function lua_bgtasksetscript(L: PLua_State): integer; cdecl;
-function lua_gettasklist(L: PLua_State): integer; cdecl;
-function lua_bgtaskgetstatus(L: PLua_State): integer; cdecl;
-function lua_bgtaskgetcaption(L: PLua_State): integer; cdecl;
-function lua_bgtaskgetinfo(L: PLua_State): integer; cdecl;
-function lua_getdownloadlist(L: PLua_State): integer; cdecl;
-function lua_bgtasksuspend(L: PLua_State): integer; cdecl;
 
 implementation
 
@@ -350,14 +316,14 @@ begin
   end;
 end;
 
-{procedure TSandcatTaskManager.StopTask(const tid: string);
+procedure TSandcatTaskManager.StopTask(const tid: string);
 var
   Task: TSandcatTask;
 begin
   Task := SelectTask(tid);
   if Task <> nil then
     Task.Stop;
-end;  }
+end;
 
 procedure TSandcatTaskManager.SuspendResumeTask(const tid: string);
 var
@@ -1041,265 +1007,6 @@ begin
   fParams.Free;
   Classes.DeallocateHWnd(fMsgHandle);
   inherited;
-end;
-
-// Lua Functions ***************************************************************
-function lua_bgtasksetscript(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-  script, event: string;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  event := lua_tostring(L, 2);
-  script := lua_tostring(L, 3);
-  if Task <> nil then
-    Task.SetScript(event, script);
-  result := 1;
-end;
-
-function lua_bgtaskspecial(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-  cmd: string;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  cmd := lua_tostring(L, 2);
-  if Task <> nil then
-    Task.DoSpecial(cmd);
-  result := 1;
-end;
-
-function lua_bgtasksetstatus(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    Task.SetStatus(lua_tostring(L, 2));
-  result := 1;
-end;
-
-function lua_bgtaskgetstatus(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    lua_pushstring(L, Task.fStatus);
-  result := 1;
-end;
-
-function lua_bgtasksetcaption(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    Task.SetCaption(lua_tostring(L, 2));
-  result := 1;
-end;
-
-function lua_bgtaskgetcaption(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    lua_pushstring(L, Task.fCaption);
-  result := 1;
-end;
-
-function lua_bgtaskgetinfo(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    Task.GetInfoL(L);
-  result := 1;
-end;
-
-function lua_bgtaskseticon(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    Task.SetIcon(lua_tostring(L, 2));
-  result := 1;
-end;
-
-function lua_bgtasksuspend(L: PLua_State): integer; cdecl;
-begin
-  if lua_isnone(L, 2) then
-    tasks.SuspendResumeTask(lua_tostring(L, 1))
-  else
-    tasks.SuspendTask(lua_tostring(L, 1), lua_toboolean(L, 2));
-  result := 1;
-end;
-
-function lua_bgtaskremove(L: PLua_State): integer; cdecl;
-begin
-  tasks.RemoveTask(lua_tostring(L, 1));
-  result := 1;
-end;
-
-function lua_bgtaskrunscript(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-  begin
-    if lua_isnone(L, 3) = false then
-      Task.SetParams(lua_tostring(L, 3));
-    Task.RunScript(lua_tostring(L, 2));
-  end;
-  result := 1;
-end;
-
-function lua_bgtaskstop(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    Task.Stop(lua_tostring(L, 2));
-  result := 1;
-end;
-
-function lua_bgtasksetparam(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    Task.SetParam(lua_tostring(L, 2), lua_tostring(L, 3));
-  result := 1;
-end;
-
-function lua_bgtasksetparams(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    Task.SetParams(lua_tostring(L, 2));
-  result := 1;
-end;
-
-function lua_bgtaskgetparam(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-  s: string;
-begin
-  s := emptystr;
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    s := Task.GetParam(lua_tostring(L, 2), lua_tostring(L, 3));
-  lua_pushstring(L, s);
-  result := 1;
-end;
-
-function lua_gettasklist(L: PLua_State): integer; cdecl;
-var
-  sl: TStringList;
-begin
-  sl := TStringList.Create;
-  tasks.GetTaskList(sl);
-  lua_pushstring(L, sl.Text);
-  sl.Free;
-  result := 1;
-end;
-
-function lua_getdownloadlist(L: PLua_State): integer; cdecl;
-var
-  sl: TStringList;
-begin
-  sl := TStringList.Create;
-  tasks.GetDownloadList(sl);
-  lua_pushstring(L, sl.Text);
-  sl.Free;
-  result := 1;
-end;
-
-function lua_bgtaskgethandle(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-  h: integer;
-begin
-  h := 0;
-  Task := tasks.SelectTask(lua_tostring(L, 1));
-  if Task <> nil then
-    h := Task.fMsgHandle;
-  lua_pushinteger(L, h);
-  result := 1;
-end;
-
-function lua_addbackgroundtask(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.AddTask(lua_tostring(L, 1), false);
-  lua_pushstring(L, Task.ftid);
-  result := 1;
-end;
-
-function lua_addbackgroundtask_hidden(L: PLua_State): integer; cdecl;
-var
-  Task: TSandcatTask;
-begin
-  Task := tasks.AddTask(lua_tostring(L, 1), true);
-  lua_pushstring(L, Task.ftid);
-  result := 1;
-end;
-
-// Lua Object ******************************************************************
-procedure RegisterSandcatTaskObject(L: PLua_State);
-const
-  aObjectName = 'SandcatTask';
-  procedure register_methods(L: PLua_State; classTable: integer);
-  begin
-    // RegisterMethod(L,'open', @method_open, classTable);
-  end;
-  function new_callback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
-  begin
-    result := TSandcatTaskLuaObject.Create(L, AParent);
-  end;
-  function Create(L: PLua_State): integer; cdecl;
-  var
-    p: TLuaObjectNewCallback;
-  begin
-    p := @new_callback;
-    result := new_LuaObject(L, aObjectName, p);
-  end;
-
-begin
-  RegisterTLuaObject(L, aObjectName, @Create, @register_methods);
-end;
-
-function TSandcatTaskLuaObject.GetPropValue(propName: String): Variant;
-begin
-  result := inherited GetPropValue(propName);
-end;
-
-function TSandcatTaskLuaObject.SetPropValue(propName: String;
-  const AValue: Variant): boolean;
-begin
-  result := inherited SetPropValue(propName, AValue);
-end;
-
-constructor TSandcatTaskLuaObject.Create(LuaState: PLua_State;
-  AParent: TLuaObject);
-begin
-  inherited Create(LuaState, AParent);
-  Task := tasks.AddTask(emptystr, false);
-end;
-
-destructor TSandcatTaskLuaObject.Destroy;
-begin
-  Task.Free;
-  inherited Destroy;
 end;
 
 end.

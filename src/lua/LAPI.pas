@@ -45,7 +45,7 @@ procedure RegisterActiveCodeEdit(L: plua_State);
 implementation
 
 uses pLua, LAPI_Browser, uSettings, uTaskMan, LAPI_Console, LAPI_App,
-  LAPI_CodeEdit;
+  LAPI_CodeEdit, LAPI_TaskMan;
 
 procedure RegisterBrowser(L: plua_State);
 const

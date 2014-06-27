@@ -21,6 +21,7 @@ uses
   LAPI in 'lua\LAPI.pas',
   LAPI_App in 'lua\LAPI_App.pas',
   LAPI_Task in 'lua\LAPI_Task.pas',
+  LAPI_TaskMan in 'lua\LAPI_TaskMan.pas',
   LAPI_Browser in 'lua\LAPI_Browser.pas',
   LAPI_CodeEdit in 'lua\LAPI_CodeEdit.pas',
   LAPI_Console in 'lua\LAPI_Console.pas',
