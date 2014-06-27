@@ -49,7 +49,7 @@ uses pLua, LAPI_Browser, uSettings, uTaskMan, LAPI_Console, LAPI_App,
 
 procedure RegisterBrowser(L: plua_State);
 const
-  sandcatbrowser_table: array [1 .. 35] of luaL_reg = (
+  sandcatbrowser_table: array [1 .. 34] of luaL_reg = (
   (name: 'addjs'; func: lua_addjavascript),
   (name: 'addlibinfo'; func: lua_addlibraryinfo),
   (name: 'addlua'; func: lua_addluascript),
@@ -69,7 +69,6 @@ const
   (name: 'inserthtmlfile'; func: lua_inserthtmlfile),
   (name: 'loadpagex'; func: lua_loadpagex),
   (name: 'newtab'; func: lua_newtab),
-  (name: 'newtabcs'; func: lua_newconsoletab),
   (name: 'newtabx'; func: lua_tabs_addcustom),
   (name: 'newwindow'; func: lua_newwindow),
   (name: 'plugins_enable'; func: lua_pluginsenable),

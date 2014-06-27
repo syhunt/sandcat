@@ -44,12 +44,10 @@ type
     function GetTabDefaultSettings: TCustomTabSettings;
     function GetTab(const name: string): TSandcatTab;
     function GetTabByTag(const Tag: string): TSandcatTab;
-    function IsActiveTabConsole: boolean;
     function NewTab(const url: string = ''; const source: string = '';
       const hascustomtb: boolean = false; const inbg: boolean = false)
       : TSandcatTab;
     function NewTab_Custom(t: TCustomTabSettings): TSandcatTab;
-    function NewTab_Console: TSandcatTab;
     procedure CloseAllTabs(const Silent: boolean = false;
       But: TSandcatTab = nil);
     procedure CloseTab(const tabname: string = '');
@@ -146,16 +144,6 @@ begin
     exit;
   headersvisible := visible;
   Navbar.headersvisible := visible;
-end;
-
-function TSandcatTabManager.IsActiveTabConsole: boolean;
-begin
-  result := false;
-  if fActiveTab <> nil then
-  begin
-    if fActiveTab.State.CustomDefaultPage = 'console' then
-      result := true;
-  end;
 end;
 
 procedure TSandcatTabManager.SetAppTitle(const s: string);
@@ -400,19 +388,6 @@ begin
   result.Tag := emptystr;
   result.Title := emptystr;
   result.Toolbar := emptystr;
-end;
-
-function TSandcatTabManager.NewTab_Console: TSandcatTab;
-var
-  tab: TSandcatTab;
-  t: TCustomTabSettings;
-begin
-  t := GetTabDefaultSettings;
-  t.Title := 'Sandcat Console';
-  t.Icon := '@ICON_CONSOLE';
-  t.ActivePage := 'console';
-  tab := NewTab_Custom(t);
-  result := tab;
 end;
 
 function TSandcatTabManager.NewTab_Custom(t: TCustomTabSettings): TSandcatTab;

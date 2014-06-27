@@ -19,7 +19,6 @@ function lua_console_setfontcolor(L: plua_State): integer; cdecl;
 function lua_console_setcolor(L: plua_State): integer; cdecl;
 function lua_console_setmanual(L: plua_State): integer; cdecl;
 function lua_console_output(L: plua_State): integer; cdecl;
-function lua_newconsoletab(L: plua_State): integer; cdecl;
 function lua_console_writeln(L: plua_State): integer; cdecl;
 function lua_console_write(L: plua_State): integer; cdecl;
 function lua_console_restore(L: plua_State): integer; cdecl;
@@ -114,12 +113,6 @@ function lua_console_clear(L: plua_State): integer; cdecl;
 begin
   if sandconsole <> nil then
     sandconsole.clear;
-  result := 1;
-end;
-
-function lua_newconsoletab(L: plua_State): integer; cdecl;
-begin
-  tabmanager.NewTab_Console;
   result := 1;
 end;
 
