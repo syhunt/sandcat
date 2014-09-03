@@ -230,7 +230,7 @@ begin
   FStartupTimer.Free;
   Debug('sb.formclose.end');
   Debug(crlf + 'cefshutdown.begin');
-  CatCEFShutdown(true);
+  CatCEFShutdown(SHTD_MANUAL);
   Debug('cefshutdown.end');
 end;
 
