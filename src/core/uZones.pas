@@ -1754,7 +1754,7 @@ begin
   j := TSandJSON.Create;
   if escape = true then
     s := htmlescape(s);
-  j['msg'] := htmlescape(s);
+  j['msg'] := s;
   j['title'] := vAppNameShort;
   Tabstrip.Engine.Eval('SandcatUIX.ShowMessage(' + j.TextUnquoted + ')');
   j.Free;
