@@ -10,6 +10,8 @@ unit uTab;
 
 interface
 
+{$I Catarinka.inc}
+
 uses
 {$IF CompilerVersion >= 23} // XE2 or higher
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
@@ -19,6 +21,9 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, TypInfo,
 {$IFEND}
+{$IFDEF USEWACEF}
+  WACefTypes,
+{$ENDIF}
   CatUI, uUIComponents, CatConsole, CatChromium, uRequests, SynUnicode,
   uLiveHeaders, uCodeInspect;
 
@@ -123,7 +128,7 @@ type
       const id, state, percentcomplete: integer; const fullPath: string);
     procedure CrmLoadingStateChange(Sender: TObject;
       const isLoading, canGoBack, canGoForward: boolean);
-    procedure CrmLoadError(Sender: TObject; const errorCode: integer;
+    procedure CrmLoadError(Sender: TObject; const errorCode: {$IFDEF USEWACEF}TCefErrorCode{$ELSE}integer{$ENDIF};
       const errorText, failedUrl: string);
     procedure JavaScriptExecutionEnd;
     procedure MainThreadMsgWindow(var AMsg: TMessage);
@@ -826,7 +831,7 @@ begin
 end;
 
 // Called when there is an error loading a page
-procedure TSandcatTab.CrmLoadError(Sender: TObject; const errorCode: integer;
+procedure TSandcatTab.CrmLoadError(Sender: TObject; const errorCode: {$IFDEF USEWACEF}TCefErrorCode{$ELSE}integer{$ENDIF};
   const errorText, failedUrl: string);
 begin
   Loading := false;

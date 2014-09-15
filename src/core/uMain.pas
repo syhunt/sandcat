@@ -13,6 +13,8 @@ unit uMain;
 
 interface
 
+{$I Catarinka.inc}
+
 uses
 {$IF CompilerVersion >= 23} // XE2 or higher
   Winapi.Windows, Vcl.Graphics, Winapi.Messages, System.SysUtils,
@@ -73,8 +75,12 @@ procedure Debug(const s: string; const component: string = 'UI');
 implementation
 
 uses uConst, uUIComponents, CatChromium, uMisc, CatStrings, CatFiles,
-  CatCLUtils,
-  CatUI, ceflib, CatTasks, CatStdSysMenu;
+{$IFDEF USEWACEF}
+  waceflib,
+{$ELSE}
+  ceflib,
+{$ENDIF}
+  CatCLUtils, CatUI, CatTasks, CatStdSysMenu;
 
 {$R *.dfm}
 
@@ -89,15 +95,17 @@ begin
     IsSandcatPortable := true;
   PluginsDir := GetSandcatDir(SCDIR_PLUGINS);
   CefSingleProcess := false;
-  CefCache := GetSandcatDir(SCDIR_CACHE);
+  CefOnBeforeCommandLineProcessing := {$IFDEF USEWACEF}Settings.OnbeforeCmdLineWACEF{$ELSE}OnbeforeCmdLine{$ENDIF};
+  {$IFDEF USEWACEF}CefCachePath{$ELSE}CefCache{$ENDIF} := GetSandcatDir(SCDIR_CACHE);
   CefLocalesDirPath := ProgDir + 'Packs\CEF\Locales\';
   CefResourcesDirPath := ProgDir + 'Packs\CEF\Resources\';
   CefUserAgent := GetCustomUserAgent;
-  CefOnBeforeCommandLineProcessing := OnbeforeCmdLine;
-
-  if not CefLoadLibDefault then
-    result := true // This is a CEF renderer process
-  else // Not a CEF renderer, check if this is a Sandcat task process
+ {$IFDEF USEWACEF}
+  TWACef.Initialize;
+ {$ENDIF}
+  if not  {$IFDEF USEWACEF}TWACef.LoadLib{$ELSE}CefLoadLibDefault{$ENDIF} then begin
+    result := true; // This is a CEF renderer process
+  end else // Not a CEF renderer, check if this is a Sandcat task process
     if beginswith(paramstr(1), cBgTaskPrefix) then
     begin
       result := true; // This is a Sandcat task process

@@ -8,9 +8,16 @@ unit uSettings;
 
 interface
 
+{$I Catarinka.inc}
+
 uses
   Windows, Classes, Dialogs, Messages, Forms, SysUtils, Controls, Variants,
-  uUIComponents, CatPrefs, ceflib;
+{$IFDEF USEWACEF}
+  waceflib, WACefInterfaces, WACefTypes,
+{$ELSE}
+  ceflib,
+{$ENDIF}
+  uUIComponents, CatPrefs;
 
 type
   TSandcatProxySettings = record
@@ -35,6 +42,8 @@ type
       const Limit: integer = 0);
     procedure ClearPrivateData(const DataType: string = '');
     procedure Load;
+    procedure OnbeforeCmdLineWACEF(const processType: ustring;
+      const commandLine: ICefCommandLine);
     procedure Update;
     procedure Save;
     procedure WriteJSValue(const Key: string; const Value: Variant);
@@ -183,6 +192,12 @@ begin
   if Create then
     forcedir(s);
   result := s;
+end;
+
+procedure TSandcatSettings.OnbeforeCmdLineWACEF(const processType: ustring;
+  const commandLine: ICefCommandLine);
+begin
+  OnbeforeCmdLine(processType, commandLine);
 end;
 
 function TSandcatSettings.GetStartupHomepage: string;
