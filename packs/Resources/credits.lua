@@ -16,3 +16,4 @@ browser.addlibinfo('Sciter Engine','file:sciter-x.dll','<a href="#" onclick="bro
 browser.addlibinfo('Structured Storage library','2.0c','Primoz Gabrijelcic','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_StructuredStorage.txt]])')
 browser.addlibinfo('Super Object Toolkit','1.2','Henri Gourvest')
 browser.addlibinfo('Synapse library','39','Lukas Gebauer','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_Synapse.txt]])')
+browser.addlibinfo('WACEF library','3','WaspAce Architector')
