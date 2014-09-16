@@ -119,16 +119,9 @@ function PageMenu:TakeScreenshot()
  end
 end
 
-function PageMenu:ViewDevTools(newtab)
- if newtab == nil then newtab = false end
+function PageMenu:ViewDevTools()
  if Sandcat:IsURLLoaded(true) then
-   local url = tab.urldev
-   if newtab then
-    browser.newtab(url)
-    tab.icon = 'url(Resources.pak#16/icon_devtools.png)'
-   else
-    browser.showurl(url)
-   end
+   tab:viewdevtools()
  end
 end
 

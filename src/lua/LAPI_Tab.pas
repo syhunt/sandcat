@@ -42,6 +42,13 @@ begin
     tabmanager.ActiveTab.GoToURL(lua_tostring(L, 2), lua_tostring(L, 3));
 end;
 
+function method_viewdevtools(L: PLua_State): integer; cdecl;
+begin
+  if tabmanager.ActiveTab.Chrome <> nil then
+    tabmanager.ActiveTab.Chrome.ViewDevTools;
+  Result := 1;
+end;
+
 function method_showcached(L: PLua_State): integer; cdecl;
 begin
   if lua_isnone(L, 3) = true then
@@ -495,9 +502,6 @@ begin
       Result := tabmanager.ActiveTab.title;
     url:
       Result := tabmanager.ActiveTab.GetURL;
-    urldev:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        Result := tabmanager.ActiveTab.Chrome.DevToolsURL;
     urllist:
       if tabmanager.ActiveTab.Chrome <> nil then
         Result := tabmanager.ActiveTab.Chrome.URLLog.Text;
@@ -609,6 +613,7 @@ const
     RegisterMethod(L, 'tree_loaddir', method_tree_loaddir, classTable);
     RegisterMethod(L, 'userdata_get', method_getparam, classTable);
     RegisterMethod(L, 'userdata_set', method_setparam, classTable);
+    RegisterMethod(L, 'viewdevtools', method_viewdevtools, classTable);
     RegisterMethod(L, 'viewsource', method_viewsourceexternal, classTable);
     RegisterMethod(L, 'whitelistlua', method_whitelistlua, classTable);
   end;

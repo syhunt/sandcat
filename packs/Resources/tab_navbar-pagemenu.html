@@ -17,12 +17,7 @@ $(#tbookmarkpage).onClick = function() {
 </li>
 <li id="tbookmarkpage" style="foreground-image: url(Resources.pak#16\icon_bookmark.png);">Bookmark Page</li>
 <hr/>
-<li id="tviewdevtools" style="foreground-image: url(Resources.pak#16\icon_devtools.png);">Developer Tools
- <menu>
- <li onclick="PageMenu:ViewDevTools()">View in Bottom Bar</li>
- <li onclick="PageMenu:ViewDevTools(true)">View in New Tab</li>
- </menu>
-</li>
+<li id="tviewdevtools" style="foreground-image: url(Resources.pak#16\icon_devtools.png);" onclick="PageMenu:ViewDevTools()">Developer Tools</li>
 <li id="tviewsource" style="foreground-image: url(Resources.pak#16\icon_sources.png);">Source
  <menu>
   <li onclick="browser.newtab('view-source:'..tab.url)">View in New Tab</li>
