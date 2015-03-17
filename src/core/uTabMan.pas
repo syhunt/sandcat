@@ -484,10 +484,7 @@ begin
   Navbar.UpdateSearchEngine;
   fTabsCache.Add(tab);
   tabstrip.AddTab(tab.UID);
-  if url <> emptystr then
-    tab.GoToURL(url, source)
-  else
-    Navbar.url := emptystr;
+
   if inbg = false then
   begin
     fActiveTab := tab;
@@ -499,6 +496,12 @@ begin
     fLiveNotebook.ActivePage := fActiveTab.UID;
     tabmanager.GoToTab(fActiveTab.UID);
   end;
+
+  if url <> emptystr then
+    tab.GoToURL(url, source)
+  else
+    Navbar.url := emptystr;
+
   result := tab;
   Debug('newtab.end');
 end;
