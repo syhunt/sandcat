@@ -12,10 +12,13 @@
   }
   return b
  }
- function import_option(sel,j) {
+ function import_option(sel,j,enabled) {
   if (sel != undefined) {
    var id = sel.attributes["id"];
    var cid = sel.attributes["cid"];
+   if (enabled == false) {
+     sel.attributes["disabled"] = "disabled";
+   }
    if (j.value != undefined) {
      if (sel.tag == "option") {
       sel.checked = j.value;
