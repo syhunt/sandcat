@@ -33,6 +33,8 @@ code.pid { padding-left: 30px; color:green; }
 li.stop {foreground-image: @ICON_STOP;}
 img.stop { foreground-image: url(Resources.pak#16\icon_close2.png); width:14px; height:14px; }
 img.stop:hover { 	foreground-image-transformation: colorize(#0099FF); }
+img.menu { foreground-image: url(Resources.pak#16\icon_menu2.png); width:14px; height:14px; }
+img.menu:hover { 	foreground-image-transformation: colorize(#0099FF); }
 li.suspend {foreground-image: url(Resources.pak#16\icon_pause.png);}
 li.remove {foreground-image: url(Resources.pak#16\icon_remove.png);}
 table.log {
@@ -89,7 +91,13 @@ type Tasks
   "</table>"
   "</td>"
   "<td width='100px'><code.pid tid='"+j.tid+"'></code></td>"
-  "<td width='50px'><img .stop tid='"+j.tid+"' onclick='browser.stoptask([["+j.tid+"]])'></td>"
+  "<td width='32px'><div menu='"+j.tid+"-menu' style='behavior:popup-menu;'><img .menu>"
+  "<menu.context id='"+j.tid+"-menu'>"
+  ""+j.menu+""
+  "</menu>"
+  "</div>"
+  "</td>"
+  "<td width='16px'><img .stop tid='"+j.tid+"' onclick='browser.stoptask([["+j.tid+"]])'></td>"
   "</tr></table>"
   "<menu.context id='"+j.tid+"-menu'>"
   ""+j.menu+""
