@@ -1156,6 +1156,7 @@ begin
   fSideTree.Images := SandBrowser.LiveImages;
   fSideTree.ReadOnly := true;
   fSideTree.HideSelection := false;
+  fSideTree.ShowLines := false;
   fSideTree.Width := 300;
   fSideTree.visible := false;
   fSideTree.OnChange := SideTreeChange;

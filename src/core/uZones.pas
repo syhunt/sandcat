@@ -1120,6 +1120,7 @@ begin
   fTV.Align := alClient;
   fTV.Images := sandbrowser.LiveImages;
   fTV.ReadOnly := true;
+  fTV.ShowLines := false;
   fTV.OnChange := SideBarTreeChange;
   fTV.OnDblClick := SideBarTreeDblClick;
 end;
