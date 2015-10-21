@@ -1,8 +1,13 @@
 program Sandcat;
 
 uses
+  {$IF CompilerVersion >= 23}
+  vcl.Forms,
+  winapi.Windows,
+  {$ELSE}
   Forms,
   Windows,
+  {$IFEND}
   uMain in 'core\uMain.pas' {SandBrowser} ,
   uZones in 'core\uZones.pas',
   uTaskMon in 'core\uTaskMon.pas',
