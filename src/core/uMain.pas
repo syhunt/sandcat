@@ -116,8 +116,8 @@ begin
     else
     begin
       // Standard UI startup
-      if RegisterAxSciter = false then
-        result := true; // There was a problem registering AxSciter
+      if SciterExists = false then
+         result := true; // There was a problem registering AxSciter
       if UseSingleInstance = true then
       begin
         SendCommandLineParams(GetWindowClassHandle(cMainClass));

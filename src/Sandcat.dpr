@@ -36,7 +36,7 @@ uses
 
 begin
   if ExitBeforeInitializing = true then
-    ExitProcess(0);
+    Halt(0);
   Application.Initialize;
   Application.Title := '';
   Application.CreateForm(TSandBrowser, SandBrowser);

@@ -313,7 +313,6 @@ var
 
 function GetZoneByID(const n: integer): TSandUIEngine;
 function GetZoneID(const name: string): integer;
-function RegisterAxSciter: boolean;
 
 implementation
 
@@ -379,28 +378,6 @@ begin
       result := tabmanager.ActiveTab.CustomToolbar;
     ENGINE_REQBUILDERTOOLBAR:
       result := BottomBar.ReqBuilder.ToolbarBar;
-  end;
-end;
-
-// Registers the Sciter library
-// Returns false if there is a problem registering
-function RegisterAxSciter: boolean;
-type
-  TDllRegisterServer = function: HResult; stdcall;
-var
-  DLLHandle: THandle;
-  RegFunc: TDllRegisterServer;
-begin
-  result := true;
-  try
-    DLLHandle := LoadLibrary(pwidechar(extractfilepath(paramstr(0)) +
-      '\AxSciter.dll'));
-    RegFunc := GetProcAddress(DLLHandle, 'DllRegisterServer');
-    if RegFunc <> 0 then
-      result := false;
-    FreeLibrary(DLLHandle);
-  except
-    result := false;
   end;
 end;
 
