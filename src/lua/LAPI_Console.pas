@@ -67,13 +67,13 @@ end;
 
 function lua_console_writeln(L: plua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.LogWriteLn(plua_AnyToString(L, 1));
+  contentarea.Console_WriteLn(plua_AnyToString(L, 1));
   result := 1;
 end;
 
 function lua_console_write(L: plua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.logwrite(plua_AnyToString(L, 1));
+  contentarea.Console_Write(plua_AnyToString(L, 1));
   result := 1;
 end;
 
