@@ -85,7 +85,7 @@ implementation
 
 uses uMain, pLua, uZones, uConst, uSettings, CatConsole, LAPI_SCX, CatRes,
   CatStrings, CatFiles, CatZIP, CatHTTP, LAPI, LAPI_Browser, LAPI_Tab, LAPI_Cmd,
-  LAPI_HTTPReq, LAPI_Element, LAPI_App;
+  LAPI_Element, LAPI_App;
 
 const
   cLicLink =
@@ -112,7 +112,6 @@ begin
   RegisterSCBUIElement_Sandcat(L);
   RegisterSCBTab_Sandcat(L);
   RegisterSCBCmd_Sandcat(L);
-  RegisterSCBHTTPRequest_Sandcat(L);
 end;
 
 procedure TSandcatExtensions.CreateLuaEngine;

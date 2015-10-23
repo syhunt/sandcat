@@ -385,12 +385,6 @@ begin
   Result := 1;
 end;
 
-function lua_sendxhr(L: PLua_State): Integer; cdecl;
-begin
-  SendCDMessage(tabhandle, SCBM_XHR_SEND, lua_tostring(L, 2));
-  Result := 1;
-end;
-
 function lua_request_send(L: PLua_State): Integer; cdecl;
 begin
   SendCDMessage(tabhandle, SCBM_REQUEST_SEND, lua_tostring(L, 2));
@@ -472,7 +466,6 @@ const
     RegisterMethod(L, 'getpackfile', @lua_readpakfile, classTable);
     RegisterMethod(L, 'logrequest', @lua_LogRequest, classTable);
     RegisterMethod(L, 'sendrequest', @lua_request_send, classTable);
-    RegisterMethod(L, 'sendxhr', @lua_sendxhr, classTable);
     RegisterMethod(L, 'setprogress', @lua_setprogress, classTable);
     RegisterMethod(L, 'setscript', @lua_setscript, classTable);
     RegisterMethod(L, 'showmessage', @lua_showmessage, classTable);

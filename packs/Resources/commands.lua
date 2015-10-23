@@ -3,7 +3,7 @@ SandCommands = {}
 function SandCommands:AddCommands()
  console.addcmd('clear','console.clear()','Clears the console')
  console.addcmd('cll','tab:clearlog()','Clears the contents of the Log tab')
- console.addcmd('cookie','tab:runjs("Sandcat.Write(document.cookie);",tab.url,0)','Displays the page cookie')
+ console.addcmd('cookie','SandCommands:DisplayCookie()','Displays the page cookie')
  console.addcmd('debug','debug.enable(true)','Enables the debug mode')
  console.addcmd('delay [ms]','slx.utils.delay(cmd.params)','Waits a specific number of milliseconds before proceeding')
  console.addcmd('devtools','PageMenu:ViewDevTools(false)','Displays the Developer Tools')
@@ -27,7 +27,17 @@ function SandCommands:AddCommands()
  console.addcmd('server','print(slx.http.getheader(tab.rcvdheaders,"Server"))','Displays the server software')
  console.addcmd('start [filename] [optional:params]','slx.file.exec(cmd.params)','Executes a file (eg: exec Notepad.exe)')
  console.addcmd('tab clone|close|new','SandCommands:Tab(cmd.params)','Creates, clones or closes a tab')
- console.addcmd('useragent','tab:runjs("Sandcat.Write(navigator.userAgent);",tab.url,0)','Displays the current user-agent')
+ console.addcmd('useragent','SandCommands:DisplayUserAgent()','Displays the current user-agent')
+end
+
+function SandCommands:DisplayCookie()
+ tab:runluaonlog('done','print(tab.lastjslogmsg)')
+ tab:runjs("console.log(document.cookie);console.log('done');",tab.url,0)
+end
+
+function SandCommands:DisplayUserAgent()
+ tab:runluaonlog('done','print(tab.lastjslogmsg)')
+ tab:runjs("console.log(navigator.userAgent);console.log('done');",tab.url,0)
 end
 
 function SandCommands:Go(s)

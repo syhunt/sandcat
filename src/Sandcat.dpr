@@ -31,7 +31,6 @@ uses
   LAPI_CodeEdit in 'lua\LAPI_CodeEdit.pas',
   LAPI_Console in 'lua\LAPI_Console.pas',
   LAPI_Element in 'lua\LAPI_Element.pas',
-  LAPI_HTTPReq in 'lua\LAPI_HTTPReq.pas',
   LAPI_Cmd in 'lua\LAPI_Cmd.pas',
   LAPI_Tab in 'lua\LAPI_Tab.pas',
   LAPI_SCX in 'lua\LAPI_SCX.pas';

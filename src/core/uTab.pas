@@ -66,7 +66,6 @@ type
 type
   TSandcatTab = class(TCustomControl)
   private
-    fAllowedLuaScripts: TStringList;
     fBrowserPanel: TCanvasPanel;
     fCache: TSandCache;
     fCanUpdateSource: boolean;
@@ -76,6 +75,8 @@ type
     fDefaultIcon: string;
     fDownloadsList: TStringList;
     fIsClosing: boolean;
+    fLastConsoleLogMessage: string;
+    fLuaOnLog: TSandJSON;
     fLiveHeaders: TLiveHeaders;
     fLoading: boolean;
     fLog: TMemo;
@@ -96,6 +97,7 @@ type
     fTitle: string;
     fTreeSplitter: TSplitter;
     fUID: string; // unique tab ID
+    fUseLuaOnLog: boolean;
     fUserJSExecuted: boolean;
     fUserData: TSandJSON;
     fUserTag: string;
@@ -103,12 +105,11 @@ type
     function GetIcon: string;
     function GetSitePrefsFile: string;
     function GetTitle: string;
-    function IsLuaWhiteListed(const script: string): boolean;
     procedure AddPageResource(const URL: string);
     procedure BrowserMessage(const msg: integer; const str: string);
     procedure CopyDataMessage(const msg: integer; const str: string);
-    //procedure CodeEditDropFiles(Sender: TObject; X, Y: integer;
-    //  AFiles: TUnicodeStrings);
+    // procedure CodeEditDropFiles(Sender: TObject; X, Y: integer;
+    // AFiles: TUnicodeStrings);
     procedure InitChrome;
     procedure CreateLiveHeaders;
     procedure CreateMainPanel;
@@ -128,9 +129,9 @@ type
       const id, state, percentcomplete: integer; const fullPath: string);
     procedure CrmLoadingStateChange(Sender: TObject;
       const isLoading, canGoBack, canGoForward: boolean);
-    procedure CrmLoadError(Sender: TObject; const errorCode: {$IFDEF USEWACEF}TCefErrorCode{$ELSE}integer{$ENDIF};
+    procedure CrmLoadError(Sender: TObject; const errorCode:
+{$IFDEF USEWACEF}TCefErrorCode{$ELSE}integer{$ENDIF};
       const errorText, failedUrl: string);
-    procedure JavaScriptExecutionEnd;
     procedure MainThreadMsgWindow(var AMsg: TMessage);
     procedure ResourcesListViewClick(Sender: TObject);
     procedure ResourcesListviewColumnClick(Sender: TObject;
@@ -164,16 +165,14 @@ type
     procedure LogWriteLn(const s: string);
     procedure LogWrite(const s: string);
     procedure DoSearch(const term: string; const newtab: boolean = false);
-    procedure RunLua(const lua: string);
+    procedure RunLuaOnLog(const msg, lua: string);
     procedure RunJavaScript(const script: string); overload;
     procedure RunJavaScript(const script: string; const scripturl: string;
-      const startline: integer; const luacallback: string;
-      const reporterrors: boolean = false); overload;
+      const startline: integer; const reporterrors: boolean = false); overload;
     procedure SendRequest(const method, URL, postdata: string;
       const load: boolean = false);
     procedure SendRequestCustom(req: TCatChromiumRequest;
       load: boolean = false);
-    procedure SendRequestXHR(const req: TCatChromiumXHR);
     procedure SetActivePage(const name: string);
     procedure SetIcon(const URL: string; const force: boolean = false);
     procedure SetTitle(const title: string);
@@ -182,7 +181,6 @@ type
     procedure SideTree_LoadDir(const dir: string;
       const makebold: boolean = true);
     procedure SideTree_LoadAffectedScripts(const paths: string);
-    procedure WhiteListLua(const script: string; const allowed: boolean = true);
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // properties
@@ -195,6 +193,7 @@ type
     property CustomToolbar: TSandUIEngine read fCustomToolbar;
     property Icon: string read GetIcon;
     property IsClosing: boolean read fIsClosing;
+    property LastConsoleLogMessage: string read fLastConsoleLogMessage;
     property LiveHeaders: TLiveHeaders read fLiveHeaders;
     property Loading: boolean read fLoading write SetLoading;
     property Log: TMemo read fLog;
@@ -237,7 +236,6 @@ const // messages from the V8 extension or Sandcat tasks
   SCBM_LOGEXTERNALREQUEST_JSON = 11;
   SCBM_LUA_RUN = 14;
   SCBM_MONITOR_EVAL = 15;
-  SCBM_XHR_SEND = 16;
   SCBM_REQUEST_SEND = 17;
   SCBM_RUNJSONCMD = 18;
   SCBM_TASK_STOPPED = 19;
@@ -248,7 +246,7 @@ implementation
 
 uses
   uMain, uConst, uZones, uMisc, uTaskMan, uSettings, CatStrings, CatHTTP,
-  CatUtils, LAPI_HTTPReq, LAPI_Task, LAPI_Browser, CatFiles;
+  CatUtils, LAPI_Task, LAPI_Browser, CatFiles;
 
 var
   SandcatBrowserTab: TSandcatTab;
@@ -352,14 +350,14 @@ begin
   fTreeSplitter.Left := fSideTree.Left + 1;
 end;
 
-{// Handles file drops in the code editor
-procedure TSandcatTab.CodeEditDropFiles(Sender: TObject; X, Y: integer;
+{ // Handles file drops in the code editor
+  procedure TSandcatTab.CodeEditDropFiles(Sender: TObject; X, Y: integer;
   AFiles: TUnicodeStrings);
-begin
-    CodeEdit_DroppedFiles := trim(AFiles.Text);
-    if CodeEdit_DropEnd <> emptystr then
-    Extensions.RunLuaCmd(CodeEdit_DropEnd);
-end;  }
+  begin
+  CodeEdit_DroppedFiles := trim(AFiles.Text);
+  if CodeEdit_DropEnd <> emptystr then
+  Extensions.RunLuaCmd(CodeEdit_DropEnd);
+  end; }
 
 // Loads a custom extension page (used by Sandcat extensions)
 procedure TSandcatTab.LoadExtensionPage(const html: string);
@@ -443,43 +441,13 @@ begin
   end;
 end;
 
-procedure TSandcatTab.RunLua(const lua: string);
+// Associates a piece of Lua code to be executed when a specific log message is
+// received through JS via console.log()
+procedure TSandcatTab.RunLuaOnLog(const msg, lua: string);
 begin
-  if IsLuaWhiteListed(lua) then
-    Extensions.RunLuaCmd(lua);
-end;
-
-// Returns true if the script supplied has been previously whitelisted using the
-// WhiteListLua() procedure, otherwise returns false
-function TSandcatTab.IsLuaWhiteListed(const script: string): boolean;
-begin
-  Result := fAllowedLuaScripts.IndexOf(strtohex(script)) <> -1;
-end;
-
-// Whitelists a piece of Lua code to be called from a web page (can be called by
-// Sandcat extensions). This should be used with caution
-// Note: if the second parameter is supplied and is false, removes the Lua code
-// from the whitelist
-procedure TSandcatTab.WhiteListLua(const script: string;
-  const allowed: boolean = true);
-var
-  h: string;
-  index: integer;
-begin
-  if script = emptystr then
-    exit;
-  h := strtohex(script);
-  index := fAllowedLuaScripts.IndexOf(h);
-  if allowed then
-  begin
-    if index = -1 then
-      fAllowedLuaScripts.Add(h);
-  end
-  else
-  begin
-    if index <> -1 then
-      fAllowedLuaScripts.Delete(index);
-  end;
+  Debug('runluaonlog:' + msg + ';' + lua);
+  fUseLuaOnLog := true;
+  fLuaOnLog[msg] := lua;
 end;
 
 // Evaluates some JavaScript (not fully implemented)
@@ -494,26 +462,17 @@ end;
 // extension)
 procedure TSandcatTab.RunJavaScript(const script: string);
 begin
-  RunJavaScript(script, emptystr, 0, emptystr, false);
+  RunJavaScript(script, emptystr, 0, false);
 end;
 
-// Executes a piece of JavaScript code (on demand)
+// Executes a piece of JavaScript code
 procedure TSandcatTab.RunJavaScript(const script: string;
-  const scripturl: string; const startline: integer; const luacallback: string;
+  const scripturl: string; const startline: integer;
   const reporterrors: boolean = false);
-var
-  scp: string;
 begin
   fUserJSExecuted := true;
-  scp := script;
   InitChrome; // Initializes chrome, if not initialized before
-  scp := scp + crlf + 'Sandcat.ConsoleOutput(false);';
-  if luacallback <> emptystr then
-  begin
-    WhiteListLua(luacallback);
-    scp := scp + crlf + 'Sandcat.CallWL(' + sandenc(luacallback) + ');';
-  end;
-  fChrome.RunJavaScript(scp, scripturl, startline, reporterrors);
+  fChrome.RunJavaScript(script, scripturl, startline, reporterrors);
 end;
 
 // Performs a web search using the selected search engine in the navigation bar
@@ -530,14 +489,12 @@ end;
 procedure TSandcatTab.LogWriteLn(const s: string);
 begin
   fLog.lines.Text := fLog.lines.Text + s + crlf;
-  contentarea.Console_WriteLn(s);
 end;
 
 // Writes a string to the log memo in the log page
 procedure TSandcatTab.LogWrite(const s: string);
 begin
   fLog.lines.Text := fLog.lines.Text + s;
-  contentarea.Console_Write(s);
 end;
 
 // Handling of WM_COPYDATA messages
@@ -579,10 +536,8 @@ begin
       fRequests.LogXMLHTTPRequest(str);
     SCBM_REQUEST_SEND:
       SendRequestCustom(BuildRequestFromJSON(str));
-    SCBM_XHR_SEND:
-      SendRequestXHR(BuildXHRFromJSON(str));
     SCBM_CONSOLE_ENDEXTERNALOUTPUT:
-      JavaScriptExecutionEnd;
+      contentarea.Console_Output(false);
   end;
 end;
 
@@ -600,7 +555,7 @@ begin
   end;
 end;
 
-// Handling of messages originating from the Sandcat Chromium component
+// Handling of messages originating from the Chromium component
 procedure TSandcatTab.BrowserMessage(const msg: integer; const str: string);
 begin
   if fIsClosing then
@@ -610,26 +565,9 @@ begin
       AddPageResource(str);
     CRM_JS_ALERT:
       sanddlg.ShowAlertText(str);
-    CRM_JS_WRITELN:
-      if fUserJSExecuted then
-        LogWriteLn(str);
-    CRM_JS_WRITE:
-      if fUserJSExecuted then
-        LogWrite(str);
-    CRM_JS_RUN_WHITELISTED_LUA:
-      RunLua(str);
-    // do not accept JS values unless the user manually executed a JavaScript before
-    CRM_JS_WRITEVALUE:
-      if fUserJSExecuted then
-        settings.WriteJSValue_FromJSON(str);
-    CRM_XHR_LOG:
-      if fUserJSExecuted then
-        fRequests.LogXMLHTTPRequest(str);
     CRM_LOG_REQUEST_JSON:
       if fLogBrowserRequests then
         fRequests.LogRequestJSON(str);
-    CRM_CONSOLE_ENDEXTERNALOUTPUT:
-      JavaScriptExecutionEnd;
     CRM_NEWTAB:
       tabmanager.newtab(str);
     CRM_NEWTAB_INBACKGROUND:
@@ -645,15 +583,6 @@ begin
     CRM_BOOKMARKURL:
       settings.AddToBookmarks(GetTitle, str);
   end;
-end;
-
-// Called when the execution of a custom JavaScript ends (usually a call from
-// the user)
-procedure TSandcatTab.JavaScriptExecutionEnd;
-begin
-  if fChrome <> nil then
-    fChrome.LogJavaScriptErrors := false;
-  contentarea.Console_Output(false);
 end;
 
 // Handles WM_COPYDATA messages
@@ -736,13 +665,13 @@ begin
     OnMessage(self, SCBT_LOADSTART, []);
   if fCanUpdateSource then
     fSourceInspect.setsource(emptystr);
-  fstate.ProtoIcon := '@ICON_GLOBE';
-  fstate.IsBookmarked := false;
+  fState.ProtoIcon := '@ICON_GLOBE';
+  fState.IsBookmarked := false;
   fResourcesLv.Items.Clear;
   if IsActiveTab then
   begin
     // update the nav bar only if this is not a tab loading in the background
-    Navbar.ProtoIcon := fstate.ProtoIcon;
+    Navbar.ProtoIcon := fState.ProtoIcon;
     Navbar.IsBookmarked := false;
   end;
 end;
@@ -762,11 +691,26 @@ begin
     OnMessage(self, SCBT_STATUS, [value]);
 end;
 
-// Called when there is a JavaScript execution error
+// Called when there is a JavaScript execution error or when console.log is called
 procedure TSandcatTab.CrmConsoleMessage(Sender: TObject;
   const message, source: string; line: integer);
+var
+  storemsg: boolean;
 begin
-  Extensions.LogScriptError('JavaScript', inttostr(line), message);
+  Debug('Console message:' + message);
+  storemsg := true;
+  if (fUseLuaOnLog = true) then
+  begin
+    if fLuaOnLog.GetValue(message, emptystr) <> emptystr then
+    begin
+      storemsg := false;
+      Extensions.RunLuaCmd(fLuaOnLog.GetValue(message, emptystr));
+    end;
+  end
+  else
+    Extensions.LogScriptError('JavaScript', IntToStr(line), message);
+  if storemsg then
+    fLastConsoleLogMessage := message;
   contentarea.Console_Output(false);
 end;
 
@@ -831,7 +775,8 @@ begin
 end;
 
 // Called when there is an error loading a page
-procedure TSandcatTab.CrmLoadError(Sender: TObject; const errorCode: {$IFDEF USEWACEF}TCefErrorCode{$ELSE}integer{$ENDIF};
+procedure TSandcatTab.CrmLoadError(Sender: TObject; const errorCode:
+{$IFDEF USEWACEF}TCefErrorCode{$ELSE}integer{$ENDIF};
   const errorText, failedUrl: string);
 begin
   Loading := false;
@@ -981,12 +926,6 @@ begin
   fChrome.SendRequest(req, load);
 end;
 
-// Sends a XMLHTTPRequest
-procedure TSandcatTab.SendRequestXHR(const req: TCatChromiumXHR);
-begin
-  SendXHR(req, self);
-end;
-
 // Loads a URL. If a source parameter is supplied, loads the page from the
 // source string
 procedure TSandcatTab.GoToURL(const URL: string; const source: string = '');
@@ -1085,13 +1024,12 @@ begin
   end;
 end;
 
-// Runs simple commands in the form of a JSON object (used by Sandcat tasks
-// that run in an isolated process)
-
 type
   TJSONCmds = (cmd_runtbtis, cmd_setaffecteditems, cmd_seticon,
     cmd_syncwithtask);
 
+  // Runs simple commands in the form of a JSON object (used by Sandcat tasks
+  // that run in an isolated process)
 procedure TSandcatTab.RunJSONCmd(const json: string);
 var
   j: TSandJSON;
@@ -1236,7 +1174,7 @@ begin
   fLiveHeaders.Parent := fMainPanel;
   fLiveHeaders.Align := AlClient;
   fCache := TSandCache.Create;
-  fCache.new(GetSandcatDir(SCDIR_HEADERS) + 't_' + inttostr(fMsgHandle));
+  fCache.new(GetSandcatDir(SCDIR_HEADERS) + 't_' + IntToStr(fMsgHandle));
   fCache.MakeTemporary;
   fRequests := TSandcatRequests.Create(self, fMsgHandle);
   fRequests.headers := fLiveHeaders;
@@ -1262,13 +1200,14 @@ begin
   fIsClosing := false;
   fLoading := false;
   fUserJSExecuted := false;
+  fUseLuaOnLog := false;
   fLogBrowserRequests := true;
   fRetrieveFavIcon := true;
   fCanUpdateSource := true;
   fSyncWithTask := false;
   fUserData := TSandJSON.Create;
+  fLuaOnLog := TSandJSON.Create;
   fDownloadsList := TStringList.Create;
-  fAllowedLuaScripts := TStringList.Create;
   CreateMainPanel;
   CreateLiveHeaders;
   CreateSideTree;
@@ -1303,7 +1242,7 @@ begin
   fResourcesLv.Free;
   fBrowserPanel.Free;
   fSubTabs.Free;
-  fAllowedLuaScripts.Free;
+  fLuaOnLog.Free;
   fUserData.Free;
   fState.Free;
   Debug('destroy.end:' + UID);

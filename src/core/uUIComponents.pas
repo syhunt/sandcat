@@ -13,11 +13,11 @@ uses
   Windows, SysUtils, Registry,
   LuaWrapper,
   CatStorage, CatStringLoop, CatSynEdit, CatJSON, CatJINI,
-  {$IFDEF USEAXSCITER}
+{$IFDEF USEAXSCITER}
   CatSciterAx,
-  {$ELSE}
+{$ELSE}
   CatSciter, Sciter,
-  {$ENDIF}
+{$ENDIF}
   unitObjectCache;
 
 type
@@ -38,7 +38,7 @@ type
   ISandUIElement = IElement;
 
 function RegisterAxSciter: boolean;
-function SciterExists:boolean;
+function SciterExists: boolean;
 
 implementation
 
@@ -64,21 +64,21 @@ begin
   end;
 end;
 
-function SciterExists:boolean;
+function SciterExists: boolean;
 var
-    Reg: TRegistry;
+  Reg: TRegistry;
 begin
- try
-     Reg := TRegistry.Create;
-   try
-     Reg.RootKey := HKEY_CLASSES_ROOT;
-     Result      := Reg.KeyExists('CLSID\'+GuidToString(CLASS_Sciter));
-   finally
-     Reg.Free;
-   end;
- except
-    Result := False;
- end;
+  try
+    Reg := TRegistry.Create;
+    try
+      Reg.RootKey := HKEY_CLASSES_ROOT;
+      result := Reg.KeyExists('CLSID\' + GuidToString(CLASS_Sciter));
+    finally
+      Reg.Free;
+    end;
+  except
+    result := false;
+  end;
 end;
 
 // ------------------------------------------------------------------------//

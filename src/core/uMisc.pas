@@ -17,8 +17,6 @@ function BeginsWithSpecialParam(param: string): boolean;
 function BuildRequestFromJSON(json: string): TCatChromiumRequest;
 function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
 function BuildRequestFromLuaTable(L: PLua_State): TCatChromiumRequest;
-function BuildXHRFromJSON(json: string): TCatChromiumXHR;
-function BuildXHRFromLuaTable(L: PLua_State): TCatChromiumXHR;
 function CaptureChromeBitmap(tab: TSandcatTab; filename: string = ''): string;
 function GetPakResourceAsString(filename: string): string;
 function ShortTitle(s: string; maxchars: integer = 30): string;
@@ -110,42 +108,6 @@ begin
   result.usecachedcredentials := j.GetValue(REQUESTKEY_USEAUTH, true);
   result.details := j.GetValue(REQUESTKEY_DETAILS, emptystr);
   j.Free;
-end;
-
-function BuildXHRFromJSON(json: string): TCatChromiumXHR;
-var
-  j: TSandJSON;
-begin
-  j := TSandJSON.Create(json);
-  result.details := j.GetValue(REQUESTKEY_DETAILS, emptystr);
-  result.tab := j.GetValue(REQUESTKEY_TAB, emptystr);
-  result.filters := j.GetValue(REQUESTKEY_FILTER, emptystr);
-  result.username := j.GetValue(REQUESTKEY_USERNAME, emptystr);
-  result.password := j.GetValue(REQUESTKEY_PASSWORD, emptystr);
-  result.headers := j.GetValue(REQUESTKEY_HEADERS, emptystr);
-  result.callback := j.GetValue(REQUESTKEY_CALLBACK, emptystr);
-  result.method := j.GetValue(REQUESTKEY_METHOD, 'GET');
-  result.url := j.GetValue(REQUESTKEY_URL, emptystr);
-  result.postdata := j.GetValue(REQUESTKEY_POSTDATA, emptystr);
-  j.Free;
-end;
-
-function BuildXHRFromLuaTable(L: PLua_State): TCatChromiumXHR;
-var
-  t: TLuaTable;
-begin
-  t := TLuaTable.Create(L, true);
-  result.details := t.readstring(REQUESTKEY_DETAILS);
-  result.tab := t.readstring(REQUESTKEY_TAB);
-  result.filters := t.readstring(REQUESTKEY_FILTER);
-  result.username := t.readstring(REQUESTKEY_USERNAME);
-  result.password := t.readstring(REQUESTKEY_PASSWORD);
-  result.headers := t.readstring(REQUESTKEY_HEADERS);
-  result.callback := t.readstring(REQUESTKEY_CALLBACK);
-  result.method := t.readstring(REQUESTKEY_METHOD, 'GET');
-  result.url := t.readstring(REQUESTKEY_URL);
-  result.postdata := t.readstring(REQUESTKEY_POSTDATA);
-  t.Free;
 end;
 
 procedure SetUserCSS(s: string);

@@ -155,9 +155,7 @@ function Sandcat:SetConsoleMode(mode,silent)
    console.setcolor('#FFFFFF')
    console.setfontcolor('#0066bb')
     if silent == false then
-     tab:runjs([[
-     Sandcat.WriteLn(navigator.userAgent);
-     ]])
+     SandCommands:DisplayUserAgent()
     end
    end
  end

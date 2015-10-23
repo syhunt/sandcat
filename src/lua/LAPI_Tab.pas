@@ -15,8 +15,8 @@ type
   TSCBTabObject = class(TLuaObject)
   private
   public
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload; override;
+    constructor Create(LuaState: PLua_State; AParent: TLuaObject = nil);
+      overload; override;
     function GetPropValue(propName: String): Variant; override;
     function SetPropValue(propName: String; const AValue: Variant)
       : Boolean; override;
@@ -37,7 +37,7 @@ begin
   if tabmanager.ActiveTab = nil then
     exit;
   if lua_tostring(L, 2) = emptystr then // no url provided, go to url in bar
-     tabmanager.ActiveTab.GoToURL(navbar.url)
+    tabmanager.ActiveTab.GoToURL(navbar.url)
   else
     tabmanager.ActiveTab.GoToURL(lua_tostring(L, 2), lua_tostring(L, 3));
 end;
@@ -72,10 +72,15 @@ begin
 end;
 
 function method_runjavascript(L: PLua_State): integer; cdecl;
+var
+  reporterrors: Boolean;
 begin
+  reporterrors := true;
+  if lua_isnone(L, 5) = false then
+    reporterrors := lua_toboolean(L, 5);
   if tabmanager.ActiveTab <> nil then
     tabmanager.ActiveTab.runjavascript(lua_tostring(L, 2), lua_tostring(L, 3),
-      lua_tointeger(L, 4), lua_tostring(L, 5), true);
+      lua_tointeger(L, 4), reporterrors);
   Result := 1;
 end;
 
@@ -152,15 +157,6 @@ begin
   Result := 1;
 end;
 
-function method_sendxhr(L: PLua_State): integer; cdecl;
-begin
-  if lua_istable(L, 2) then // user provided a Lua table
-    tabmanager.ActiveTab.SendRequestXHR(BuildXHRFromLuaTable(L))
-  else
-    tabmanager.ActiveTab.SendRequestXHR(BuildXHRFromJSON(lua_tostring(L, 2)));
-  Result := 1;
-end;
-
 function method_logrequest(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.Requests.LogRequestJSON(lua_tostring(L, 2),
@@ -185,13 +181,13 @@ end;
 
 function method_clearlog(L: PLua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.Log.Lines.Clear;
+  tabmanager.ActiveTab.log.lines.Clear;
   Result := 1;
 end;
 
 function method_clearheaders(L: PLua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.Requests.clear;
+  tabmanager.ActiveTab.Requests.Clear;
   Result := 1;
 end;
 
@@ -303,7 +299,7 @@ end;
 
 function method_showrequest(L: PLua_State): integer; cdecl;
 begin
-  uix.ShowRequest(tabmanager.ActiveTab.Requests,lua_tostring(L, 2));
+  uix.ShowRequest(tabmanager.ActiveTab.Requests, lua_tostring(L, 2));
   Result := 1;
 end;
 
@@ -359,9 +355,9 @@ begin
   Result := 1;
 end;
 
-function method_whitelistlua(L: PLua_State): integer; cdecl;
+function method_runluaonlog(L: PLua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.WhiteListLua(lua_tostring(L, 2));
+  tabmanager.ActiveTab.RunLuaOnLog(lua_tostring(L, 2), lua_tostring(L, 3));
   Result := 1;
 end;
 
@@ -447,23 +443,22 @@ begin
 end;
 
 type
-  TProps = (activepage, datafilename, handle, icon, loadend, loadendjs, capture,
-    capturebrowser, capturerealtime, captureurls, downloadfiles, headersfilter,
-    logtext, mode, name, rcvdheaders, reslist, screenshot, sentheaders,
-    showtree, siteprefsfilename, Source, sourcefilename, statuscode, status,
-    title, updatesource, url, urldev, urllist, zoomlevel);
+  TProps = (activepage, datafilename, handle, icon, lastjslogmsg, loadend,
+    loadendjs, capture, capturebrowser, capturerealtime, captureurls,
+    downloadfiles, headersfilter, logtext, mode, name, rcvdheaders, reslist,
+    screenshot, sentheaders, showtree, siteprefsfilename, Source,
+    sourcefilename, statuscode, status, title, updatesource, url, urldev,
+    urllist, zoomlevel);
 
 function TSCBTabObject.GetPropValue(propName: String): Variant;
 begin
   case TProps(GetEnumValue(TypeInfo(TProps), lowercase(propName))) of
-    // activepage  :       result := tabmanager.ActiveTab.SubTabs.ActivePage;
     datafilename:
       Result := tabmanager.ActiveTab.Cache.getFileName;
     handle:
       Result := tabmanager.ActiveTab.MsgHandle;
     icon:
       Result := tabmanager.ActiveTab.icon;
-    // lastcmd:            result := tabmanager.ActiveTab.SandConsole.LastCommand;
     capture:
       Result := tabmanager.ActiveTab.Requests.logrequests;
     capturebrowser:
@@ -473,7 +468,8 @@ begin
         Result := tabmanager.ActiveTab.Chrome.LogURLs;
     headersfilter:
       Result := tabmanager.ActiveTab.liveheaders.FilterEdit.Text;
-    // capturerealtime:    result := tabmanager.ActiveTab.Requests.Realtime;
+    lastjslogmsg:
+      Result := tabmanager.ActiveTab.LastConsoleLogMessage;
     logtext:
       Result := tabmanager.ActiveTab.log.lines.Text;
     name:
@@ -518,23 +514,19 @@ function TSCBTabObject.SetPropValue(propName: String;
 begin
   Result := true;
   case TProps(GetEnumValue(TypeInfo(TProps), lowercase(propName))) of
-    // activepage:         tabmanager.ActiveTab.SetsubPage(String(avalue));
     downloadfiles:
       if tabmanager.ActiveTab.Chrome <> nil then
         tabmanager.ActiveTab.Chrome.EnableDownloads := AValue;
     icon:
       tabmanager.ActiveTab.SetIcon(String(AValue), true);
     loadend:
-      tabmanager.ActiveTab.usertabscript.Lua_LoadEnd_RunOnce :=
-        String(AValue);
+      tabmanager.ActiveTab.usertabscript.Lua_LoadEnd_RunOnce := String(AValue);
     loadendjs:
-      tabmanager.ActiveTab.usertabscript.JS_LoadEnd_RunOnce :=
-        String(AValue);
+      tabmanager.ActiveTab.usertabscript.JS_LoadEnd_RunOnce := String(AValue);
     capture:
       tabmanager.ActiveTab.Requests.logrequests := AValue;
     capturebrowser:
       tabmanager.ActiveTab.logbrowserrequests := AValue;
-    // capturerealtime:    tabmanager.ActiveTab.Requests.Realtime:=Avalue;
     captureurls:
       if tabmanager.ActiveTab.Chrome <> nil then
         tabmanager.ActiveTab.Chrome.LogURLs := AValue;
@@ -550,7 +542,7 @@ begin
     showtree:
       tabmanager.ActiveTab.ShowSideTree(AValue);
     status:
-      StatBar.text:=String(AValue);
+      StatBar.Text := String(AValue);
     // ToDo: associate with current tab
     title:
       tabmanager.ActiveTab.SetTitle(String(AValue));
@@ -558,7 +550,7 @@ begin
       tabmanager.ActiveTab.CanUpdateSource := AValue;
     zoomlevel:
       if tabmanager.ActiveTab.Chrome <> nil then
-        tabmanager.ActiveTab.Chrome.zoomlevel:=AValue;
+        tabmanager.ActiveTab.Chrome.zoomlevel := AValue;
   else
     Result := inherited SetPropValue(propName, AValue);
   end;
@@ -599,7 +591,7 @@ const
     RegisterMethod(L, 'logrequest', method_logrequest, classTable);
     RegisterMethod(L, 'reload', method_reload, classTable);
     RegisterMethod(L, 'sendrequest', method_sendrequest, classTable);
-    RegisterMethod(L, 'sendxhr', method_sendxhr, classTable);
+    RegisterMethod(L, 'runluaonlog', method_runluaonlog, classTable);
     RegisterMethod(L, 'runjs', method_runjavascript, classTable);
     RegisterMethod(L, 'runsrccmd', method_runsourcecommand, classTable);
     RegisterMethod(L, 'runtask', method_runluatask, classTable);
@@ -615,7 +607,6 @@ const
     RegisterMethod(L, 'userdata_set', method_setparam, classTable);
     RegisterMethod(L, 'viewdevtools', method_viewdevtools, classTable);
     RegisterMethod(L, 'viewsource', method_viewsourceexternal, classTable);
-    RegisterMethod(L, 'whitelistlua', method_whitelistlua, classTable);
   end;
   function newcallback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
   begin
