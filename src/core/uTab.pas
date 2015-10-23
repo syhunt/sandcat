@@ -4,8 +4,6 @@ unit uTab;
   Copyright (c) 2011-2014, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
-
-  TODO: Make it smaller
 }
 
 interface
@@ -145,6 +143,7 @@ type
     procedure SideTreeChange(Sender: TObject; Node: TTreeNode);
     procedure SideTreeDblClick(Sender: TObject);
     procedure UpdateSourceCode;
+    procedure UpdateV8Handle;
     procedure V8Msg(var AMsg: TMessage);
     procedure WMCopyData(var message: TMessage); message WM_COPYDATA;
   public
@@ -245,8 +244,8 @@ const // messages from the V8 extension or Sandcat tasks
 implementation
 
 uses
-  uMain, uConst, uZones, uMisc, uTaskMan, uSettings, CatStrings, CatHTTP,
-  CatUtils, LAPI_Task, LAPI_Browser, CatFiles;
+  uMain, uConst, uZones, uMisc, uTaskMan, uSettings, uTabV8, CatStrings,
+  CatHTTP, CatUtils, LAPI_Task, LAPI_Browser, CatFiles;
 
 var
   SandcatBrowserTab: TSandcatTab;
@@ -600,6 +599,13 @@ begin
   message.Result := 1;
 end;
 
+// Sends the v8 message handle of this tab to the Chromium V8 extension in
+// the tab process
+procedure TSandcatTab.UpdateV8Handle;
+begin
+  fChrome.SetV8MsgHandle(fV8MsgHandle);
+end;
+
 // For receiving messages from the V8 engine running in the isolated tab process
 procedure TSandcatTab.V8Msg(var AMsg: TMessage);
 var
@@ -731,7 +737,7 @@ begin
       Navbar.ProtoIcon := state.ProtoIcon;
   end;
   UpdateSourceCode;
-  fChrome.SetV8MsgHandle(fV8MsgHandle);
+  UpdateV8Handle;
   RunUserScripts(SCBT_LOADEND);
 end;
 
@@ -991,12 +997,10 @@ begin
     // fChrome.OnJsdialog:=crmJsdialog;
     // fChrome.OnProcessMessageReceived:=crmProcessMessageReceived;
     LoadSettings;
-    // Sends the v8 message handle of this tab to the Chromium V8 extension in
-    // the tab process
-    fChrome.SetV8MsgHandle(fV8MsgHandle);
+    UpdateV8Handle;
   end
   else // already created, resend the v8 handle
-    fChrome.SetV8MsgHandle(fV8MsgHandle);
+    UpdateV8Handle;
 end;
 
 // Called before freeing a tab, if there is any active download, asks the user

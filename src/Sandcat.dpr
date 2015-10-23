@@ -18,6 +18,7 @@ uses
   uSettings in 'core\uSettings.pas',
   uTabMan in 'core\uTabMan.pas',
   uTab in 'core\uTab.pas',
+  uTabV8 in 'core\uTabV8.pas',
   uCodeInspect in 'core\uCodeInspect.pas',
   uExtensions in 'core\uExtensions.pas',
   uTaskMan in 'core\uTaskMan.pas',
