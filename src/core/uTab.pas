@@ -710,6 +710,7 @@ begin
     if fLuaOnLog.GetValue(message, emptystr) <> emptystr then
     begin
       storemsg := false;
+      fUseLuaOnLog:=false;
       Extensions.RunLuaCmd(fLuaOnLog.GetValue(message, emptystr));
     end;
   end
