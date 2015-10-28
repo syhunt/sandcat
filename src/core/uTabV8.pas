@@ -10,7 +10,7 @@ unit uTabV8;
 interface
 
 {$I Catarinka.inc}
-//{$DEFINE USEV8EXTENSIONS}
+// {$DEFINE USEV8EXTENSIONS}
 
 uses
 {$IFDEF DXE2_OR_UP}
@@ -30,9 +30,15 @@ type
   private
     fV8MsgHandle: integer;
   protected
+{$IFDEF USECEFBETA}
     function Execute(const name: ustring; const obj: ICefv8Value;
       ArgumentsCount: csize_t; const arguments: TCefv8ValueArray;
       var retval: ICefv8Value; var exception: ustring): Boolean; override;
+{$ELSE}
+    function Execute(const name: ustring; const obj: ICefv8Value;
+      const arguments: TCefv8ValueArray; var retval: ICefv8Value;
+      var exception: ustring): Boolean; override;
+{$ENDIF}
   public
     constructor Create; override;
   end;
@@ -78,38 +84,49 @@ uses CatChromium, CatJINI, CatStrings;
   end;
 }
 
+function NewCEFString(const s: string): ICefv8Value;
+begin
+  result := TCefv8ValueRef.{$IFDEF USECEFBETA}CreateString{$ELSE}NewString{$ENDIF}(s);
+end;
+
 constructor TSandcatV8Extension.Create;
 begin
   inherited Create;
 end;
 
+{$IFDEF USECEFBETA}
+
 function TSandcatV8Extension.Execute(const name: ustring;
   const obj: ICefv8Value; ArgumentsCount: csize_t;
   const arguments: TCefv8ValueArray; var retval: ICefv8Value;
   var exception: ustring): Boolean;
+{$ELSE}
+
+function TSandcatV8Extension.Execute(const name: ustring;
+  const obj: ICefv8Value; const arguments: TCefv8ValueArray;
+  var retval: ICefv8Value; var exception: ustring): Boolean;
+{$ENDIF}
 begin
-  Result := false;
+  result := false;
   if (name = 'base64encode') then
   begin
     if (Length(arguments) <> 1) or (not arguments[0].IsString) then
     begin
-      Result := false;
+      result := false;
       exit;
     end;
-    retval := TCefv8ValueRef.CreateString
-      (base64encode(arguments[0].GetStringValue));
-    Result := true;
+    retval := NewCEFString(base64encode(arguments[0].GetStringValue));
+    result := true;
   end
   else if (name = 'base64decode') then
   begin
     if (Length(arguments) <> 1) or (not arguments[0].IsString) then
     begin
-      Result := false;
+      result := false;
       exit;
     end;
-    retval := TCefv8ValueRef.CreateString
-      (base64decode(arguments[0].GetStringValue));
-    Result := true;
+    retval := NewCEFString(base64decode(arguments[0].GetStringValue));
+    result := true;
     { end
       else if (name = 'consoleoutput') then
       begin
@@ -198,10 +215,10 @@ function TCustomRenderProcessHandler.OnProcessMessageReceived
   (const Browser: ICefBrowser; sourceProcess: TCefProcessId;
   const message: ICefProcessMessage): Boolean;
 begin
-  Result := false;
+  result := false;
   if (message.getName = 'msg') then
   begin
-    Result := true;
+    result := true;
     case message.getArgumentList.GetInt(0) of
       SCTM_SET_V8_MSGHANDLE:
         fSandcatV8Extension.fV8MsgHandle := message.getArgumentList.GetInt(1);
@@ -216,7 +233,7 @@ end;
 initialization
 
 {$IFDEF USEV8EXTENSIONS}
-CefRenderProcessHandler := TCustomRenderProcessHandler.Create;
+  CefRenderProcessHandler := TCustomRenderProcessHandler.Create;
 {$ENDIF}
 
 end.
