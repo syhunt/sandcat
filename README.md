@@ -24,7 +24,7 @@ Compiled binaries for Windows can be downloaded from the links below.
 For compiling Sandcat, you will just need [Catarinka](https://github.com/felipedaragon/catarinka) and [pLua](https://github.com/felipedaragon/pLua-XE), and optionally,
  [Selenite](https://github.com/felipedaragon/selenite) (for compiling the Selenite Lua library).
  
-The entire Sandcat user interface is created during runtime, so there is no need to install components in the IDE - you can just add the dependencies listed above to the library path and hit compile. It should compile with Delphi 2009 and up. If you are trying to compile it with Lazarus, let me know which errors you get - I will try to do the same soon. Backwards compatibility with 2008 and before needs to be restored.
+The entire Sandcat user interface is created during runtime, so there is no need to install third-party components in the IDE - you can just add the dependencies listed above to the library path and hit compile. It compiles under Delphi 10 Seattle down to XE2. If you are trying to compile it with Lazarus, let me know which errors you get - I will try to do the same soon.
 
 Some work is still needed before a Mac or Linux version materializes.
 
