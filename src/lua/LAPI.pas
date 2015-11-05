@@ -15,6 +15,7 @@ type
   TAppInfoType = (
    info_abouturl,
    info_cachedir,
+   info_ceflibrary,
    info_configdir,
    info_commands,
    info_downloads,

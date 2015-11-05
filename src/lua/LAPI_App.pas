@@ -9,6 +9,8 @@ unit LAPI_App;
 
 interface
 
+{$I Catarinka.inc}
+
 uses Lua, Classes, Windows, Messages, SysUtils, Forms, Dialogs, TypInfo,
   FileCtrl;
 
@@ -89,6 +91,8 @@ begin
       lua_pushstring(L, vAppURL);
     info_cachedir:
       lua_pushstring(L, GetSandcatDir(SCDIR_CACHE));
+    info_ceflibrary:
+      lua_pushstring(L, {$IFDEF USEWACEF}'wacef'{$ELSE}'dcef'{$ENDIF});
     info_commands:
       lua_pushstring(L, extensions.GetCommandList);
     info_configdir:
