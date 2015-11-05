@@ -30,7 +30,7 @@ type
   private
     fV8MsgHandle: integer;
   protected
-{$IFDEF USECEFBETA}
+{$IFDEF USEWACEF}
     function Execute(const name: ustring; const obj: ICefv8Value;
       ArgumentsCount: csize_t; const arguments: TCefv8ValueArray;
       var retval: ICefv8Value; var exception: ustring): Boolean; override;
@@ -86,7 +86,7 @@ uses CatChromium, CatJINI, CatStrings;
 
 function NewCEFString(const s: string): ICefv8Value;
 begin
-  result := TCefv8ValueRef.{$IFDEF USECEFBETA}CreateString{$ELSE}NewString{$ENDIF}(s);
+  result := TCefv8ValueRef.{$IFDEF USEWACEF}CreateString{$ELSE}NewString{$ENDIF}(s);
 end;
 
 constructor TSandcatV8Extension.Create;
@@ -94,7 +94,7 @@ begin
   inherited Create;
 end;
 
-{$IFDEF USECEFBETA}
+{$IFDEF USEWACEF}
 
 function TSandcatV8Extension.Execute(const name: ustring;
   const obj: ICefv8Value; ArgumentsCount: csize_t;
@@ -102,9 +102,9 @@ function TSandcatV8Extension.Execute(const name: ustring;
   var exception: ustring): Boolean;
 {$ELSE}
 
-function TSandcatV8Extension.Execute(const name: ustring;
-  const obj: ICefv8Value; const arguments: TCefv8ValueArray;
-  var retval: ICefv8Value; var exception: ustring): Boolean;
+function TSandcatV8Extension.Execute(const name: ustring; const obj: ICefv8Value;
+      const arguments: TCefv8ValueArray; var retval: ICefv8Value;
+      var exception: ustring): Boolean;
 {$ENDIF}
 begin
   result := false;

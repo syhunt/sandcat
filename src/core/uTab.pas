@@ -1237,8 +1237,12 @@ begin
   fSideTree.OnChange := nil;
   fSideTree.Free;
   fTreeSplitter.Free;
+  {$IFDEF USEWACEF}
   if fChrome <> nil then
     fChrome.Free;
+  {$ELSE}
+    // FIXME: DCEF v3.2454 not freeing up adequately
+  {$ENDIF}
   Debug('destroy.chrome.end:' + UID);
   fDownloadsList.Free;
   fLog.Free;

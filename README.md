@@ -36,7 +36,7 @@ This code is licensed under a 3-clause BSD license - see the LICENSE file for de
 
 Third-party software used in Sandcat include:
 
-* [libcef](http://code.google.com/p/chromiumembedded), based on [Chromium](http://www.chromium.org/), is the engine at the heart of the Sandcat Browser. Sandcat uses the [WACEF3](https://bitbucket.org/WaspAce/wacef) (Chromium Embedded Framework) component. Alternatively, it can be compiled to use the [DCEF3](https://github.com/hgourvest/dcef3) library.
+* [libcef](http://code.google.com/p/chromiumembedded), based on [Chromium](http://www.chromium.org/), is the engine at the heart of the Sandcat Browser. Sandcat can use the [WACEF3](https://bitbucket.org/WaspAce/wacef) (Chromium Embedded Framework) component or the [DCEF3](https://github.com/hgourvest/dcef3) library). Because we want Sandcat to use the latest Chromium binaries, the most up-to-date and stable wrapper is used for official Sandcat releases.
 * [Lua](http://www.lua.org/) - Developed by a small team at Pontifícia Universidade Católica do Rio de Janeiro (PUC-Rio), Lua is the core language used to develop Sandcat extensions as well as portions of the browser itself.
 * [TIScript](http://code.google.com/p/tiscript/) is an extended version of ECMAScript (JavaScript 1.x) developed by Terra Informatica Software and [@AndrewTerra](https://github.com/AndrewTerra), the developers of Sciter. It is used by Sandcat for some of its user interface operations.
 * **Sciter** is the engine currently used by Sandcat for rendering its user interface. Sciter supports TIScript execution and, in Sandcat, it can also execute Lua scripts and be manipulated from Lua scripts.

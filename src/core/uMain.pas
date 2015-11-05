@@ -25,7 +25,7 @@ uses
   Dialogs, ExtCtrls, ShellAPI, Menus, ComCtrls, ImgList,
 {$IFEND}
   uTab, uExtensions, uTabMan, uTaskMan, uSettings, LAPI_Task,
-  CatHighlighters, CatConsole, uZones;
+  CatHighlighters, CatConsole, uZones, System.ImageList;
 
 type
   TSandBrowser = class(TForm)
