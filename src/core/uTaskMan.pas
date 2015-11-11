@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Classes, Messages, Controls, SysUtils, Dialogs, ExtCtrls,
-  Forms, TypInfo, Lua, LuaObject, uUIComponents, uRequests;
+  Forms, TypInfo, Lua, LuaObject, uUIComponents, uRequests, CatMsg;
 
 type
   TSandcatTaskOnStop = procedure(const tid: string) of object;
@@ -40,7 +40,7 @@ type
     fMonitor: TSandUIEngine;
     fMonitorQueue: TStringList;
     fMonitorQueueTimer: TTimer;
-    fMsgHandle: HWND;
+    fMsg:TCatMsg;
     fOnStop: TSandcatTaskOnStop;
     fOriginatorTab: string;
     fParams: TSandJSON;
@@ -63,8 +63,6 @@ type
     procedure SetStatus(const s: string);
     procedure SetMonitor(const m: TSandUIEngine);
     procedure Suspend(const resume: boolean = false);
-    procedure MainThreadMessage(var AMsg: TMessage);
-    procedure WMCopyData(var message: TMessage);
     procedure CopyDataMessage(const msg: integer; const str: string);
     procedure MonitorQueueTimerTimer(Sender: TObject);
     procedure TaskUpdated;
@@ -90,7 +88,7 @@ type
     property Icon: string read fIcon write SetIcon;
     property IsDownload: boolean read fIsDownload;
     property IsSuspended: boolean read fSuspended;
-    property MsgHandle: HWND read fMsgHandle;
+    property Msg: TCatMsg read fMsg;
     property OnStop: TSandcatTaskOnStop read fOnStop write fOnStop;
     property Status: string read fStatus write SetStatus;
     property TID: string read fTID;
@@ -398,7 +396,7 @@ begin
     if tab <> nil then
     begin
       Task.fOriginatorTab := tab.UID;
-      Task.fTabMsgHandle := tab.MsgHandle;
+      Task.fTabMsgHandle := tab.Msg.msgHandle;
       if contentarea.PageExists('tasks') = false then
       begin
         contentarea.createpage('tasks');
@@ -598,31 +596,6 @@ begin
   end;
 end;
 
-procedure TSandcatTask.WMCopyData(var message: TMessage);
-var
-  pData: PCopyDataStruct;
-  str: string;
-begin
-  message.result := 0;
-  pData := PCopyDataStruct(message.LParam);
-  if (pData = nil) then
-    exit;
-  str := string(StrPas(PAnsiChar(pData^.lpData)));
-  CopyDataMessage(pData^.dwData, str);
-  message.result := 1;
-end;
-
-procedure TSandcatTask.MainThreadMessage(var AMsg: TMessage);
-begin
-  try
-    case AMsg.msg of
-      WM_COPYDATA:
-        WMCopyData(AMsg);
-    end;
-  except
-  end;
-end;
-
 procedure TSandcatTask.GetInfoL(L: PLua_State);
 var
   progress_desc, progress_icon: string;
@@ -704,7 +677,7 @@ var
   e: ISandUIElement;
 begin
   processid := RunTaskSeparateProcess(ftid, s,
-    tabmanager.ActiveTab.MsgHandle, fParams);
+    tabmanager.ActiveTab.Msg.msgHandle, fParams);
   self.fPID := processid;
   if fHasMonitor then
   begin
@@ -978,8 +951,9 @@ constructor TSandcatTask.Create(const tid: string);
 begin
   inherited Create;
   self.ftid := tid;
-  fMsgHandle := Classes.AllocateHWnd(MainThreadMessage);
-  debug('task created (handle ' + inttostr(fMsgHandle) + ')');
+  fMsg:=TCatMsg.Create;
+  fMsg.OnCopyDataMessage:=CopyDataMessage;
+  debug('task created (handle ' + inttostr(fMsg.msgHandle) + ')');
   fEnabled := true;
   fStopped := false;
   fIsDownload := false;
@@ -1005,7 +979,7 @@ begin
   fMonitorQueue.Free;
   fLog.Free;
   fParams.Free;
-  Classes.DeallocateHWnd(fMsgHandle);
+  fMsg.Free;
   inherited;
 end;
 

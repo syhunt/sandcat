@@ -84,11 +84,6 @@ uses CatChromium, CatJINI, CatStrings;
   end;
 }
 
-function NewCEFString(const s: string): ICefv8Value;
-begin
-  result := TCefv8ValueRef.{$IFDEF USEWACEF}CreateString{$ELSE}NewString{$ENDIF}(s);
-end;
-
 constructor TSandcatV8Extension.Create;
 begin
   inherited Create;
@@ -115,7 +110,7 @@ begin
       result := false;
       exit;
     end;
-    retval := NewCEFString(base64encode(arguments[0].GetStringValue));
+    retval := StrToCEFV8Value(base64encode(arguments[0].GetStringValue));
     result := true;
   end
   else if (name = 'base64decode') then
@@ -125,7 +120,7 @@ begin
       result := false;
       exit;
     end;
-    retval := NewCEFString(base64decode(arguments[0].GetStringValue));
+    retval := StrToCEFV8Value(base64decode(arguments[0].GetStringValue));
     result := true;
     { end
       else if (name = 'consoleoutput') then

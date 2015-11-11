@@ -53,7 +53,7 @@ implementation
 
 uses
   uTab, uSettings, uMain, LAPI_Browser, CatFiles, CatUI, CatZIP, CatStrings,
-  CatTasks, CatChromium, PLua, uConst, CatUtils;
+  CatTasks, CatChromium, PLua, uConst, CatUtils, CatMsg;
 
 var
   UserParams: TSandJSON;

@@ -2,7 +2,7 @@ unit uMain;
 
 {
   Syhunt Sandcat Browser
-  Copyright (c) 2011-2014, Syhunt Informatica
+  Copyright (c) 2011-2015, Syhunt Informatica
 
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
@@ -16,14 +16,14 @@ interface
 {$I Catarinka.inc}
 
 uses
-{$IF CompilerVersion >= 23} // XE2 or higher
+{$IFDEF DXE2_OR_UP}
   Winapi.Windows, Vcl.Graphics, Winapi.Messages, System.SysUtils,
   System.Classes, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.Dialogs,
   Vcl.ExtCtrls, Winapi.ShellAPI, Vcl.Menus, Vcl.ComCtrls, Vcl.ImgList,
 {$ELSE}
   Windows, Graphics, Messages, SysUtils, Classes, Controls, Forms, StdCtrls,
   Dialogs, ExtCtrls, ShellAPI, Menus, ComCtrls, ImgList,
-{$IFEND}
+{$ENDIF}
   uTab, uExtensions, uTabMan, uTaskMan, uSettings, LAPI_Task,
   CatHighlighters, CatConsole, uZones, System.ImageList;
 
@@ -80,7 +80,7 @@ uses uConst, uUIComponents, CatChromium, uMisc, CatStrings, CatFiles,
 {$ELSE}
   ceflib,
 {$ENDIF}
-  CatCLUtils, CatUI, CatTasks, CatStdSysMenu;
+  CatCLUtils, CatUI, CatTasks, CatStdSysMenu, CatMsg;
 
 {$R *.dfm}
 

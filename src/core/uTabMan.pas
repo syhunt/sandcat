@@ -125,7 +125,7 @@ begin
     if beginswith(url, cModeParam) then
       Extensions.RunInitMode(after(url, ':'))
     else if beginswith(url, cNewWinParam) then
-      NewTab(cHOMEURL)
+      NewTab(cURL_HOME)
     else
       NewTab(url);
   end;

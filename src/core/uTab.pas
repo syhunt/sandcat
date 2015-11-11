@@ -23,7 +23,7 @@ uses
   WACefTypes,
 {$ENDIF}
   CatUI, uUIComponents, CatConsole, CatChromium, uRequests, SynUnicode,
-  uLiveHeaders, uCodeInspect;
+  uLiveHeaders, uCodeInspect, CatMsg;
 
 type // Used for restoring the state of a tab when switching tabs
   TTabState = class
@@ -80,7 +80,8 @@ type
     fLog: TMemo;
     fLogBrowserRequests: boolean;
     fMainPanel: TPanel;
-    fMsgHandle: HWND;
+    fMsg:TCatMsg;
+    fMsgV8:TCatMsg;
     fNumber: integer; // unique tab number
     fOnMessage: TSandcatTabOnMessage;
     fRequests: TSandcatRequests;
@@ -99,7 +100,6 @@ type
     fUserJSExecuted: boolean;
     fUserData: TSandJSON;
     fUserTag: string;
-    fV8MsgHandle: HWND;
     function GetIcon: string;
     function GetSitePrefsFile: string;
     function GetTitle: string;
@@ -130,7 +130,6 @@ type
     procedure CrmLoadError(Sender: TObject; const errorCode:
 {$IFDEF USEWACEF}TCefErrorCode{$ELSE}integer{$ENDIF};
       const errorText, failedUrl: string);
-    procedure MainThreadMsgWindow(var AMsg: TMessage);
     procedure ResourcesListViewClick(Sender: TObject);
     procedure ResourcesListviewColumnClick(Sender: TObject;
       Column: TListColumn);
@@ -144,8 +143,6 @@ type
     procedure SideTreeDblClick(Sender: TObject);
     procedure UpdateSourceCode;
     procedure UpdateV8Handle;
-    procedure V8Msg(var AMsg: TMessage);
-    procedure WMCopyData(var message: TMessage); message WM_COPYDATA;
   public
     UserTabScript: TSandcatTabUserScript;
     function Close(const silent: boolean = false): boolean;
@@ -199,7 +196,7 @@ type
     property LogBrowserRequests: boolean read fLogBrowserRequests
       write fLogBrowserRequests;
     property OnMessage: TSandcatTabOnMessage read fOnMessage write fOnMessage;
-    property MsgHandle: HWND read fMsgHandle;
+    property Msg: TCatMsg read fMsg;
     property Number: integer read fNumber write fNumber;
     property Requests: TSandcatRequests read fRequests;
     property SitePrefsFile: string read GetSitePrefsFile;
@@ -555,6 +552,7 @@ begin
 end;
 
 // Handling of messages originating from the Chromium component
+// Can also originate from the V8 engine running in the isolated tab process
 procedure TSandcatTab.BrowserMessage(const msg: integer; const str: string);
 begin
   if fIsClosing then
@@ -584,62 +582,11 @@ begin
   end;
 end;
 
-// Handles WM_COPYDATA messages
-procedure TSandcatTab.WMCopyData(var message: TMessage);
-var
-  pData: PCopyDataStruct;
-  str: string;
-begin
-  message.Result := 0;
-  pData := PCopyDataStruct(message.LParam);
-  if (pData = nil) then
-    exit;
-  str := string(StrPas(PAnsiChar(pData^.lpData)));
-  CopyDataMessage(pData^.dwData, str);
-  message.Result := 1;
-end;
-
 // Sends the v8 message handle of this tab to the Chromium V8 extension in
 // the tab process
 procedure TSandcatTab.UpdateV8Handle;
 begin
-  fChrome.SetV8MsgHandle(fV8MsgHandle);
-end;
-
-// For receiving messages from the V8 engine running in the isolated tab process
-procedure TSandcatTab.V8Msg(var AMsg: TMessage);
-var
-  pData: PCopyDataStruct;
-  str: string;
-begin
-  try
-    case AMsg.msg of
-      WM_COPYDATA:
-        begin
-          AMsg.Result := 0;
-          pData := PCopyDataStruct(AMsg.LParam);
-          if (pData = nil) then
-            exit;
-          str := string(StrPas(PAnsiChar(pData^.lpData)));
-          BrowserMessage(pData^.dwData, str);
-          AMsg.Result := 1;
-        end;
-    end;
-  except
-  end;
-end;
-
-// For receiving WM_COPYDATA messages
-procedure TSandcatTab.MainThreadMsgWindow(var AMsg: TMessage);
-begin
-  try
-    case AMsg.msg of
-      WM_COPYDATA:
-        WMCopyData(AMsg);
-    end;
-    // Workaround for CEF windows focus related issue, when closing tab while loading
-  except
-  end;
+  fChrome.SetV8MsgHandle(fMsgv8.msgHandle);
 end;
 
 // Sorts items by the clicked resources page column
@@ -937,7 +884,7 @@ end;
 // source string
 procedure TSandcatTab.GoToURL(const URL: string; const source: string = '');
 begin
-  if (URL <> emptystr) and (URL <> cHOMEURL) then
+  if (URL <> emptystr) and (URL <> cURL_HOME) then
   begin
     InitChrome;
     BeforeLoad(URL);
@@ -1179,9 +1126,9 @@ begin
   fLiveHeaders.Parent := fMainPanel;
   fLiveHeaders.Align := AlClient;
   fCache := TSandCache.Create;
-  fCache.new(GetSandcatDir(SCDIR_HEADERS) + 't_' + IntToStr(fMsgHandle));
+  fCache.new(GetSandcatDir(SCDIR_HEADERS) + 't_' + IntToStr(fMsg.msgHandle));
   fCache.MakeTemporary;
-  fRequests := TSandcatRequests.Create(self, fMsgHandle);
+  fRequests := TSandcatRequests.Create(self, fMsg.msgHandle);
   fRequests.headers := fLiveHeaders;
   fRequests.Cache := fCache;
 end;
@@ -1195,11 +1142,10 @@ begin
   ControlStyle := ControlStyle + [csAcceptsControls];
   Align := AlClient;
   Color := clWindow;
-  fMsgHandle :=
-{$IF CompilerVersion >= 23}System.{$IFEND}Classes.AllocateHWnd
-    (MainThreadMsgWindow);
-  fV8MsgHandle :=
-{$IF CompilerVersion >= 23}System.{$IFEND}Classes.AllocateHWnd(V8Msg);
+  fMsg:=TCatMsg.Create;
+  fMsg.OnCopyDataMessage:=CopyDataMessage;
+  fMsgV8:=TCatMsg.Create;
+  fMsgV8.OnCopyDataMessage:=BrowserMessage;
   fState := TTabState.Create;
   fDefaultIcon := '@ICON_EMPTY';
   fIsClosing := false;
@@ -1225,8 +1171,8 @@ end;
 destructor TSandcatTab.Destroy;
 begin
   Debug('destroy:' + UID);
-{$IF CompilerVersion >= 23}System.{$IFEND}Classes.DeallocateHWnd(fMsgHandle);
-{$IF CompilerVersion >= 23}System.{$IFEND}Classes.DeallocateHWnd(fV8MsgHandle);
+  fMsgV8.Free;
+  fMsg.Free;
   if fCustomTab <> nil then
     fCustomTab.Free; // Free Sciter engine
   if fCustomToolbar <> nil then

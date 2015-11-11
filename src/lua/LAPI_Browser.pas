@@ -310,7 +310,7 @@ var
 begin
   if lua_isnone(L, 1) = true then
   begin
-    tab := tabmanager.NewTab(cHOMEURL);
+    tab := tabmanager.NewTab(cURL_HOME);
     tabmanager.CloseAllTabs(false, tab);
   end
   else

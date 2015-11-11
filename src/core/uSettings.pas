@@ -210,11 +210,11 @@ begin
   method := Settings.Preferences.getvalue(SCO_STARTUP_WELCOME_METHOD,
     defaultmethod);
   if method = defaultmethod then
-    result := cHOMEURL;
+    result := cURL_HOME;
   if method = 'homepage' then
     result := Settings.Preferences.getvalue(SCO_STARTUP_HOMEPAGE, emptystr);
   if result = emptystr then
-    result := cHOMEURL;
+    result := cURL_HOME;
 end;
 
 procedure TSandcatSettings.AddToBookmarks(const PageName, URL: string);

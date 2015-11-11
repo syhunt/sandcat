@@ -456,7 +456,7 @@ begin
     datafilename:
       Result := tabmanager.ActiveTab.Cache.getFileName;
     handle:
-      Result := tabmanager.ActiveTab.MsgHandle;
+      Result := tabmanager.ActiveTab.Msg.msgHandle;
     icon:
       Result := tabmanager.ActiveTab.icon;
     capture:
