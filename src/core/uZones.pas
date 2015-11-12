@@ -1302,7 +1302,6 @@ begin
     end;
   end;
   Note.ActivePage := n;
-  tabmanager.ActiveTab.State.ActivePage := n;
   SetActiveSciter(TPage(Note.Pages.Objects[Note.Pages.IndexOf(n)]));
   PageBar.SelectPage(name);
 end;
