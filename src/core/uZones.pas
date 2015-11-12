@@ -1271,7 +1271,7 @@ var
   n: string;
 begin
   n := lowercase(name);
-  tabmanager.ActiveTab.State.ActivePageOri := n;
+  tabmanager.ActiveTab.State.ActivePageName := n;
   if IsStandardPage(n) then
   begin
     tabmanager.ActiveTab.SetActivePage(n);
@@ -1304,7 +1304,7 @@ begin
   Note.ActivePage := n;
   tabmanager.ActiveTab.State.ActivePage := n;
   SetActiveSciter(TPage(Note.Pages.Objects[Note.Pages.IndexOf(n)]));
-  PageBar.SelectPage(n);
+  PageBar.SelectPage(name);
 end;
 
 // Creates a new bottom tab (if inexistent)

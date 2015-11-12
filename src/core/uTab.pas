@@ -30,7 +30,7 @@ type // Used for restoring the state of a tab when switching tabs
   private
   public
     ActivePage: string;
-    ActivePageOri: string;
+    ActivePageName: string;
     CustomDefaultPage: string;
     HasConsole: boolean;
     HasCustomToolbar: boolean;
@@ -398,11 +398,11 @@ begin
   fSubTabs.ActivePage := fState.ActivePage;
 
   SetLoading(fLoading); // Reloads the state of stop/reload button
-  contentarea.SetActivePage(fState.ActivePageOri);
+  contentarea.SetActivePage(fState.ActivePageName);
   if fState.IsCustom then
     fSubTabs.ActivePage := fState.CustomDefaultPage;
   Navbar.IsBookmarked := fState.IsBookmarked;
-  pagebar.SelectPage(fState.ActivePageOri);
+  pagebar.SelectPage(fState.ActivePageName);
   pagebar.AdjustPageStrip(fSideTree);
 end;
 
@@ -1214,7 +1214,7 @@ begin
   HasConsole := false;
   HasCustomToolbar := false;
   ActivePage := 'default';
-  ActivePageOri := 'browser';
+  ActivePageName := 'browser';
   ProtoIcon := '@ICON_BLANK';
   URL := emptystr;
 end;
