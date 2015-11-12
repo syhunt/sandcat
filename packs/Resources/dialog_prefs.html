@@ -62,17 +62,17 @@ Custom user agent: <input type="text" cid="sandcat.browser.useragent"><br>
 <div name="panel-content" class="tab" >
 <fieldset><br>
 <div .optgroup>
-<button .adv type="checkbox" cid="chrome.options.javascript.enabled">Enable JavaScript</button><button #btnadvjs>Advanced...</button><br>
+<button .adv type="checkbox" cid="chrome.options.javascript">Enable JavaScript</button><button #btnadvjs>Advanced...</button><br>
 <popup #advjs>
-<button type="checkbox" cid="chrome.options.javascript.access_clipboard">Allow access to Clipboard</button><br>
-<button type="checkbox" cid="chrome.options.javascript.close_windows">Allow to close windows</button><br>
-<button type="checkbox" cid="chrome.options.javascript.open_windows">Allow to open windows</button><br>
-<button type="checkbox" cid="chrome.options.javascript.dom_paste">Enable DOM paste</button>
+<button type="checkbox" cid="chrome.options.javascriptaccessclipboard">Allow access to Clipboard</button><br>
+<button type="checkbox" cid="chrome.options.javascriptclosewindows">Allow to close windows</button><br>
+<button type="checkbox" cid="chrome.options.javascriptopenwindows">Allow to open windows</button><br>
+<button type="checkbox" cid="chrome.options.javascriptdompaste">Enable DOM paste</button>
 </popup>
 <div .sep/>
-<button .adv type="checkbox" cid="chrome.options.image.loading">Load images</button><button #btnadvimg>Advanced...</button><br>
+<button .adv type="checkbox" cid="chrome.options.imageloading">Load images</button><button #btnadvimg>Advanced...</button><br>
 <popup #advimg>
-<button type="checkbox" cid="chrome.options.image.shrink_stand_alone_to_fit">Shrink to fit</button>
+<button type="checkbox" cid="chrome.options.imageshrinkstandalonetofit">Shrink to fit</button>
 </popup>
 <div .sep/>
 <button type="checkbox" cid="chrome.options.plugins">Enable plugins</button>(Flash, Media Player, etc.)<br>
@@ -80,8 +80,6 @@ Custom user agent: <input type="text" cid="sandcat.browser.useragent"><br>
 <button type="checkbox" cid="chrome.options.java">Enable Java</button><br>
 <div .sep/>
 <button type="checkbox" cid="chrome.options.webgl">Enable WebGL</button><br>
-<div .sep/>
-<button type="checkbox" cid="chrome.options.author_and_user_styles">Enable author & user styles</button><br>
 </div>
 </fieldset>
 </div>
@@ -91,10 +89,9 @@ Custom user agent: <input type="text" cid="sandcat.browser.useragent"><br>
 <div name="panel-storage" class="tab">
 <fieldset><br>
 <div .optgroup>
-<button .adv type="checkbox" cid="chrome.options.application_cache">Use application cache</button><button #btnviewappcache>View AppCache</button><br>
-<!--button type="checkbox" cid="chrome.options.page_cache">Enable page cache</button><br-->
+<button .adv type="checkbox" cid="chrome.options.applicationcache">Use application cache</button><button #btnviewappcache>View AppCache</button><br>
 <button type="checkbox" cid="chrome.options.databases">Enable databases</button><br>
-<button type="checkbox" cid="chrome.options.local_storage">Enable local storage</button><br><br>
+<button type="checkbox" cid="chrome.options.localstorage">Enable local storage</button><br><br>
 </div>
 <p #cachebuttons style="margin:0;">
 <button #btnclearpriv>Clear Browsing Data...</button>
@@ -119,10 +116,9 @@ Custom user agent: <input type="text" cid="sandcat.browser.useragent"><br>
 <div name="panel-advanced" class="tab">
 <fieldset><legend>Browsing</legend>
 <div .optgroup>
-<button type="checkbox" cid="chrome.options.accelerated_compositing">Enable accelerated compositing</button><br>
-<button type="checkbox" cid="chrome.options.caret_browsing">Enable caret browsing</button><br>
-<button type="checkbox" cid="chrome.options.tab_to_links">Enable 'tab through links'</button><br>
-<button type="checkbox" cid="chrome.options.text_area_resize">Enable text area resize</button><br>
+<button type="checkbox" cid="chrome.options.caretbrowsing">Enable caret browsing</button><br>
+<button type="checkbox" cid="chrome.options.tabtolinks">Enable 'tab through links'</button><br>
+<button type="checkbox" cid="chrome.options.textarearesize">Enable text area resize</button><br>
 Proxy server: <input type="text" cid="sandcat.browser.proxy.server"><br>
 </div>
 </fieldset>
@@ -131,13 +127,12 @@ Proxy server: <input type="text" cid="sandcat.browser.proxy.server"><br>
 <button type="checkbox" cid="chrome.options.websecurity">Enable web security</button>(same origin policy)<br>
 <button #btnadvfile style="float:right;">File Access...</button>
 <popup #advfile>
-<button type="checkbox" cid="chrome.options.fileurl.access">Allow file access from file URLs</button><br>
-<button type="checkbox" cid="chrome.options.fileurl.universal_access">Allow universal access from file URLs</button>
+<button type="checkbox" cid="chrome.options.fileaccessfromfileurls">Allow file access from file URLs</button><br>
+<button type="checkbox" cid="chrome.options.universalaccessfromfileurls">Allow universal access from file URLs</button>
 </popup>
 </div>
 </fieldset>
-<button type="checkbox" cid="sandcat.startup.multiwin">Open new instance as window instead of tab</button><br>
-<!--button type="checkbox" cid="chrome.options.developer_tools">Enable Developer Tools</button><br-->
+<button type="checkbox" cid="sandcat.startup.multiwin">Open new instance as window instead of tab</button>
 </div>
 <!-- advanced tab end-->
 
