@@ -101,10 +101,7 @@ begin
   CefLocalesDirPath := ProgDir + 'Packs\CEF\Locales\';
   CefResourcesDirPath := ProgDir + 'Packs\CEF\Resources\';
   CefUserAgent := GetCustomUserAgent;
- {$IFDEF USEWACEF}
-  TWACef.Initialize;
- {$ENDIF}
-  if not  {$IFDEF USEWACEF}TWACef.LoadLib{$ELSE}CefLoadLibDefault{$ENDIF} then begin
+  if not CatCEFLoadLib then begin
     result := true; // This is a CEF renderer process
   end else // Not a CEF renderer, check if this is a Sandcat task process
     if beginswith(paramstr(1), cBgTaskPrefix) then
