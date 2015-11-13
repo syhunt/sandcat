@@ -8,7 +8,7 @@
 
 package.path = package.path .. ";"..app.dir.."/Lib/lua/?.lua"
 package.cpath = package.cpath .. ";"..app.dir.."/Lib/clibs/?.dll"
-require "Selenite"
+slx = require "Selenite"
 
 Sandcat = extensionpack:new()
 Sandcat.filename = 'Resources.pak'
