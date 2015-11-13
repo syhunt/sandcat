@@ -3,13 +3,10 @@ unit uZones;
 {
   Sandcat User Interface Zones
 
-  Copyright (c) 2011-2014, Syhunt Informatica
+  Copyright (c) 2011-2015, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 
-  TODO:
-  - Needs cleanup
-  - Separate the Chromium Cache related code to another unit
 }
 
 interface
@@ -212,7 +209,7 @@ type
   private
   public
     function DlgReplace(const s: string): string;
-    procedure SaveResource(const url: string; const fromcloud: boolean = false);
+    procedure SaveResource(const URL: string; const fromcloud: boolean = false);
     procedure SaveURLAs(const URL: string);
     procedure ShowAlert(const msg: string; const escape_html: boolean = true);
     procedure ShowAlertText(const msg: string);
@@ -371,7 +368,7 @@ begin
     ENGINE_NAVBAR:
       result := Navbar.Engine;
     ENGINE_PAGEBAR:
-      result := Pagebar.Engine;
+      result := PageBar.Engine;
     ENGINE_STATBAR:
       result := StatBar.Engine;
     ENGINE_CUSTOMTABTOOLBAR:
@@ -388,7 +385,7 @@ var
   ms: tmemorystream;
   idx: string;
 begin
-  result:=-1;
+  result := -1;
   if Pak = emptystr then
     exit;
   ms := tmemorystream.Create;
@@ -518,7 +515,7 @@ var
   SRec: TSearchRec;
 begin
   if FindFirst(path + '*.*',
-    {$IF CompilerVersion >= 23}System.{$IFEND}SysUtils.faAnyFile, SRec) = 0 then
+{$IF CompilerVersion >= 23}System.{$IFEND}SysUtils.faAnyFile, SRec) = 0 then
     repeat
       if (SRec.name = '.') or (SRec.name = '..') then
         Continue;
@@ -528,7 +525,7 @@ begin
       if MakeBold then
         SetNodeBoldState(NewNode, true);
       if Recurse and ((SRec.Attr and
-        {$IF CompilerVersion >= 23}System.{$IFEND}SysUtils.faDirectory) <> 0)
+{$IF CompilerVersion >= 23}System.{$IFEND}SysUtils.faDirectory) <> 0)
       then
         Tree_FilePathToTreeNode(aTreeView, NewNode,
           path + SRec.name + '\', true);
@@ -551,8 +548,8 @@ begin
   eng := ExtensionPage;
   if settings.preferences.getvalue(SCO_EXTENSIONS_ENABLED, true) = false then
     exit;
-  //if Extensions.IsExtensionEnabled('syhunt') = false then
-  //  exit;
+  // if Extensions.IsExtensionEnabled('syhunt') = false then
+  // exit;
   e := eng.Root.Select('meta[content=''ReqViewer.ui'']');
   if e = nil then
     Extensions.RunLuaCmd('ReqViewer:load()', cResourcesPak, 'reqviewer.lua');
@@ -618,8 +615,8 @@ var
 begin
   if settings.preferences.getvalue(SCO_EXTENSIONS_ENABLED, true) = false then
     exit;
-  //if Extensions.IsExtensionEnabled('syhunt') = false then
-  //  exit;
+  // if Extensions.IsExtensionEnabled('syhunt') = false then
+  // exit;
   ContentArea.SetActivePage('response');
   e := ExtensionPage.Root.Select('meta[content=''ReqViewer.ui'']');
   if e = nil then
@@ -715,7 +712,8 @@ begin
         Debug('Saving Cache resource to file...');
         Extensions.LuaWrap.value['Cache_Temp'] := filename;
         ChromeCacheExtract(s, filename);
-        Extensions.RunLuaCmd(BottomBar.CacheViewChrome_Callback + '(Cache_Temp)');
+        Extensions.RunLuaCmd(BottomBar.CacheViewChrome_Callback +
+          '(Cache_Temp)');
       end;
   end;
   BottomBar.CacheViewChrome_Callback := emptystr;
@@ -1199,10 +1197,23 @@ begin
   begin
     CreateConsole;
     Navbar.ConsoleVisible := true;
+    SandConsole.Align := AlBottom;
+    SandConsole.Parent := Self;
+    SandConsole.height := fConsoleLastHeight;
+    SandConsole.visible := true;
+    ConSplitter.visible := true;
+    ConSplitter.Parent := SandConsole.Parent;
+    ConSplitter.Top := SandConsole.Top + 1;
   end
   else
+  begin
     Navbar.ConsoleVisible := false;
-  SetActivePage(Note.ActivePage);
+    if fHasConsole then
+    begin
+      SandConsole.visible := false;
+      ConSplitter.visible := false;
+    end;
+  end;
 end;
 
 procedure TSandcatContentArea.Console_Output(const b: boolean);
@@ -1222,7 +1233,6 @@ procedure TSandcatContentArea.Console_WriteLn(const s: string);
 begin
   if fIsClosing then
     exit;
-  CreateConsole;
   if fShowTabConsoleBottom = false then
     ViewConsole(true);
   SandConsole.writeln(s);
@@ -1232,7 +1242,6 @@ procedure TSandcatContentArea.Console_Write(const s: string);
 begin
   if fIsClosing then
     exit;
-  CreateConsole;
   if fShowTabConsoleBottom = false then
     ViewConsole(true);
   SandConsole.Write(s);
@@ -1277,30 +1286,7 @@ begin
     tabmanager.ActiveTab.SetActivePage(n);
     n := 'default';
   end;
-  if fHasConsole then
-  begin
-    if SandConsole.Align = AlBottom then
-      fConsoleLastHeight := SandConsole.height;
-  end;
   CreatePage(n);
-  if fShowTabConsoleBottom then
-  begin
-    SandConsole.Align := AlBottom;
-    SandConsole.Parent := TPage(Note.Pages.Objects[Note.Pages.IndexOf(n)]);
-    SandConsole.height := fConsoleLastHeight;
-    SandConsole.visible := true;
-    ConSplitter.visible := true;
-    ConSplitter.Parent := SandConsole.Parent;
-    ConSplitter.Top := SandConsole.Top + 1;
-  end
-  else
-  begin
-    if fHasConsole then
-    begin
-      SandConsole.visible := false;
-      ConSplitter.visible := false;
-    end;
-  end;
   Note.ActivePage := n;
   SetActiveSciter(TPage(Note.Pages.Objects[Note.Pages.IndexOf(n)]));
   PageBar.SelectPage(name);
@@ -1749,14 +1735,14 @@ begin
 end;
 
 // Saves a resource as a file from the cache or from the web/cloud
-procedure TSandcatDialogs.SaveResource(const url: string;
+procedure TSandcatDialogs.SaveResource(const URL: string;
   const fromcloud: boolean = false);
 begin
   if fromcloud = true then
-    sanddlg.SaveURLAs(url)
+    SandDlg.SaveURLAs(URL)
   else
   begin
-    Extensions.LuaWrap.value['_temppath'] := url;
+    Extensions.LuaWrap.value['_temppath'] := URL;
     Extensions.RunLuaCmd('PageMenu:SaveCachedAs(_temppath)');
   end;
 end;
