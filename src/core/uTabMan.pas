@@ -71,7 +71,8 @@ type
 
 implementation
 
-uses uMain, uZones, uConst, uMisc, CatChromium, CatHTTP, CatStrings;
+uses uMain, uZones, uConst, uMisc, CatChromium, CatChromiumLib, CatHTTP,
+  CatStrings;
 
 const
   cDefaultNewTabTitle = 'New Tab';

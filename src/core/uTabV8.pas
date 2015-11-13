@@ -55,7 +55,7 @@ type
 
 implementation
 
-uses CatChromium, CatJINI, CatStrings;
+uses CatChromium, CatChromiumLib, CatJINI, CatStrings;
 
 { procedure Send_WriteValue(desthandle: integer; key, value: string);
   var

@@ -148,7 +148,7 @@ const
 implementation
 
 uses uMain, uZones, uTab, uMisc, LAPI_Task, CatHTTP, CatUI, pLua, pLuaTable,
-  uConst, CatTime, CatStrings, CatTasks, CatChromium;
+  uConst, CatTime, CatStrings, CatTasks, CatChromium, CatChromiumLib;
 
 var
   tasks_shutdown: boolean = false;

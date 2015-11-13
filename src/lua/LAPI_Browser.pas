@@ -66,7 +66,7 @@ function lua_sandcatsettings_loadfromfile(L: plua_State): integer; cdecl;
 implementation
 
 uses uMain, pLua, CatStrings, CatFiles, CatTime, uUIComponents, uConst,
-  CatTasks, CatZIP, CatHTTP, CatChromium, uSettings, TypInfo,
+  CatTasks, CatZIP, CatHTTP, CatChromium, CatChromiumLib, uSettings, TypInfo,
   uZones, uTab, uMisc, LAPI_Task, CatConsole, uTaskMan;
 
 type

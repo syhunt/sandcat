@@ -22,8 +22,8 @@ uses
 {$IFDEF USEWACEF}
   WACefTypes,
 {$ENDIF}
-  CatUI, uUIComponents, CatConsole, CatChromium, uRequests, SynUnicode,
-  uLiveHeaders, uCodeInspect, CatMsg;
+  CatUI, uUIComponents, CatConsole, CatChromium, CatChromiumLib, uRequests,
+  SynUnicode, uLiveHeaders, uCodeInspect, CatMsg;
 
 type // Used for restoring the state of a tab when switching tabs
   TTabState = class

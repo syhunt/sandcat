@@ -20,8 +20,8 @@ uses
   Windows, Classes, Forms, SysUtils, Controls, ExtCtrls, Dialogs, Graphics,
   StdCtrls, CommCtrl, ImgList, pngimage, TypInfo, ComCtrls,
 {$IFEND}
-  SynUnicode, CatChromium, CatConsole, uReqBuilder, uRequests, uUIComponents,
-  uTaskMon;
+  SynUnicode, CatChromium, CatChromiumOSR, CatConsole, uReqBuilder, uRequests,
+  uUIComponents, uTaskMon;
 
 type
   TSandcatNavigationBar = class(TCustomControl)
@@ -166,7 +166,7 @@ type
     fTaskMsgs: TTaskMessages;
     procedure CacheLoadEnd(Sender: TObject; httpStatusCode: integer);
   public
-    CacheViewChrome: TCatChromium;
+    CacheViewChrome: TCatChromiumOSR;
     CacheViewChrome_Callback: string;
     procedure Load;
     procedure LoadBottomBar(const HTML: string);
@@ -1477,7 +1477,7 @@ procedure TSandcatBottomBar.LoadCached(const URL: string;
 begin
   if CacheViewChrome = nil then
   begin // Creates Chromium
-    CacheViewChrome := TCatChromium.Create(StatBar);
+    CacheViewChrome := TCatChromiumOSR.Create(StatBar);
     CacheViewChrome.Parent :=
       TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('Cache')]);
     CacheViewChrome.Align := alClient;

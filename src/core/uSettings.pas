@@ -86,8 +86,8 @@ procedure OnbeforeCmdLine(const processType: ustring;
 
 implementation
 
-uses uMain, uMisc, uConst, CatChromium, CatUI, CatTime, CatStrings,
-  CatFiles, CatHTTP;
+uses uMain, uMisc, uConst, CatChromium, CatChromiumLib, CatUI, CatTime,
+  CatStrings, CatFiles, CatHTTP;
 
 procedure OnbeforeCmdLine(const processType: ustring;
   const commandLine: ICefCommandLine);

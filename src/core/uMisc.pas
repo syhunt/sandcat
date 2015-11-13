@@ -11,7 +11,8 @@ interface
 
 uses
   Windows, Forms, Messages, SysUtils, Classes, Controls, Graphics,
-  ComCtrls, Lua, ExtCtrls, SynEdit, uUIComponents, CatChromium, uTab, uTabMan;
+  ComCtrls, Lua, ExtCtrls, SynEdit, uUIComponents, CatChromium, CatChromiumLib,
+  uTab, uTabMan;
 
 function BeginsWithSpecialParam(param: string): boolean;
 function BuildRequestFromJSON(json: string): TCatChromiumRequest;

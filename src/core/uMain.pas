@@ -74,7 +74,8 @@ procedure Debug(const s: string; const component: string = 'UI');
 
 implementation
 
-uses uConst, uUIComponents, CatChromium, uMisc, CatStrings, CatFiles,
+uses uConst, uUIComponents, CatChromium, CatChromiumLib, uMisc, CatStrings,
+  CatFiles,
 {$IFDEF USEWACEF}
   waceflib,
 {$ELSE}
