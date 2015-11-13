@@ -2,7 +2,7 @@ unit uExtensions;
 
 {
   Sandcat Lua Extension System
-  Copyright (c) 2011-2014, Syhunt Informatica
+  Copyright (c) 2011-2015, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 }
@@ -35,6 +35,8 @@ type
     procedure GetPakFilenameVersion(var filename, version: string);
     procedure LoadPakScript(const pakname, scriptname: string);
     procedure RegisterExtension(const PakFilename, json: string);
+    procedure RunExtensionMethod(const PakFilename, cmd: string;
+      const RegExt: boolean = false);
     procedure RunLuaCmd_JSON(const json: string);
     procedure Broadcast(const cmd: string;
       const RegisterExtensions: boolean = false);
@@ -56,8 +58,8 @@ type
     procedure RunLua(const cmd: string);
     procedure RunLuaCmd(const cmd: string; const pakname: string = '';
       const scriptname: string = '');
-    procedure ScriptExceptionHandler(Title: string; line: Integer;
-      msg: string; var handled: boolean);
+    procedure ScriptExceptionHandler(Title: string; line: Integer; msg: string;
+      var handled: boolean);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
     // properties
@@ -91,6 +93,7 @@ const
   cLicLink =
     '<a href="#" onclick="%s"><img filename="n.txt" style="behavior:file-icon;" alt="License"></a>';
   cManifest = 'Manifest.json';
+  cExtensionSystemVersion = 'v2';
 
 procedure Debug(const s: string; const component: string = 'Extensions');
 begin
@@ -146,7 +149,7 @@ var
   extensionfilename: string;
   script: TStringList;
 begin
-  extensionfilename := GetSandcatDir(SCDIR_PLUGINS) + pakname ;
+  extensionfilename := GetSandcatDir(SCDIR_PLUGINS) + pakname;
   fLuaWrap.LoadScript(emptystr);
   if fileexists(extensionfilename) then
   begin
@@ -253,9 +256,11 @@ var
   cid, ID, link, filename, name: string;
   htmlicon, icon: string;
   version, author, licensescript: string;
+  canreg: boolean;
 const
   cTR = '<tr role="option" libname=%s><td><input .scxenabler type="checkbox" cid="%s">%s%s</td><td>%s</td><td>%s</td><td></td></tr>';
 begin
+  canreg := false;
   j := TSandJSON.Create;
   j.Text := json;
   name := j.GetValue('name', emptystr);
@@ -267,8 +272,10 @@ begin
   author := j.GetValue('author', emptystr);
   licensescript := j.GetValue('script.license', emptystr);
   j.free;
-  // Registers if there is enough info about extension
+  // Registers only if there is enough info about extension
   if (name <> emptystr) and (version <> emptystr) and (author <> emptystr) then
+    canreg := true;
+  if canreg = true then
   begin
     cid := SCO_EXTENSION_ENABLED_PREFIX + '.' + ID;
     if licensescript <> emptystr then
@@ -324,26 +331,35 @@ begin
   fRunLuaTimer.Enabled := true;
 end;
 
-// Executes a Lua code in all active Sandcat extensions
-procedure TSandcatExtensions.Broadcast(const cmd: string;
-  const RegisterExtensions: boolean = false);
+procedure TSandcatExtensions.RunExtensionMethod(const PakFilename, cmd: string;
+  const RegExt: boolean = false);
 var
-  ID, script, scriptfilename, luacmd, pak: string;
+  ID, script, scriptfilename, luacmd, author, compat: string;
   manifest: TSandJSON;
+  iscompatible: boolean;
 begin
+  iscompatible := true;
   manifest := TSandJSON.Create;
-  if RegisterExtensions then
-    GetFiles(PluginsDir + '*' + cPakExtension, fExtensionFiles.list,
-      false, false)
-  else
-    fExtensionFiles.reset;
-  while fExtensionFiles.Found do
+  manifest.Text := GetTextFileFromZIP(PakFilename, cManifest);
+  author := manifest.GetValue('author', emptystr);
+  compat := manifest.GetValue('compat', emptystr);
+
+  if author = 'Syhunt' then
+  begin // Syhunt extensions must declare compatibility key
+    if compat <> cExtensionSystemVersion then
+      iscompatible := false;
+  end;
+  if compat <> emptystr then
+  begin // For user extensions, compat key is optional
+    if compat <> cExtensionSystemVersion then
+      iscompatible := false;
+  end;
+
+  if iscompatible then
   begin
-    pak := PluginsDir + fExtensionFiles.current + cPakExtension;
-    manifest.Text := GetTextFileFromZIP(pak, cManifest);
-    if RegisterExtensions then
-      RegisterExtension(pak, manifest.Text);
-    ID := GetIDFromPak(pak);
+    if RegExt then
+      RegisterExtension(PakFilename, manifest.Text);
+    ID := GetIDFromPak(PakFilename);
     scriptfilename := manifest.GetValue('script.filename', emptystr);
     if IsExtensionEnabled(ID) then
     begin
@@ -352,7 +368,7 @@ begin
         fInitializedExtensions.add(ID);
         if scriptfilename <> emptystr then
         begin
-          script := GetTextFileFromZIP(pak, scriptfilename);
+          script := GetTextFileFromZIP(PakFilename, scriptfilename);
           RunLuaCmd(script);
         end;
       end;
@@ -365,6 +381,24 @@ begin
     end;
   end;
   manifest.free;
+end;
+
+// Executes a Lua code in all active Sandcat extensions
+procedure TSandcatExtensions.Broadcast(const cmd: string;
+  const RegisterExtensions: boolean = false);
+var
+  pak: string;
+begin
+  if RegisterExtensions then
+    GetFiles(PluginsDir + '*' + cPakExtension, fExtensionFiles.list,
+      false, false)
+  else
+    fExtensionFiles.reset;
+  while fExtensionFiles.Found do
+  begin
+    pak := PluginsDir + fExtensionFiles.current + cPakExtension;
+    RunExtensionMethod(pak, cmd, RegisterExtensions);
+  end;
 end;
 
 procedure TSandcatExtensions.RunInitMode(const Mode: string);

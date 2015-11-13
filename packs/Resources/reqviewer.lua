@@ -22,7 +22,7 @@ function ReqViewer:editrequest(mode)
  local method = ui.method.value
  mode = mode or 'xhr'
  if mode == 'xhr' then
-  Syhunt:EditRequest()
+  PenTools:EditRequest()
   XHREditor.ui.url.value = url
   XHREditor.ui.postdata.value = postdata
   XHREditor.ui.method.value = method
@@ -86,7 +86,7 @@ end
 function ReqViewer:loadinfuzzer(type)
  local ui = self.ui
  if type == 'low' then
-  Syhunt:ViewFuzzerLow()
+  PenTools:ViewFuzzerLow()
   if ui.reqhead.value ~= '' then
    Fuzzer.ui.request.value = slx.string.replace(ui.reqhead.value,' HTTP/','{$1} HTTP/')
   end
@@ -95,7 +95,7 @@ function ReqViewer:loadinfuzzer(type)
   Fuzzer.ui.port.value = url.port
  end
  if type == 'xhr' then
-  Syhunt:ViewFuzzer()
+  PenTools:ViewFuzzer()
   Fuzzer.ui.url.value = ui.url.value..'{$1}'
   Fuzzer.ui.method.value = ui.method.value
  end

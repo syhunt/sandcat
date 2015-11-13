@@ -204,7 +204,7 @@ end;
 { procedure SearchSource(s: string);
   begin
   extensions.LuaWrap.Value['Search_Temp'] := s;
-  extensions.RunLuaCmd('SearchSource:search(Search_Temp)', 'Syhunt.scx',
+  extensions.RunLuaCmd('SearchSource:search(Search_Temp)', 'PenTools.scx',
   'Scripts/SearchSource.lua');
   end; }
 
