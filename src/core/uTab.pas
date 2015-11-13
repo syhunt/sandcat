@@ -19,9 +19,6 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, TypInfo,
 {$IFEND}
-{$IFDEF USEWACEF}
-  WACefTypes,
-{$ENDIF}
   CatUI, uUIComponents, CatConsole, CatChromium, CatChromiumLib, uRequests,
   SynUnicode, uLiveHeaders, uCodeInspect, CatMsg;
 
@@ -127,8 +124,7 @@ type
       const id, state, percentcomplete: integer; const fullPath: string);
     procedure CrmLoadingStateChange(Sender: TObject;
       const isLoading, canGoBack, canGoForward: boolean);
-    procedure CrmLoadError(Sender: TObject; const errorCode:
-{$IFDEF USEWACEF}TCefErrorCode{$ELSE}integer{$ENDIF};
+    procedure CrmLoadError(Sender: TObject; const errorCode:integer;
       const errorText, failedUrl: string);
     procedure ResourcesListViewClick(Sender: TObject);
     procedure ResourcesListviewColumnClick(Sender: TObject;
@@ -729,8 +725,7 @@ begin
 end;
 
 // Called when there is an error loading a page
-procedure TSandcatTab.CrmLoadError(Sender: TObject; const errorCode:
-{$IFDEF USEWACEF}TCefErrorCode{$ELSE}integer{$ENDIF};
+procedure TSandcatTab.CrmLoadError(Sender: TObject; const errorCode:integer;
   const errorText, failedUrl: string);
 begin
   Loading := false;
