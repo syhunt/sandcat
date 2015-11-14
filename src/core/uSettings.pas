@@ -94,6 +94,7 @@ procedure OnbeforeCmdLine(const processType: ustring;
 var
   proxy: TSandcatProxySettings;
 begin
+  commandLine.AppendSwitch('--enable-system-flash');
   proxy := GetProxySettings;
   if proxy.Server <> emptystr then
   begin
