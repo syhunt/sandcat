@@ -24,8 +24,8 @@ type
     procedure SetElementValue(Selector, NewValue: Variant);
     function GetElementAttribute(Selector, Name: string): Variant;
     procedure SetElementAttribute(Selector, Name: string; NewValue: Variant);
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload; override;
+    constructor Create(LuaState: PLua_State; AParent: TLuaObject = nil);
+      overload; override;
     function GetPropValue(propName: String): Variant; override;
     function SetPropValue(propName: String; const AValue: Variant)
       : Boolean; override;
@@ -40,8 +40,8 @@ type
     Engine: string;
     EngineID: integer;
     procedure SetEngine(Name: string);
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload; override;
+    constructor Create(LuaState: PLua_State; AParent: TLuaObject = nil);
+      overload; override;
     function GetPropValue(propName: String): Variant; override;
     function SetPropValue(propName: String; const AValue: Variant)
       : Boolean; override;
@@ -219,7 +219,7 @@ begin
     s := cBlank_Htm;
   case o.EngineID of
     ENGINE_BOTTOMBAR:
-      BottomBar.engine.loadhtml(s, pluginsdir);
+      BottomBar.Engine.loadhtml(s, pluginsdir);
     ENGINE_EXTENSIONPAGE:
       ExtensionPage.loadhtml(s, pluginsdir);
     ENGINE_CUSTOMTAB:
@@ -233,9 +233,9 @@ end;
 function method_engine_loadurl(L: PLua_State): integer; cdecl;
 var
   s: string;
-  //o: TSCBUIEngineObject;
+  // o: TSCBUIEngineObject;
 begin
-  //o := TSCBUIEngineObject(LuaToTLuaObject(L, 1));
+  // o := TSCBUIEngineObject(LuaToTLuaObject(L, 1));
   s := lua_tostring(L, 2);
   GetEngine(L).loadurl(s);
   result := 1;
@@ -402,33 +402,38 @@ begin
 end;
 // *****************************************************************************
 
-procedure RegisterSCBUIElement_Sandcat(L: PLua_State);
-const
-  AClassName = 'SandcatUIElement';
-  function newcallback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
-  begin
-    result := TSCBUIElementObject.Create(L, AParent);
-  end;
-  procedure register_methods(L: PLua_State; classTable: integer);
-  begin
-    RegisterMethod(L, 'select', @method_select, classTable);
-    // RegisterMethod(L,'getvalue', @method_getval, classTable);
-    // RegisterMethod(L,'setvalue', @method_setval, classTable);
-    RegisterMethod(L, 'getattrib', @method_getattrib, classTable);
-    RegisterMethod(L, 'setattrib', @method_setattrib, classTable);
-    RegisterMethod(L, 'getstyle', @method_getstyleattrib, classTable);
-    RegisterMethod(L, 'setstyle', @method_setstyleattrib, classTable);
-  end;
-  function Create(L: PLua_State): integer; cdecl;
-  var
-    p: TLuaObjectNewCallback;
-  begin
-    p := @newcallback;
-    result := new_LuaObject(L, AClassName, p);
-  end;
-
+procedure register_methods_element(L: PLua_State; classTable: integer);
 begin
-  RegisterTLuaObject(L, AClassName, @Create, @register_methods);
+  RegisterMethod(L, 'select', @method_select, classTable);
+  // RegisterMethod(L,'getvalue', @method_getval, classTable);
+  // RegisterMethod(L,'setvalue', @method_setval, classTable);
+  RegisterMethod(L, 'getattrib', @method_getattrib, classTable);
+  RegisterMethod(L, 'setattrib', @method_setattrib, classTable);
+  RegisterMethod(L, 'getstyle', @method_getstyleattrib, classTable);
+  RegisterMethod(L, 'setstyle', @method_setstyleattrib, classTable);
+end;
+
+const
+  AClassNameElement = 'SandcatUIElement';
+
+function newcallback_element(L: PLua_State; AParent: TLuaObject = nil)
+  : TLuaObject;
+begin
+  result := TSCBUIElementObject.Create(L, AParent);
+end;
+
+function Create_Element(L: PLua_State): integer; cdecl;
+var
+  p: TLuaObjectNewCallback;
+begin
+  p := @newcallback_element;
+  result := new_LuaObject(L, AClassNameElement, p);
+end;
+
+procedure RegisterSCBUIElement_Sandcat(L: PLua_State);
+begin
+  RegisterTLuaObject(L, AClassNameElement, @Create_Element,
+    @register_methods_element);
 end;
 
 function lua_zone_addtis(L: PLua_State): integer; cdecl;
@@ -490,34 +495,37 @@ begin
   result := 1;
 end;
 
-procedure RegisterSCBUIEngine_Sandcat(L: PLua_State);
+procedure register_methods(L: PLua_State; classTable: integer);
+begin
+  RegisterMethod(L, 'addhtml', @lua_zone_addhtml, classTable);
+  RegisterMethod(L, 'addhtmlfile', @lua_zone_addhtmlfile, classTable);
+  RegisterMethod(L, 'addtiscript', @lua_zone_addtis, classTable);
+  RegisterMethod(L, 'inserthtml', @lua_zone_inserthtml, classTable);
+  RegisterMethod(L, 'inserthtmlfile', @lua_zone_inserthtmlfile, classTable);
+  RegisterMethod(L, 'hide', @method_engine_hide, classTable);
+  RegisterMethod(L, 'eval', @method_engine_eval, classTable);
+  RegisterMethod(L, 'loadx', @method_engine_load, classTable);
+  RegisterMethod(L, 'loadx_std', @method_engine_loadstd, classTable);
+  RegisterMethod(L, 'loadx_url', @method_engine_loadurl, classTable);
+end;
+
 const
   AClassName = 'SandcatUIZone';
-  function newcallback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
-  begin
-    result := TSCBUIEngineObject.Create(L, AParent);
-  end;
-  procedure register_methods(L: PLua_State; classTable: integer);
-  begin
-    RegisterMethod(L, 'addhtml', @lua_zone_addhtml, classTable);
-    RegisterMethod(L, 'addhtmlfile', @lua_zone_addhtmlfile, classTable);
-    RegisterMethod(L, 'addtiscript', @lua_zone_addtis, classTable);
-    RegisterMethod(L, 'inserthtml', @lua_zone_inserthtml, classTable);
-    RegisterMethod(L, 'inserthtmlfile', @lua_zone_inserthtmlfile, classTable);
-    RegisterMethod(L, 'hide', @method_engine_hide, classTable);
-    RegisterMethod(L, 'eval', @method_engine_eval, classTable);
-    RegisterMethod(L, 'loadx', @method_engine_load, classTable);
-    RegisterMethod(L, 'loadx_std', @method_engine_loadstd, classTable);
-    RegisterMethod(L, 'loadx_url', @method_engine_loadurl, classTable);
-  end;
-  function Create(L: PLua_State): integer; cdecl;
-  var
-    p: TLuaObjectNewCallback;
-  begin
-    p := @newcallback;
-    result := new_LuaObject(L, AClassName, p);
-  end;
 
+function newcallback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
+begin
+  result := TSCBUIEngineObject.Create(L, AParent);
+end;
+
+function Create(L: PLua_State): integer; cdecl;
+var
+  p: TLuaObjectNewCallback;
+begin
+  p := @newcallback;
+  result := new_LuaObject(L, AClassName, p);
+end;
+
+procedure RegisterSCBUIEngine_Sandcat(L: PLua_State);
 begin
   RegisterTLuaObject(L, AClassName, @Create, @register_methods);
 end;

@@ -16,8 +16,8 @@ type
   TSCBCmdObject = class(TLuaObject)
   private
   public
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload; override;
+    constructor Create(LuaState: PLua_State; AParent: TLuaObject = nil);
+      overload; override;
     function GetPropValue(propName: String): Variant; override;
     function SetPropValue(propName: String; const AValue: Variant)
       : Boolean; override;
@@ -31,7 +31,7 @@ implementation
 uses
   uMain, CatStrings, plua, uZones;
 
-procedure methods_XCL(L: PLua_State; classTable: Integer);
+procedure register_methods(L: PLua_State; classTable: Integer);
 begin
   // RegisterMethod(L,'methodname',method_func, classTable);
 end;
@@ -54,22 +54,25 @@ begin
   result := inherited SetPropValue(propName, AValue);
 end;
 
-function XCL_new(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
+const
+  cObjName = 'SandcatBrowserCommand';
+
+function new_callback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
 begin
   result := TSCBCmdObject.Create(L, AParent);
 end;
 
-function new_XCL(L: PLua_State): Integer; cdecl;
+function Create(L: PLua_State): Integer; cdecl;
 var
   p: TLuaObjectNewCallback;
 begin
-  p := @XCL_new;
-  result := new_LuaObject(L, 'SandcatBrowserCommand', p);
+  p := @new_callback;
+  result := new_LuaObject(L, cObjName, p);
 end;
 
 procedure RegisterSCBCmd_Sandcat(L: PLua_State);
 begin
-  RegisterTLuaObject(L, 'SandcatBrowserCommand', @new_XCL, @methods_XCL);
+  RegisterTLuaObject(L, cObjName, @Create, @register_methods);
 end;
 
 constructor TSCBCmdObject.Create(LuaState: PLua_State; AParent: TLuaObject);

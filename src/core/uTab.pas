@@ -879,6 +879,7 @@ end;
 // source string
 procedure TSandcatTab.GoToURL(const URL: string; const source: string = '');
 begin
+  debug('gotourl:'+url);
   if (URL <> emptystr) and (URL <> cURL_HOME) then
   begin
     InitChrome;

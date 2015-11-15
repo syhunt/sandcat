@@ -119,6 +119,7 @@ end;
 
 procedure TSandcatExtensions.CreateLuaEngine;
 begin
+  debug('createluaengine.begin');
   fCanRunLua := true;
   fLuaWrap := TSandLua.Create(nil);
   fLuaWrap.UseDebug := false;
@@ -132,9 +133,12 @@ begin
     @lua_method_getjsvalue);
   Register_Sandcat(fLuaWrap.LuaState);
   fLuaWrap.Value['ProgDir'] := progdir;
+  debug('createluaengine.sandcatlua.begin');
   fLuaWrap.ExecuteCmd(GetResourceAsString('SANDCAT', 'Lua'));
+  debug('createluaengine.sandcatlua.end');
   fLuaWrap.ExecuteCmd('Sandcat:Init()');
   // fLuaWrap.ExecuteCmd(GetPakResourceAsString('Sandcat.lua'));
+  debug('createluaengine.end');
 end;
 
 procedure TSandcatExtensions.RunLua(const cmd: string);

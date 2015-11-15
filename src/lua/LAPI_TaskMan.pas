@@ -17,8 +17,8 @@ type
   private
   public
     Task: TSandcatTask;
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload; override;
+    constructor Create(LuaState: PLua_State; AParent: TLuaObject = nil);
+      overload; override;
     function GetPropValue(propName: String): Variant; override;
     function SetPropValue(propName: String; const AValue: Variant)
       : boolean; override;
@@ -262,14 +262,15 @@ begin
   result := 1;
 end;
 
+procedure register_methods(L: PLua_State; classTable: integer);
+begin
+  // RegisterMethod(L,'open', @method_open, classTable);
+end;
+
 // Lua Object ******************************************************************
 procedure RegisterSandcatTaskObject(L: PLua_State);
 const
   aObjectName = 'SandcatTask';
-  procedure register_methods(L: PLua_State; classTable: integer);
-  begin
-    // RegisterMethod(L,'open', @method_open, classTable);
-  end;
   function new_callback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
   begin
     result := TSandcatTaskLuaObject.Create(L, AParent);

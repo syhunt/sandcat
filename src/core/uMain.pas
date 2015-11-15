@@ -71,6 +71,7 @@ const
 
 function ExitBeforeInitializing: boolean;
 procedure Debug(const s: string; const component: string = 'UI');
+procedure EnableDebugMode;
 
 implementation
 
@@ -136,6 +137,20 @@ begin
     SendToLog(DbgLogFileName, Msg);
 end;
 
+procedure EnableDebugMode;
+begin
+    debugmode := true;
+    if debugmemo = nil then
+    begin
+      debugmemo := tmemo.create(SandBrowser);
+      debugmemo.Parent := SandBrowser;
+      debugmemo.ScrollBars := ssBoth;
+      debugmemo.ReadOnly := true;
+      debugmemo.Align := AlBottom;
+      debugmemo.Height := 200;
+    end;
+end;
+
 procedure TSandBrowser.WMDropFiles(var Msg: TMessage);
 begin
   if TabManager <> nil then
@@ -196,6 +211,7 @@ end;
 procedure TSandBrowser.FormCreate(Sender: TObject);
 begin
   DbgLogFileName := ProgDir + '\' + vDebugFile;
+  EnableDebugMode;
   if fileexists(DbgLogFileName) then
     deletefile(DbgLogFileName);
   vExeFileName := paramstr(0);

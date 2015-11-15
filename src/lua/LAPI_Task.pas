@@ -7,7 +7,7 @@ unit LAPI_Task;
   Copyright (c) 2011-2014, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
-  
+
   TODO: needs some cleanup
 }
 
@@ -26,8 +26,8 @@ type
     procedure Run(const tid: string);
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure ScriptExceptionHandler(Title: string; Line: Integer;
-      Msg: string; var handled: Boolean);
+    procedure ScriptExceptionHandler(Title: string; Line: Integer; Msg: string;
+      var handled: Boolean);
   end;
 
 type
@@ -36,8 +36,8 @@ type
     fCaption: string;
     fStatus: string;
   public
-    constructor Create(LuaState: PLua_State;
-      AParent: TLuaObject = nil); overload;  override;
+    constructor Create(LuaState: PLua_State; AParent: TLuaObject = nil);
+      overload; override;
     function GetPropValue(propName: string): Variant; override;
     function SetPropValue(propName: string; const AValue: Variant)
       : Boolean; override;
@@ -59,7 +59,7 @@ var
   UserParams: TSandJSON;
   TaskID: string;
   ProgressMax: Integer = 100;
-  TabHandle: Integer = 0;
+  tabhandle: Integer = 0;
   TaskStopped: Boolean;
 
 procedure SendJSONCmd(json: string);
@@ -203,8 +203,8 @@ end;
 procedure TSandcatTaskProcess.ScriptExceptionHandler(Title: string;
   Line: Integer; Msg: string; var handled: Boolean);
 begin
-  SendCDMessage(tabhandle, SCBM_LOGWRITELN, 'Task Error: ' + inttostr(Line) + ' '
-    + format('%s: %s', [Title, Msg]));
+  SendCDMessage(tabhandle, SCBM_LOGWRITELN, 'Task Error: ' + inttostr(Line) +
+    ' ' + format('%s: %s', [Title, Msg]));
   handled := true;
 end;
 
@@ -372,7 +372,7 @@ begin
     script := tstringlist.Create;
     script.text := GetTextFileFromZIP(extfile, lua_tostring(L, 3));
     showmessage(script.text);
-    plua_dostring(L,script.text);
+    plua_dostring(L, script.text);
     script.free;
   end;
   Result := 1;
@@ -456,34 +456,37 @@ begin
   Result := 1;
 end;
 
-procedure RegisterTaskProcessObject(L: PLua_State);
+procedure register_methods(L: PLua_State; classTable: Integer);
+begin
+  RegisterMethod(L, 'browserdostring', @lua_Run, classTable);
+  RegisterMethod(L, 'dopackfile', @lua_dofile, classTable);
+  RegisterMethod(L, 'getpackfile', @lua_readpakfile, classTable);
+  RegisterMethod(L, 'logrequest', @lua_LogRequest, classTable);
+  RegisterMethod(L, 'sendrequest', @lua_request_send, classTable);
+  RegisterMethod(L, 'setprogress', @lua_setprogress, classTable);
+  RegisterMethod(L, 'setscript', @lua_setscript, classTable);
+  RegisterMethod(L, 'showmessage', @lua_showmessage, classTable);
+  RegisterMethod(L, 'special', @lua_method_special, classTable);
+  RegisterMethod(L, 'stop', @lua_method_stop, classTable);
+end;
+
 const
   aObjectName = 'SandcatTaskProcess';
-  procedure register_methods(L: PLua_State; classTable: Integer);
-  begin
-    RegisterMethod(L, 'browserdostring', @lua_Run, classTable);
-    RegisterMethod(L, 'dopackfile', @lua_dofile, classTable);
-    RegisterMethod(L, 'getpackfile', @lua_readpakfile, classTable);
-    RegisterMethod(L, 'logrequest', @lua_LogRequest, classTable);
-    RegisterMethod(L, 'sendrequest', @lua_request_send, classTable);
-    RegisterMethod(L, 'setprogress', @lua_setprogress, classTable);
-    RegisterMethod(L, 'setscript', @lua_setscript, classTable);
-    RegisterMethod(L, 'showmessage', @lua_showmessage, classTable);
-    RegisterMethod(L, 'special', @lua_method_special, classTable);
-    RegisterMethod(L, 'stop', @lua_method_stop, classTable);
-  end;
-  function new_callback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
-  begin
-    Result := TSandcatTaskProcessLuaObject.Create(L, AParent);
-  end;
-  function Create(L: PLua_State): Integer; cdecl;
-  var
-    p: TLuaObjectNewCallback;
-  begin
-    p := @new_callback;
-    Result := new_LuaObject(L, aObjectName, p);
-  end;
 
+function new_callback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
+begin
+  Result := TSandcatTaskProcessLuaObject.Create(L, AParent);
+end;
+
+function Create(L: PLua_State): Integer; cdecl;
+var
+  p: TLuaObjectNewCallback;
+begin
+  p := @new_callback;
+  Result := new_LuaObject(L, aObjectName, p);
+end;
+
+procedure RegisterTaskProcessObject(L: PLua_State);
 begin
   RegisterTLuaObject(L, aObjectName, @Create, @register_methods);
 end;
@@ -491,8 +494,7 @@ end;
 type
   TProps = (prop_status, prop_caption);
 
-function TSandcatTaskProcessLuaObject.GetPropValue
-  (propName: string): Variant;
+function TSandcatTaskProcessLuaObject.GetPropValue(propName: string): Variant;
 begin
   case TProps(GetEnumValue(TypeInfo(TProps), 'prop_' + lowercase(propName))) of
     prop_caption:

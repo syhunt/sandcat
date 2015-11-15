@@ -556,70 +556,69 @@ begin
   end;
 end;
 
-procedure RegisterSCBTab_Sandcat(L: PLua_State);
+procedure register_methods(L: PLua_State; classTable: integer);
+begin
+  // JavaScript to be executed after loading web sites. Affects just the active tab.
+  RegisterMethod(L, 'addjavascript', method_addjavascript, classTable);
+  RegisterMethod(L, 'cache_storestring', method_cache_storestring, classTable);
+  RegisterMethod(L, 'cache_import', method_cache_import, classTable);
+  RegisterMethod(L, 'cache_export', method_cache_export, classTable);
+  RegisterMethod(L, 'cache_gettextfile', method_cache_gettextfile, classTable);
+  RegisterMethod(L, 'cache_extractfile', method_cache_extractfile, classTable);
+  RegisterMethod(L, 'cache_setreqresp', method_request_setresponse, classTable);
+  RegisterMethod(L, 'clearlog', method_clearlog, classTable);
+  RegisterMethod(L, 'clearheaders', method_clearheaders, classTable);
+  RegisterMethod(L, 'evaljs', method_evaljavascript, classTable);
+  RegisterMethod(L, 'goback', method_goback, classTable);
+  RegisterMethod(L, 'goforward', method_goforward, classTable);
+  RegisterMethod(L, 'gotosrcline', method_gotosrcline, classTable);
+  RegisterMethod(L, 'gotourl', method_gotourl, classTable);
+  RegisterMethod(L, 'loadcached', method_showcached, classTable);
+  RegisterMethod(L, 'loadrequest', method_loadrequest, classTable);
+  RegisterMethod(L, 'loadheaders', method_loadheaders, classTable);
+  RegisterMethod(L, 'loadsourcetabs', method_loadsourcetabs, classTable);
+  RegisterMethod(L, 'loadsourcemsgs', method_loadsourcemsgs, classTable);
+  RegisterMethod(L, 'loadx', method_load, classTable);
+  RegisterMethod(L, 'log', method_log, classTable);
+  RegisterMethod(L, 'logerror', method_logerrortoconsole, classTable);
+  RegisterMethod(L, 'logrequest', method_logrequest, classTable);
+  RegisterMethod(L, 'reload', method_reload, classTable);
+  RegisterMethod(L, 'sendrequest', method_sendrequest, classTable);
+  RegisterMethod(L, 'runluaonlog', method_runluaonlog, classTable);
+  RegisterMethod(L, 'runjs', method_runjavascript, classTable);
+  RegisterMethod(L, 'runsrccmd', method_runsourcecommand, classTable);
+  RegisterMethod(L, 'runtask', method_runluatask, classTable);
+  RegisterMethod(L, 'saveheaders', method_saveheaders, classTable);
+  RegisterMethod(L, 'search', method_dosearch, classTable);
+  // RegisterMethod(L,'seticon',method_seticon,classTable);
+  RegisterMethod(L, 'showauthdialog', method_showauthdialog, classTable);
+  RegisterMethod(L, 'showrequest', method_showrequest, classTable);
+  RegisterMethod(L, 'stopload', method_stopload, classTable);
+  RegisterMethod(L, 'tree_clear', method_tree_clear, classTable);
+  RegisterMethod(L, 'tree_loaddir', method_tree_loaddir, classTable);
+  RegisterMethod(L, 'userdata_get', method_getparam, classTable);
+  RegisterMethod(L, 'userdata_set', method_setparam, classTable);
+  RegisterMethod(L, 'viewdevtools', method_viewdevtools, classTable);
+  RegisterMethod(L, 'viewsource', method_viewsourceexternal, classTable);
+end;
+
 const
   AClassName = 'SandcatBrowserTab';
-  procedure register_methods(L: PLua_State; classTable: integer);
-  begin
-    // JavaScript to be executed after loading web sites. Affects just the active tab.
-    RegisterMethod(L, 'addjavascript', method_addjavascript, classTable);
-    RegisterMethod(L, 'cache_storestring', method_cache_storestring,
-      classTable);
-    RegisterMethod(L, 'cache_import', method_cache_import, classTable);
-    RegisterMethod(L, 'cache_export', method_cache_export, classTable);
-    RegisterMethod(L, 'cache_gettextfile', method_cache_gettextfile,
-      classTable);
-    RegisterMethod(L, 'cache_extractfile', method_cache_extractfile,
-      classTable);
-    RegisterMethod(L, 'cache_setreqresp', method_request_setresponse,
-      classTable);
-    RegisterMethod(L, 'clearlog', method_clearlog, classTable);
-    RegisterMethod(L, 'clearheaders', method_clearheaders, classTable);
-    RegisterMethod(L, 'evaljs', method_evaljavascript, classTable);
-    RegisterMethod(L, 'goback', method_goback, classTable);
-    RegisterMethod(L, 'goforward', method_goforward, classTable);
-    RegisterMethod(L, 'gotosrcline', method_gotosrcline, classTable);
-    RegisterMethod(L, 'gotourl', method_gotourl, classTable);
-    RegisterMethod(L, 'loadcached', method_showcached, classTable);
-    RegisterMethod(L, 'loadrequest', method_loadrequest, classTable);
-    RegisterMethod(L, 'loadheaders', method_loadheaders, classTable);
-    RegisterMethod(L, 'loadsourcetabs', method_loadsourcetabs, classTable);
-    RegisterMethod(L, 'loadsourcemsgs', method_loadsourcemsgs, classTable);
-    RegisterMethod(L, 'loadx', method_load, classTable);
-    RegisterMethod(L, 'log', method_log, classTable);
-    RegisterMethod(L, 'logerror', method_logerrortoconsole, classTable);
-    RegisterMethod(L, 'logrequest', method_logrequest, classTable);
-    RegisterMethod(L, 'reload', method_reload, classTable);
-    RegisterMethod(L, 'sendrequest', method_sendrequest, classTable);
-    RegisterMethod(L, 'runluaonlog', method_runluaonlog, classTable);
-    RegisterMethod(L, 'runjs', method_runjavascript, classTable);
-    RegisterMethod(L, 'runsrccmd', method_runsourcecommand, classTable);
-    RegisterMethod(L, 'runtask', method_runluatask, classTable);
-    RegisterMethod(L, 'saveheaders', method_saveheaders, classTable);
-    RegisterMethod(L, 'search', method_dosearch, classTable);
-    // RegisterMethod(L,'seticon',method_seticon,classTable);
-    RegisterMethod(L, 'showauthdialog', method_showauthdialog, classTable);
-    RegisterMethod(L, 'showrequest', method_showrequest, classTable);
-    RegisterMethod(L, 'stopload', method_stopload, classTable);
-    RegisterMethod(L, 'tree_clear', method_tree_clear, classTable);
-    RegisterMethod(L, 'tree_loaddir', method_tree_loaddir, classTable);
-    RegisterMethod(L, 'userdata_get', method_getparam, classTable);
-    RegisterMethod(L, 'userdata_set', method_setparam, classTable);
-    RegisterMethod(L, 'viewdevtools', method_viewdevtools, classTable);
-    RegisterMethod(L, 'viewsource', method_viewsourceexternal, classTable);
-  end;
-  function newcallback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
-  begin
-    Result := TSCBTabObject.Create(L, AParent);
-  end;
-  function Create(L: PLua_State): integer; cdecl;
-  var
-    p: TLuaObjectNewCallback;
-  begin
-    p := @newcallback;
-    Result := new_LuaObject(L, AClassName, p);
-  end;
 
+function newcallback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
+begin
+  Result := TSCBTabObject.Create(L, AParent);
+end;
+
+function Create(L: PLua_State): integer; cdecl;
+var
+  p: TLuaObjectNewCallback;
+begin
+  p := @newcallback;
+  Result := new_LuaObject(L, AClassName, p);
+end;
+
+procedure RegisterSCBTab_Sandcat(L: PLua_State);
 begin
   RegisterTLuaObject(L, AClassName, @Create, @register_methods);
 end;

@@ -448,18 +448,7 @@ end; }
 function lua_enabledebugmode(L: plua_State): integer; cdecl;
 begin
   if lua_toboolean(L, 1) = true then
-  begin
-    debugmode := true;
-    if debugmemo = nil then
-    begin
-      debugmemo := tmemo.create(SandBrowser);
-      debugmemo.Parent := SandBrowser;
-      debugmemo.ScrollBars := ssBoth;
-      debugmemo.ReadOnly := true;
-      debugmemo.Align := AlBottom;
-      debugmemo.Height := 200;
-    end;
-  end;
+  EnableDebugMode;
   result := 1;
 end;
 

@@ -10,7 +10,9 @@ package.path = package.path .. ";"..app.dir.."/Lib/lua/?.lua"
 package.cpath = package.cpath .. ";"..app.dir.."/Lib/clibs/?.dll"
 slx = require "Selenite"
 
+debug.print('create pack object for Resources')
 Sandcat = extensionpack:new()
+debug.print('create pack object done')
 Sandcat.filename = 'Resources.pak'
 Sandcat.aboutdisplayed = false
 Sandcat.cfg_expextension = 'scpref'
