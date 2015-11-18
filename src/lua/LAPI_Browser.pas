@@ -31,6 +31,7 @@ function lua_addtodebuglog(L: plua_State): integer; cdecl;
 function lua_enabledebugmode(L: plua_State): integer; cdecl;
 function lua_newwindow(L: plua_State): integer; cdecl;
 function lua_browserexit(L: plua_State): integer; cdecl;
+function lua_highlightsource(L: plua_State): integer; cdecl;
 function lua_var_replace(L: plua_State): integer; cdecl;
 function lua_method_getjsvalue(L: plua_State): integer; cdecl;
 function lua_method_runluascript(L: plua_State): integer; cdecl;
@@ -43,7 +44,7 @@ function lua_getbrowseroption(L: plua_State): integer; cdecl;
 function lua_setbrowseroption(L: plua_State): integer; cdecl;
 function lua_showbottombar(L: plua_State): integer; cdecl;
 function lua_showurl(L: plua_State): integer; cdecl;
-function lua_showexploitbar(L: plua_State): integer; cdecl;
+function lua_showreqbuilderbar(L: plua_State): integer; cdecl;
 function lua_builder_getrequestoption(L: plua_State): integer; cdecl;
 function lua_builder_setrequestoption(L: plua_State): integer; cdecl;
 function lua_sidebar_loaddir(L: plua_State): integer; cdecl;
@@ -195,9 +196,9 @@ begin
   result := 1;
 end;
 
-function lua_showexploitbar(L: plua_State): integer; cdecl;
+function lua_showreqbuilderbar(L: plua_State): integer; cdecl;
 begin
-  BottomBar.showexploitbar;
+  BottomBar.ShowRequestBuilderBar;
   result := 1;
 end;
 
@@ -289,6 +290,14 @@ end;
 function lua_browserexit(L: plua_State): integer; cdecl;
 begin
   SandBrowser.close;
+  result := 1;
+end;
+
+function lua_highlightsource(L: plua_State): integer; cdecl;
+var s:string;
+begin
+  s:=Highlighters.HighlightSourceByFileExt(lua_tostring(L, 1),lua_tostring(L, 2));
+  lua_pushstring(L,s);
   result := 1;
 end;
 

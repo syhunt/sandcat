@@ -211,7 +211,7 @@ end;
 procedure TSandBrowser.FormCreate(Sender: TObject);
 begin
   DbgLogFileName := ProgDir + '\' + vDebugFile;
-  EnableDebugMode;
+  //EnableDebugMode;
   if fileexists(DbgLogFileName) then
     deletefile(DbgLogFileName);
   vExeFileName := paramstr(0);

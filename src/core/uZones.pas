@@ -174,7 +174,7 @@ type
     procedure LoadCached(const URL: string; const action: integer = 0);
     procedure LoadSettings(settings, DefaultSettings: TSandJSON);
     procedure ViewBottomBar(const b: boolean = true);
-    procedure ShowExploitBar;
+    procedure ShowRequestBuilderBar;
     procedure ShowURL(const URL: string; const source: string = '');
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1460,9 +1460,9 @@ begin
   fNote.ActivePage := pagename;
 end;
 
-procedure TSandcatBottomBar.ShowExploitBar;
+procedure TSandcatBottomBar.ShowRequestBuilderBar;
 begin
-  LoadBottomBarRight('exploit');
+  LoadBottomBarRight('reqbuilder');
   ReqBuilder.Load;
 end;
 
@@ -1566,13 +1566,13 @@ begin
   fNote.Pages.add('codeedit');
   fNote.Pages.add('browser');
   fNote.Pages.add('cache');
-  fNote.Pages.add('exploit');
+  fNote.Pages.add('reqbuilder');
   fNote.Pages.add('taskmon');
   fNote.ActivePage := 'Default';
 
   fReqBuilder := TSandRequestPanel.Create(Self);
   fReqBuilder.Parent :=
-    TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('exploit')]);
+    TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('reqbuilder')]);
   fReqBuilder.Align := alClient;
   fTaskMsgs := TTaskMessages.Create(Self);
   fTaskMsgs.Parent :=

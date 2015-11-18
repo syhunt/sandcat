@@ -1,5 +1,4 @@
 browser.addlibinfo('Catarinka libraries','','Syhunt and others','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_Catarinka.txt]])')
-browser.addlibinfo('CodeRay','1.0.9','Kornelius Kalnbach','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_CodeRay.txt]])')
 if browser.info.ceflibrary == 'dcef' then
   browser.addlibinfo('DCEF library','3','Henri Gourvest')
 end

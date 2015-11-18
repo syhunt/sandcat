@@ -42,7 +42,7 @@ Third-party software used in Sandcat include:
 * **Sciter** is the engine currently used by Sandcat for rendering its user interface. Sciter supports TIScript execution and, in Sandcat, it can also execute Lua scripts and be manipulated from Lua scripts.
 * Icons are derived from: [Fugue Icons](https://github.com/yusukekamiyamane/fugue-icons) (by [@yusukekamiyamane](https://github.com/yusukekamiyamane/)) and [FatCow Icons](http://www.fatcow.com/free-icons).
 * The [custom Lua icon](http://maurits.tv/data/garrysmod/wiki/wiki.garrysmod.com/indexbf0b.html) is the work of Yarin Kaul, and used in Sandcat with his permission.
-* For syntax highlighting, Sandcat currently uses [SynEdit](http://sourceforge.net/projects/synedit/), [@Krystian-Bigaj](https://github.com/Krystian-Bigaj)'s [SynWeb](https://code.google.com/p/synweb/) and [@korny](https://github.com/korny)'s [CodeRay](https://github.com/rubychan/coderay), which is why it also makes some small use of Ruby.
+* For syntax highlighting, Sandcat currently uses [SynEdit](http://sourceforge.net/projects/synedit/) and [@Krystian-Bigaj](https://github.com/Krystian-Bigaj)'s [SynWeb](https://code.google.com/p/synweb/) with a color scheme adapted from [@korny](https://github.com/korny)'s [CodeRay](https://github.com/rubychan/coderay).
 
 The license for each component listed above can be found in the `/packs/Resources/docs/` directory of this repository.
 

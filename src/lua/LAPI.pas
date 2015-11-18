@@ -50,7 +50,7 @@ uses pLua, LAPI_Browser, uSettings, uTaskMan, LAPI_Console, LAPI_App,
 
 procedure RegisterBrowser(L: plua_State);
 const
-  sandcatbrowser_table: array [1 .. 31] of luaL_reg = (
+  sandcatbrowser_table: array [1 .. 32] of luaL_reg = (
   (name: 'addjs'; func: lua_addjavascript),
   (name: 'addlibinfo'; func: lua_addlibraryinfo),
   (name: 'addlua'; func: lua_addluascript),
@@ -66,6 +66,7 @@ const
   (name: 'getpackfile'; func: lua_readscxfile),
   (name: 'gettaskinfo'; func: lua_bgtaskgetinfo),
   (name: 'gototab'; func: lua_gototab),
+  (name: 'highlightsrc'; func: lua_highlightsource),
   (name: 'inserthtml'; func: lua_inserthtml),
   (name: 'inserthtmlfile'; func: lua_inserthtmlfile),
   (name: 'loadpagex'; func: lua_loadpagex),
@@ -77,7 +78,7 @@ const
   (name: 'setinitmode'; func: lua_setinitmode),
   (name: 'setsearcheng'; func: lua_setsearchengine),
   (name: 'showbottombar'; func: lua_showbottombar),
-  (name: 'showreqbuilder'; func: lua_showexploitbar),
+  (name: 'showreqbuilder'; func: lua_showreqbuilderbar),
   (name: 'showurl'; func: lua_showurl),
   (name: 'stoptask'; func: lua_bgtaskstop),
   (name: 'suspendtask'; func: lua_bgtasksuspend),

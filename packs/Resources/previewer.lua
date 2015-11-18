@@ -32,33 +32,19 @@ function Previewer:Register()
  Sandcat:RegisterPreviewHandler('sc_xml',self.HandleXML,'xml','image/svg+xml')
 end
 
---[[
 function Previewer:HandleCode(f,format)
- local source = f.responsetext
- if source ~= '' then
-  if string.len(source) < 1024*50 then
-   f.previewhtml = src_highlight(source,format)
-  else
-   f.previewhtml = self:NoHighlight(source)
-  end
- else
-  f.warnempty = true
- end
-end
-]]
-
-function Previewer:HandleCodeRay(f,format)
- require "RbUtils"
+ --require "RbUtils"
  local source = f.responsetext
  local html = ''
  if source ~= '' then
   if string.len(source) < 1024*50 then
-   if format == 'java_script' then
+   if format == 'js' then
     source = slx.html.beautifyjs(source)
    elseif format == 'css' then
     source = slx.html.beautifycss(source)
    end
-   html = rbutils.coderay_highlight(source,format)
+   --html = rbutils.coderay_highlight(source,format)
+   html = browser.hlsrc_byext(source,format)
    html = slx.string.replace(html,'<pre>','<pre style="background-color:white;border:0;">')
    f.previewhtml = html
   else
@@ -70,27 +56,32 @@ function Previewer:HandleCodeRay(f,format)
 end
 
 function Previewer:HandleText(f)
- Previewer:HandleCodeRay(f,'text')
+ local source = f.responsetext
+  if source ~= '' then
+  f.previewhtml = self:NoHighlight(source)
+ else
+  f.warnempty = true
+ end
 end
 
 function Previewer:HandleHTML(f)
- Previewer:HandleCodeRay(f,'html')
+ Previewer:HandleCode(f,'html')
 end
 
 function Previewer:HandleCSS(f)
- Previewer:HandleCodeRay(f,'css')
+ Previewer:HandleCode(f,'css')
 end
 
 function Previewer:HandleXML(f)
- Previewer:HandleCodeRay(f,'xml')
+ Previewer:HandleCode(f,'xml')
 end
 
 function Previewer:HandleJS(f)
- Previewer:HandleCodeRay(f,'java_script')
+ Previewer:HandleCode(f,'js')
 end
 
 function Previewer:HandleJSON(f)
- Previewer:HandleCodeRay(f,'json')
+ Previewer:HandleCode(f,'json')
 end
 
 function Previewer:HandleFlash(f)
