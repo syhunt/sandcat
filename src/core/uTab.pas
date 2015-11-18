@@ -77,8 +77,8 @@ type
     fLog: TMemo;
     fLogBrowserRequests: boolean;
     fMainPanel: TPanel;
-    fMsg:TCatMsg;
-    fMsgV8:TCatMsg;
+    fMsg: TCatMsg;
+    fMsgV8: TCatMsg;
     fNumber: integer; // unique tab number
     fOnMessage: TSandcatTabOnMessage;
     fRequests: TSandcatRequests;
@@ -124,7 +124,7 @@ type
       const id, state, percentcomplete: integer; const fullPath: string);
     procedure CrmLoadingStateChange(Sender: TObject;
       const isLoading, canGoBack, canGoForward: boolean);
-    procedure CrmLoadError(Sender: TObject; const errorCode:integer;
+    procedure CrmLoadError(Sender: TObject; const errorCode: integer;
       const errorText, failedUrl: string);
     procedure ResourcesListViewClick(Sender: TObject);
     procedure ResourcesListviewColumnClick(Sender: TObject;
@@ -173,6 +173,7 @@ type
     procedure SideTree_LoadDir(const dir: string;
       const makebold: boolean = true);
     procedure SideTree_LoadAffectedScripts(const paths: string);
+    procedure ViewDevTools;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // properties
@@ -192,7 +193,7 @@ type
     property LogBrowserRequests: boolean read fLogBrowserRequests
       write fLogBrowserRequests;
     property OnMessage: TSandcatTabOnMessage read fOnMessage write fOnMessage;
-    property Msg: TCatMsg read fMsg;
+    property msg: TCatMsg read fMsg;
     property Number: integer read fNumber write fNumber;
     property Requests: TSandcatRequests read fRequests;
     property SitePrefsFile: string read GetSitePrefsFile;
@@ -582,7 +583,7 @@ end;
 // the tab process
 procedure TSandcatTab.UpdateV8Handle;
 begin
-  fChrome.SetV8MsgHandle(fMsgv8.msgHandle);
+  fChrome.SetV8MsgHandle(fMsgV8.msgHandle);
 end;
 
 // Sorts items by the clicked resources page column
@@ -653,7 +654,7 @@ begin
     if fLuaOnLog.GetValue(message, emptystr) <> emptystr then
     begin
       storemsg := false;
-      fUseLuaOnLog:=false;
+      fUseLuaOnLog := false;
       Extensions.RunLuaCmd(fLuaOnLog.GetValue(message, emptystr));
     end;
   end
@@ -725,7 +726,7 @@ begin
 end;
 
 // Called when there is an error loading a page
-procedure TSandcatTab.CrmLoadError(Sender: TObject; const errorCode:integer;
+procedure TSandcatTab.CrmLoadError(Sender: TObject; const errorCode: integer;
   const errorText, failedUrl: string);
 begin
   Loading := false;
@@ -879,7 +880,7 @@ end;
 // source string
 procedure TSandcatTab.GoToURL(const URL: string; const source: string = '');
 begin
-  debug('gotourl:'+url);
+  Debug('gotourl:' + URL);
   if (URL <> emptystr) and (URL <> cURL_HOME) then
   begin
     InitChrome;
@@ -1033,6 +1034,20 @@ begin
   end;
 end;
 
+// If a page is loaded, opens the Developer Tools for the tab
+procedure TSandcatTab.ViewDevTools;
+begin
+  if fChrome <> nil then
+  begin
+{$IFNDEF USEWACEF}
+    // DCEF will display the DevTools as part of the browser tab instead of a
+    // new window, so switch to it
+    contentarea.SetActivePage('browser');
+{$ENDIF}
+    fChrome.ViewDevTools;
+  end;
+end;
+
 // Creates a side tree that can be used by extensions (invisible by default)
 procedure TSandcatTab.CreateSideTree;
 begin
@@ -1138,10 +1153,10 @@ begin
   ControlStyle := ControlStyle + [csAcceptsControls];
   Align := AlClient;
   Color := clWindow;
-  fMsg:=TCatMsg.Create;
-  fMsg.OnCopyDataMessage:=CopyDataMessage;
-  fMsgV8:=TCatMsg.Create;
-  fMsgV8.OnCopyDataMessage:=BrowserMessage;
+  fMsg := TCatMsg.Create;
+  fMsg.OnCopyDataMessage := CopyDataMessage;
+  fMsgV8 := TCatMsg.Create;
+  fMsgV8.OnCopyDataMessage := BrowserMessage;
   fState := TTabState.Create;
   fDefaultIcon := '@ICON_EMPTY';
   fIsClosing := false;

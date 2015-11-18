@@ -44,8 +44,8 @@ end;
 
 function method_viewdevtools(L: PLua_State): integer; cdecl;
 begin
-  if tabmanager.ActiveTab.Chrome <> nil then
-    tabmanager.ActiveTab.Chrome.ViewDevTools;
+  if tabmanager.ActiveTab <> nil then
+    tabmanager.ActiveTab.ViewDevTools;
   Result := 1;
 end;
 
