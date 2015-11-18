@@ -44,7 +44,7 @@ function Previewer:HandleCode(f,format)
     source = slx.html.beautifycss(source)
    end
    --html = rbutils.coderay_highlight(source,format)
-   html = browser.hlsrc_byext(source,format)
+   html = browser.highlightsrc(source,format)
    html = slx.string.replace(html,'<pre>','<pre style="background-color:white;border:0;">')
    f.previewhtml = html
   else
