@@ -1,7 +1,7 @@
 unit uTab;
 {
   Sandcat Browser Tab component
-  Copyright (c) 2011-2014, Syhunt Informatica
+  Copyright (c) 2011-2015, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 }
@@ -239,7 +239,7 @@ implementation
 
 uses
   uMain, uConst, uZones, uMisc, uTaskMan, uSettings, uTabV8, CatStrings,
-  CatHTTP, CatUtils, LAPI_Task, LAPI_Browser, CatFiles;
+  CatHTTP, CatUtils, LAPI_Task, LAPI_Browser, LAPI_CEF, CatFiles;
 
 var
   SandcatBrowserTab: TSandcatTab;
@@ -524,7 +524,7 @@ begin
     SCBM_LOGDYNAMICREQUEST:
       fRequests.LogDynamicRequest(str);
     SCBM_LOGEXTERNALREQUEST_JSON:
-      fRequests.LogRequestJSON(str);
+      fRequests.LogRequest(BuildRequestDetailsFromJSON(str));
     SCBM_XHR_LOG:
       fRequests.LogXMLHTTPRequest(str);
     SCBM_REQUEST_SEND:
@@ -537,7 +537,7 @@ end;
 // Adds a resource to the resource list in the resource page
 procedure TSandcatTab.AddPageResource(const URL: string);
 var
-  r: TSandcatRequest;
+  r: TSandcatRequestDetails;
 begin
   r.URL := URL;
   with fResourcesLv.Items.Add do
@@ -561,7 +561,7 @@ begin
       sanddlg.ShowAlertText(str);
     CRM_LOG_REQUEST_JSON:
       if fLogBrowserRequests then
-        fRequests.LogRequestJSON(str);
+        fRequests.LogRequest(BuildRequestDetailsFromJSON(str));
     CRM_NEWTAB:
       tabmanager.newtab(str);
     CRM_NEWTAB_INBACKGROUND:
@@ -721,20 +721,33 @@ end;
 procedure TSandcatTab.CrmBeforePopup(Sender: TObject; var URL: string;
   out Result: boolean);
 begin
-  // Now handled via SCBM_NEWTAB message (to avoid weird crash with CEF3 lib)
+  // Now handled via SCBM_NEWTAB message
   // sandbrowser.newtab(url);
 end;
 
 // Called when there is an error loading a page
 procedure TSandcatTab.CrmLoadError(Sender: TObject; const errorCode: integer;
   const errorText, failedUrl: string);
+  procedure ShowError(msg: string);
+  begin
+    if errorText <> emptystr then
+      msg := Format('%s (%s)', [msg, errorText]);
+    sanddlg.ShowAlert('Failed to load ' + failedUrl + '. ' + msg);
+  end;
+
 begin
   Loading := false;
   if Assigned(OnMessage) then
     OnMessage(self, SCBT_LOADERROR, []);
-  // This was not working as expected, commented out for later review:
-  // It is firing during file downloads
-  // if failedurl<>cHOMEURL then sanddlg.ShowAlert('Failed to load '+failedURL+'. '+errortext);
+  if failedUrl = cURL_HOME then
+    exit;
+  // showmessage(inttostr(errorCode));
+  case errorCode of
+    - 105:
+      ShowError('The host name could not be resolved.');
+    -302:
+      ShowError('The scheme of the URL is unknown.');
+  end;
 end;
 
 // Called when the page loading stage changes, updates the navigation bar
@@ -745,7 +758,7 @@ begin
   Navbar.LoadingStateChange(isLoading, canGoBack, canGoForward);
 end;
 
-// Called before starting a download
+// Called before starting a file download
 procedure TSandcatTab.CrmBeforeDownload(Sender: TObject; const id: integer;
   const suggestedName: string);
 begin

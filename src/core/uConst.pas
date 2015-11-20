@@ -67,21 +67,6 @@ const // Index of images from Live Headers imagelist
   ICONIDX_SCRIPT = 24;
   ICONIDX_SCRIPT_VULNERABLE = 25;
 
-const
-  REQUESTKEY_METHOD = 'method';
-  REQUESTKEY_URL = 'url';
-  REQUESTKEY_POSTDATA = 'postdata';
-  REQUESTKEY_HEADERS = 'headers';
-  REQUESTKEY_DETAILS = 'details';
-  REQUESTKEY_IGNORECACHE = 'ignorecache';
-  REQUESTKEY_USECOOKIES = 'usecookies';
-  REQUESTKEY_USEAUTH = 'useauth';
-  REQUESTKEY_TAB = 'tab';
-  REQUESTKEY_FILTER = 'filter';
-  REQUESTKEY_USERNAME = 'username';
-  REQUESTKEY_PASSWORD = 'password';
-  REQUESTKEY_CALLBACK = 'callback';
-
 const // Sandcat sub directories
   SCDIR_LOGS = 1;
   SCDIR_HEADERS = 2;

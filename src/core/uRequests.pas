@@ -24,11 +24,10 @@ type
     Cache: TSandCache;
     Headers: TLiveHeaders;
     procedure Clear;
-    function GetRequest(const xmlrequestfile: string): TSandcatRequest;
+    function GetRequest(const xmlrequestfile: string): TSandcatRequestDetails;
     function RequestExists(const xmlrequestfile: string): boolean;
-    procedure LogRequest(request: TSandcatRequest);
+    procedure LogRequest(request: TSandcatRequestDetails);
     procedure LogDynamicRequest(const json: string);
-    procedure LogRequestJSON(const json: string; const response: string = '');
     procedure LogXMLHTTPRequest(const json: string);
     procedure TabWillClose;
     procedure UpdateRequest(const xmlrequestfile: string;
@@ -67,7 +66,7 @@ begin
 end;
 
 function TSandcatRequests.GetRequest(const xmlrequestfile: string)
-  : TSandcatRequest;
+  : TSandcatRequestDetails;
 var
   j: TSandJINI;
   responsefile: string;
@@ -112,7 +111,7 @@ begin
 end;
 
 // main procedure for logging a Sandcat Request (to a json file) - VFS
-procedure TSandcatRequests.LogRequest(request: TSandcatRequest);
+procedure TSandcatRequests.LogRequest(request: TSandcatRequestDetails);
 var
   logfile: TSandJINI;
   hasreqid, canlog: boolean;
@@ -213,7 +212,7 @@ end;
 procedure TSandcatRequests.LogXMLHTTPRequest(const json: string);
 var
   pkt: TSandJINI;
-  r: TSandcatRequest;
+  r: TSandcatRequestDetails;
 begin
   if fIsClosing then
     exit;
@@ -237,47 +236,13 @@ begin
   LogRequest(r);
 end;
 
-// Logs a HTTP request performed by Chromium
-procedure TSandcatRequests.LogRequestJSON(const json: string;
-  const response: string = '');
-var
-  j: TSandJSON;
-  r: TSandcatRequest;
-begin
-  if fIsClosing then
-    exit;
-  j := TSandJSON.Create;
-  j.text := json;
-  r.host := j.getvalue('host', emptystr);
-  r.port := j.getvalue('port', emptystr);
-  r.SentHead := j.getvalue('headers', emptystr);
-  r.RcvdHead := j.getvalue('responseheaders', emptystr);
-  r.Method := j.getvalue('method', emptystr);
-  // showmessage('metdendedparsing'+r.senthead);
-  r.URL := j.getvalue('url', emptystr);
-  r.postdata := j.getvalue('postdata', emptystr);
-  r.StatusCode := j.getvalue('status', emptystr);
-  r.Length := j.getvalue('length', emptystr);
-  r.MimeType := j.getvalue('mimetype', emptystr);
-  r.details := j.getvalue('details', emptystr);
-  r.reqid := j.getvalue('reqid', emptystr);
-  if response = emptystr then
-    r.responsefilename := j.getvalue('responsefilename', emptystr)
-  else
-    r.response := response;
-  r.isredir := j.getvalue('isredir', false);
-  r.IsLow := j.getvalue('islow', false);
-  LogRequest(r);
-  j.Free;
-end;
-
 // Logs a request executed by external Syhunt scanner
 // Experimental
 procedure TSandcatRequests.LogDynamicRequest(const json: string);
 var
   pkt: TSandJINI;
   reqtype: string;
-  r: TSandcatRequest;
+  r: TSandcatRequestDetails;
 begin
   if fIsClosing then
     exit;

@@ -13,7 +13,7 @@ uses Forms, SysUtils, Windows, Controls, Graphics, Classes, StdCtrls,
   ExtCtrls, Types, ComCtrls;
 
 type
-  TSandcatRequest = record
+  TSandcatRequestDetails = record
     Host: string;
     Port: string;
     ReqID: string;
@@ -76,13 +76,13 @@ type
   protected
   public
     Filter: TLiveHeadersFilter;
-    function GetImageIndex(const request: TSandcatRequest): integer;
+    function GetImageIndex(const request: TSandcatRequestDetails): integer;
     function GetStatusImageIndex(const Status: integer): integer;
-    function PassFilter(const request: TSandcatRequest): boolean;
-    procedure AddRequest(const request: TSandcatRequest);
+    function PassFilter(const request: TSandcatRequestDetails): boolean;
+    procedure AddRequest(const request: TSandcatRequestDetails);
     procedure LoadFromFile(const Filename: string);
     procedure SaveToFile(const Filename: string);
-    procedure AddRequestToList(const lv: TListView; const request: TSandcatRequest);
+    procedure AddRequestToList(const lv: TListView; const request: TSandcatRequestDetails);
     procedure ApplyFilter(const s: string);
     procedure Clear;
     constructor Create(AOwner: TComponent); override;
@@ -225,7 +225,7 @@ begin
   end;
 end;
 
-function TLiveHeaders.GetImageIndex(const request: TSandcatRequest): integer;
+function TLiveHeaders.GetImageIndex(const request: TSandcatRequestDetails): integer;
 var
   ext: string;
 begin
@@ -272,7 +272,7 @@ begin
     result := ICONIDX_AUDIO;
 end;
 
-function TLiveHeaders.PassFilter(const request: TSandcatRequest): boolean;
+function TLiveHeaders.PassFilter(const request: TSandcatRequestDetails): boolean;
 var
   matched, foundext, foundtype: boolean;
   URL: string;
@@ -365,7 +365,7 @@ end;
 procedure TLiveHeaders.ApplyFilter(const s: string);
 var
   i, m: integer;
-  request: TSandcatRequest;
+  request: TSandcatRequestDetails;
 begin
   if s = emptystr then
     fMainLv.BringToFront
@@ -421,7 +421,7 @@ begin
 end;
 
 procedure TLiveHeaders.AddRequestToList(const lv: TListView;
-  const request: TSandcatRequest);
+  const request: TSandcatRequestDetails);
 begin
   with lv.Items.Add do
   begin
@@ -449,7 +449,7 @@ begin
     lv.Items[0].Delete;
 end;
 
-procedure TLiveHeaders.AddRequest(const request: TSandcatRequest);
+procedure TLiveHeaders.AddRequest(const request: TSandcatRequestDetails);
 begin
   if fPaused = true then
     exit; // No need to add the request

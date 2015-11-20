@@ -15,9 +15,6 @@ uses
   uTab, uTabMan;
 
 function BeginsWithSpecialParam(param: string): boolean;
-function BuildRequestFromJSON(json: string): TCatChromiumRequest;
-function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
-function BuildRequestFromLuaTable(L: PLua_State): TCatChromiumRequest;
 function CaptureChromeBitmap(tab: TSandcatTab; filename: string = ''): string;
 function GetPakResourceAsString(filename: string): string;
 function ShortTitle(s: string; maxchars: integer = 30): string;
@@ -56,59 +53,6 @@ begin
     if FindWindow(pchar(cMainClass), nil) <> 0 then
       result := true;
   end;
-end;
-
-function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
-var
-  def: TCustomTabSettings;
-  t: TLuaTable;
-begin
-  def := tabmanager.GetTabDefaultSettings;
-  t := TLuaTable.Create(L, true);
-  result.activepage := t.readstring('activepage', def.activepage);
-  result.HTML := t.readstring('html');
-  result.icon := t.readstring('icon');
-  result.LoadNew := t.readbool('loadnew', def.LoadNew);
-  result.ShowNavBar := t.readbool('shownavbar', def.ShowNavBar);
-  result.ShowPageStrip := t.readbool('showpagestrip', def.ShowPageStrip);
-  result.Table := t.readstring('table');
-  result.Tag := t.readstring('tag');
-  result.Title := t.readstring('title');
-  result.Toolbar := t.readstring('toolbar');
-  t.Free;
-end;
-
-function BuildRequestFromLuaTable(L: PLua_State): TCatChromiumRequest;
-var
-  t: TLuaTable;
-begin
-  t := TLuaTable.Create(L, true);
-  result.method := t.readstring(REQUESTKEY_METHOD);
-  result.url := t.readstring(REQUESTKEY_URL);
-  result.postdata := t.readstring(REQUESTKEY_POSTDATA);
-  result.headers := t.readstring(REQUESTKEY_HEADERS);
-  result.ignorecache := t.readbool(REQUESTKEY_IGNORECACHE, true);
-  result.usecookies := t.readbool(REQUESTKEY_USECOOKIES, true);
-  result.usecachedcredentials := t.readbool(REQUESTKEY_USEAUTH, true);
-  result.details := t.readstring(REQUESTKEY_DETAILS);
-  t.Free;
-end;
-
-function BuildRequestFromJSON(json: string): TCatChromiumRequest;
-var
-  j: TSandJSON;
-begin
-  j := TSandJSON.Create;
-  j.text := json;
-  result.method := j.GetValue(REQUESTKEY_METHOD, 'GET');
-  result.url := j.GetValue(REQUESTKEY_URL, emptystr);
-  result.postdata := j.GetValue(REQUESTKEY_POSTDATA, emptystr);
-  result.headers := j.GetValue(REQUESTKEY_HEADERS, emptystr);
-  result.ignorecache := j.GetValue(REQUESTKEY_IGNORECACHE, true);
-  result.usecookies := j.GetValue(REQUESTKEY_USECOOKIES, true);
-  result.usecachedcredentials := j.GetValue(REQUESTKEY_USEAUTH, true);
-  result.details := j.GetValue(REQUESTKEY_DETAILS, emptystr);
-  j.Free;
 end;
 
 procedure SetUserCSS(s: string);

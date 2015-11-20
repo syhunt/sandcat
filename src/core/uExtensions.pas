@@ -87,7 +87,7 @@ implementation
 
 uses uMain, pLua, uZones, uConst, uSettings, CatConsole, LAPI_SCX, CatRes,
   CatStrings, CatFiles, CatZIP, CatHTTP, LAPI, LAPI_Browser, LAPI_Tab, LAPI_Cmd,
-  LAPI_Element, LAPI_App;
+  LAPI_Element, LAPI_App, LAPI_CEF;
 
 const
   cLicLink =
@@ -106,6 +106,7 @@ begin
   RegisterBrowser(L);
   RegisterApp(L);
   RegisterSCX(L);
+  RegisterCEF(L);
   RegisterSideBar(L);
   RegisterRequestBuilder(L);
   RegisterActiveCodeEdit(L);

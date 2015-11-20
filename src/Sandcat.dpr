@@ -34,6 +34,7 @@ uses
   LAPI_Element in 'lua\LAPI_Element.pas',
   LAPI_Cmd in 'lua\LAPI_Cmd.pas',
   LAPI_Tab in 'lua\LAPI_Tab.pas',
+  LAPI_CEF in 'lua\LAPI_CEF.pas',
   LAPI_SCX in 'lua\LAPI_SCX.pas';
 
 {$R *.res}

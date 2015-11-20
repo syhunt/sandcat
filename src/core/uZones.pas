@@ -537,7 +537,7 @@ procedure TSandcatUIX.ShowRequest(const Requests: TSandcatRequests;
 var
   sfile: string;
   e: ISandUIElement;
-  request: TSandcatRequest;
+  request: TSandcatRequestDetails;
   eng: TSandUIEngine;
   procedure LoadPreview;
   begin

@@ -9,7 +9,7 @@ unit LAPI_Tab;
 interface
 
 uses
-  Classes, Forms, SysUtils, Graphics, TypInfo, Dialogs, Lua, LuaObject;
+  Classes, Forms, SysUtils, Graphics, TypInfo, Dialogs, Lua, LuaObject, uTabMan;
 
 type
   TSCBTabObject = class(TLuaObject)
@@ -24,16 +24,37 @@ type
   end;
 
 procedure RegisterSCBTab_Sandcat(L: PLua_State);
+function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
 
 implementation
 
 uses
   uMain, uTaskMan, uTab, plua, CatFiles, uMisc, CatStrings, uUIComponents,
-  CatChromium, uSettings, uConst, uZones;
+  CatChromium, uSettings, uConst, uZones, pLuaTable, LAPI_CEF;
+
+function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
+var
+  def: TCustomTabSettings;
+  t: TLuaTable;
+begin
+  def := tabmanager.GetTabDefaultSettings;
+  t := TLuaTable.Create(L, true);
+  result.activepage := t.readstring('activepage', def.activepage);
+  result.HTML := t.readstring('html');
+  result.icon := t.readstring('icon');
+  result.LoadNew := t.readbool('loadnew', def.LoadNew);
+  result.ShowNavBar := t.readbool('shownavbar', def.ShowNavBar);
+  result.ShowPageStrip := t.readbool('showpagestrip', def.ShowPageStrip);
+  result.Table := t.readstring('table');
+  result.Tag := t.readstring('tag');
+  result.Title := t.readstring('title');
+  result.Toolbar := t.readstring('toolbar');
+  t.Free;
+end;
 
 function method_gotourl(L: PLua_State): integer; cdecl;
 begin
-  Result := 1;
+  result := 1;
   if tabmanager.ActiveTab = nil then
     exit;
   if lua_tostring(L, 2) = emptystr then // no url provided, go to url in bar
@@ -46,7 +67,7 @@ function method_viewdevtools(L: PLua_State): integer; cdecl;
 begin
   if tabmanager.ActiveTab <> nil then
     tabmanager.ActiveTab.ViewDevTools;
-  Result := 1;
+  result := 1;
 end;
 
 function method_showcached(L: PLua_State): integer; cdecl;
@@ -58,7 +79,7 @@ begin
     BottomBar.loadcached(lua_tostring(L, 2), lua_tointeger(L, 3));
     BottomBar.CacheViewChrome_Callback := lua_tostring(L, 4);
   end;
-  Result := 1;
+  result := 1;
 end;
 
 function method_evaljavascript(L: PLua_State): integer; cdecl;
@@ -68,7 +89,7 @@ begin
   if tabmanager.ActiveTab <> nil then
     r := tabmanager.ActiveTab.evaljavascript(lua_tostring(L, 2));
   plua_pushvariant(L, r);
-  Result := 1;
+  result := 1;
 end;
 
 function method_runjavascript(L: PLua_State): integer; cdecl;
@@ -81,21 +102,21 @@ begin
   if tabmanager.ActiveTab <> nil then
     tabmanager.ActiveTab.runjavascript(lua_tostring(L, 2), lua_tostring(L, 3),
       lua_tointeger(L, 4), reporterrors);
-  Result := 1;
+  result := 1;
 end;
 
 function method_goback(L: PLua_State): integer; cdecl;
 begin
   if tabmanager.ActiveTab.Chrome <> nil then
     tabmanager.ActiveTab.Chrome.GoBack;
-  Result := 1;
+  result := 1;
 end;
 
 function method_goforward(L: PLua_State): integer; cdecl;
 begin
   if tabmanager.ActiveTab.Chrome <> nil then
     tabmanager.ActiveTab.Chrome.GoForward;
-  Result := 1;
+  result := 1;
 end;
 
 function method_reload(L: PLua_State): integer; cdecl;
@@ -107,7 +128,7 @@ begin
     igncache := lua_toboolean(L, 2);
   if tabmanager.ActiveTab.Chrome <> nil then
     tabmanager.ActiveTab.Chrome.Reload(igncache);
-  Result := 1;
+  result := 1;
 end;
 
 function method_load(L: PLua_State): integer; cdecl;
@@ -119,49 +140,34 @@ begin
   if tablename <> emptystr then
     s := '<meta name="SandcatUIX" content="' + tablename + '">' + crlf + s;
   tabmanager.ActiveTab.LoadExtensionPage(s);
-  Result := 1;
+  result := 1;
 end;
 
 function method_loadrequest(L: PLua_State): integer; cdecl;
 begin
-  if lua_isnone(L, 3) then
-  begin // a single parameter was provided
-    if lua_istable(L, 2) then // user provided a Lua table
-      tabmanager.ActiveTab.SendRequestCustom(BuildRequestFromLuaTable(L), true)
-    else // user provided a JSON object
-      tabmanager.ActiveTab.SendRequestCustom
-        (BuildRequestFromJSON(lua_tostring(L, 2)), true);
-  end
+  if lua_istable(L, 2) then // user provided a Lua table
+    tabmanager.ActiveTab.SendRequestCustom(BuildRequestFromLuaTable(L), true)
   else
     tabmanager.ActiveTab.SendRequest(lua_tostring(L, 2), lua_tostring(L, 3),
       lua_tostring(L, 4), true);
-  Result := 1;
+  result := 1;
 end;
 
 function method_sendrequest(L: PLua_State): integer; cdecl;
 begin
-  if lua_isnone(L, 3) then
-  begin // a single parameter was provided
-    if lua_istable(L, 2) then
-    begin // user provided a Lua table
-      tabmanager.ActiveTab.SendRequestCustom
-        (BuildRequestFromLuaTable(L), false);
-    end
-    else // user provided a JSON object
-      tabmanager.ActiveTab.SendRequestCustom
-        (BuildRequestFromJSON(lua_tostring(L, 2)), false);
-  end
+  if lua_istable(L, 2) then // user provided a Lua table
+    tabmanager.ActiveTab.SendRequestCustom(BuildRequestFromLuaTable(L), false)
   else
     tabmanager.ActiveTab.SendRequest(lua_tostring(L, 2), lua_tostring(L, 3),
       lua_tostring(L, 4), false);
-  Result := 1;
+  result := 1;
 end;
 
 function method_logrequest(L: PLua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.Requests.LogRequestJSON(lua_tostring(L, 2),
-    lua_tostring(L, 3));
-  Result := 1;
+  tabmanager.ActiveTab.Requests.LogRequest
+    (BuildRequestDetailsFromJSON(lua_tostring(L, 2), lua_tostring(L, 3)));
+  result := 1;
 end;
 
 function method_logerrortoconsole(L: PLua_State): integer; cdecl;
@@ -170,25 +176,25 @@ var
 begin
   extensions.ScriptExceptionHandler(lua_tostring(L, 2), lua_tointeger(L, 3),
     lua_tostring(L, 4), b);
-  Result := 1;
+  result := 1;
 end;
 
 function method_log(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.log.lines.add(lua_tostring(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 function method_clearlog(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.log.lines.Clear;
-  Result := 1;
+  result := 1;
 end;
 
 function method_clearheaders(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.Requests.Clear;
-  Result := 1;
+  result := 1;
 end;
 
 function method_addjavascript(L: PLua_State): integer; cdecl;
@@ -203,13 +209,13 @@ begin
         tabmanager.ActiveTab.usertabscript.JS_LoadEnd + crlf +
         lua_tostring(L, 3);
   end;
-  Result := 1;
+  result := 1;
 end;
 
 function method_dosearch(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.DoSearch(navbar.SearchText);
-  Result := 1;
+  result := 1;
 end;
 
 function method_cache_storestring(L: PLua_State): integer; cdecl;
@@ -219,7 +225,7 @@ begin
   s := lua_tostring(L, 3);
   tabmanager.ActiveTab.Cache.StoreString(lua_tostring(L, 2), s);
   application.ProcessMessages;
-  Result := 1;
+  result := 1;
 end;
 
 function method_cache_gettextfile(L: PLua_State): integer; cdecl;
@@ -228,7 +234,7 @@ var
 begin
   s := tabmanager.ActiveTab.Cache.gettextfile(lua_tostring(L, 2));
   lua_pushstring(L, s);
-  Result := 1;
+  result := 1;
 end;
 
 function method_cache_extractfile(L: PLua_State): integer; cdecl;
@@ -244,7 +250,7 @@ begin
     tabmanager.ActiveTab.Cache.extractfile(lua_tostring(L, 2), outfilename);
   end;
   lua_pushstring(L, outfilename);
-  Result := 1;
+  result := 1;
 end;
 
 function method_gotosrcline(L: PLua_State): integer; cdecl;
@@ -255,7 +261,7 @@ begin
   s := tabmanager.ActiveTab.SourceInspect.Source;
   s.GotoLineAndCenter(lua_tointeger(L, 2));
   s.ActiveLineColor := cSourceActiveLineColor;
-  Result := 1;
+  result := 1;
 end;
 
 { function method_setparam(L:plua_State):integer; cdecl;
@@ -278,14 +284,14 @@ var
 begin
   s := lua_tostring(L, 3);
   tabmanager.ActiveTab.UserData[lua_tostring(L, 2)] := s;
-  Result := 1;
+  result := 1;
 end;
 
 function method_getparam(L: PLua_State): integer; cdecl;
 begin
   lua_pushstring(L, tabmanager.ActiveTab.UserData.getvalue(lua_tostring(L, 2),
     emptystr));
-  Result := 1;
+  result := 1;
 end;
 
 function method_seticon(L: PLua_State): integer; cdecl;
@@ -294,39 +300,39 @@ begin
     tabmanager.ActiveTab.SetIcon(lua_tostring(L, 2))
   else
     tabmanager.ActiveTab.SetIcon(lua_tostring(L, 2), lua_toboolean(L, 3));
-  Result := 1;
+  result := 1;
 end;
 
 function method_showrequest(L: PLua_State): integer; cdecl;
 begin
   uix.ShowRequest(tabmanager.ActiveTab.Requests, lua_tostring(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 function method_cache_export(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.Cache.savetofile(lua_tostring(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 function method_cache_import(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.Cache.loadfromfile(lua_tostring(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 function method_viewsourceexternal(L: PLua_State): integer; cdecl;
 begin
   if tabmanager.ActiveTab.Chrome <> nil then
     tabmanager.ActiveTab.Chrome.ViewSourceExternalEditor;
-  Result := 1;
+  result := 1;
 end;
 
 function method_stopload(L: PLua_State): integer; cdecl;
 begin
   if tabmanager.ActiveTab.Chrome <> nil then
     tabmanager.ActiveTab.Chrome.Stop;
-  Result := 1;
+  result := 1;
 end;
 
 function method_showauthdialog(L: PLua_State): integer; cdecl;
@@ -334,14 +340,14 @@ begin
   if tabmanager.ActiveTab.Chrome <> nil then
     tabmanager.ActiveTab.Chrome.ShowAuthDialog(lua_tostring(L, 2),
       lua_tostring(L, 3));
-  Result := 1;
+  result := 1;
 end;
 
 function method_request_setresponse(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.Requests.UpdateRequest(lua_tostring(L, 2),
     lua_tostring(L, 3));
-  Result := 1;
+  result := 1;
 end;
 
 function method_runluatask(L: PLua_State): integer; cdecl;
@@ -352,31 +358,31 @@ begin
   if lua_isnone(L, 3) = false then
     task.SetParams(lua_tostring(L, 3));
   task.runscript(lua_tostring(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 function method_runluaonlog(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.RunLuaOnLog(lua_tostring(L, 2), lua_tostring(L, 3));
-  Result := 1;
+  result := 1;
 end;
 
 function method_loadheaders(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.liveheaders.loadfromfile(lua_tostring(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 function method_saveheaders(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.liveheaders.savetofile(lua_tostring(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 function method_tree_clear(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.SideTree_Clear;
-  Result := 1;
+  result := 1;
 end;
 
 function method_tree_loaddir(L: PLua_State): integer; cdecl;
@@ -389,21 +395,21 @@ begin
   tabmanager.ActiveTab.SideTree_LoadDir(lua_tostring(L, 2), makebold);
   if lua_tostring(L, 4) <> emptystr then
     tabmanager.ActiveTab.SideTree_LoadAffectedScripts(lua_tostring(L, 4));
-  Result := 1;
+  result := 1;
 end;
 
 function method_loadsourcetabs(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.SourceInspect.LoadTabs(lua_tostring(L, 2),
     lua_tostring(L, 3));
-  Result := 1;
+  result := 1;
 end;
 
 function method_loadsourcemsgs(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.SourceInspect.LoadItems(lua_tostring(L, 2),
     tabmanager.ActiveTab.SourceInspect.ActiveTab);
-  Result := 1;
+  result := 1;
 end;
 
 type
@@ -439,7 +445,7 @@ begin
     showmsgs:
       tab.SourceInspect.MsgsPanel.visible := lua_toboolean(L, 3);
   end;
-  Result := 1;
+  result := 1;
 end;
 
 type
@@ -447,72 +453,72 @@ type
     loadendjs, capture, capturebrowser, capturerealtime, captureurls,
     downloadfiles, headersfilter, logtext, mode, name, rcvdheaders, reslist,
     screenshot, sentheaders, showtree, siteprefsfilename, Source,
-    sourcefilename, statuscode, status, title, updatesource, url, urldev,
+    sourcefilename, statuscode, status, Title, updatesource, url, urldev,
     urllist, zoomlevel);
 
 function TSCBTabObject.GetPropValue(propName: String): Variant;
 begin
   case TProps(GetEnumValue(TypeInfo(TProps), lowercase(propName))) of
     datafilename:
-      Result := tabmanager.ActiveTab.Cache.getFileName;
+      result := tabmanager.ActiveTab.Cache.getFileName;
     handle:
-      Result := tabmanager.ActiveTab.Msg.msgHandle;
+      result := tabmanager.ActiveTab.Msg.msgHandle;
     icon:
-      Result := tabmanager.ActiveTab.icon;
+      result := tabmanager.ActiveTab.icon;
     capture:
-      Result := tabmanager.ActiveTab.Requests.logrequests;
+      result := tabmanager.ActiveTab.Requests.logrequests;
     capturebrowser:
-      Result := tabmanager.ActiveTab.logbrowserrequests;
+      result := tabmanager.ActiveTab.logbrowserrequests;
     captureurls:
       if tabmanager.ActiveTab.Chrome <> nil then
-        Result := tabmanager.ActiveTab.Chrome.LogURLs;
+        result := tabmanager.ActiveTab.Chrome.LogURLs;
     headersfilter:
-      Result := tabmanager.ActiveTab.liveheaders.FilterEdit.Text;
+      result := tabmanager.ActiveTab.liveheaders.FilterEdit.Text;
     lastjslogmsg:
-      Result := tabmanager.ActiveTab.LastConsoleLogMessage;
+      result := tabmanager.ActiveTab.LastConsoleLogMessage;
     logtext:
-      Result := tabmanager.ActiveTab.log.lines.Text;
+      result := tabmanager.ActiveTab.log.lines.Text;
     name:
-      Result := tabmanager.ActiveTab.UID;
+      result := tabmanager.ActiveTab.UID;
     rcvdheaders:
       if tabmanager.ActiveTab.Chrome <> nil then
-        Result := tabmanager.ActiveTab.Chrome.Headers.rcvdhead;
+        result := tabmanager.ActiveTab.Chrome.Headers.rcvdhead;
     reslist:
       if tabmanager.ActiveTab.Chrome <> nil then
-        Result := tabmanager.ActiveTab.Chrome.ResourceList.Text;
+        result := tabmanager.ActiveTab.Chrome.ResourceList.Text;
     screenshot:
-      Result := tabmanager.ActiveTab.GetScreenshot;
+      result := tabmanager.ActiveTab.GetScreenshot;
     sentheaders:
       if tabmanager.ActiveTab.Chrome <> nil then
-        Result := tabmanager.ActiveTab.Chrome.Headers.senthead;
+        result := tabmanager.ActiveTab.Chrome.Headers.senthead;
     siteprefsfilename:
-      Result := tabmanager.ActiveTab.SitePrefsFile;
+      result := tabmanager.ActiveTab.SitePrefsFile;
     Source:
-      Result := tabmanager.ActiveTab.SourceInspect.Source.Text;
+      result := tabmanager.ActiveTab.SourceInspect.Source.Text;
     sourcefilename:
-      Result := tabmanager.ActiveTab.SourceInspect.sourcefilename;
+      result := tabmanager.ActiveTab.SourceInspect.sourcefilename;
     statuscode:
       if tabmanager.ActiveTab.Chrome <> nil then
-        Result := strtointsafe(tabmanager.ActiveTab.Chrome.Headers.statuscode);
-    title:
-      Result := tabmanager.ActiveTab.title;
+        result := strtointsafe(tabmanager.ActiveTab.Chrome.Headers.statuscode);
+    Title:
+      result := tabmanager.ActiveTab.Title;
     url:
-      Result := tabmanager.ActiveTab.GetURL;
+      result := tabmanager.ActiveTab.GetURL;
     urllist:
       if tabmanager.ActiveTab.Chrome <> nil then
-        Result := tabmanager.ActiveTab.Chrome.URLLog.Text;
+        result := tabmanager.ActiveTab.Chrome.URLLog.Text;
     zoomlevel:
       if tabmanager.ActiveTab.Chrome <> nil then
-        Result := tabmanager.ActiveTab.Chrome.zoomlevel;
+        result := tabmanager.ActiveTab.Chrome.zoomlevel;
   else
-    Result := inherited GetPropValue(propName);
+    result := inherited GetPropValue(propName);
   end;
 end;
 
 function TSCBTabObject.SetPropValue(propName: String;
   const AValue: Variant): Boolean;
 begin
-  Result := true;
+  result := true;
   case TProps(GetEnumValue(TypeInfo(TProps), lowercase(propName))) of
     downloadfiles:
       if tabmanager.ActiveTab.Chrome <> nil then
@@ -544,7 +550,7 @@ begin
     status:
       StatBar.Text := String(AValue);
     // ToDo: associate with current tab
-    title:
+    Title:
       tabmanager.ActiveTab.SetTitle(String(AValue));
     updatesource:
       tabmanager.ActiveTab.CanUpdateSource := AValue;
@@ -552,7 +558,7 @@ begin
       if tabmanager.ActiveTab.Chrome <> nil then
         tabmanager.ActiveTab.Chrome.zoomlevel := AValue;
   else
-    Result := inherited SetPropValue(propName, AValue);
+    result := inherited SetPropValue(propName, AValue);
   end;
 end;
 
@@ -607,7 +613,7 @@ const
 
 function newcallback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
 begin
-  Result := TSCBTabObject.Create(L, AParent);
+  result := TSCBTabObject.Create(L, AParent);
 end;
 
 function Create(L: PLua_State): integer; cdecl;
@@ -615,7 +621,7 @@ var
   p: TLuaObjectNewCallback;
 begin
   p := @newcallback;
-  Result := new_LuaObject(L, AClassName, p);
+  result := new_LuaObject(L, AClassName, p);
 end;
 
 procedure RegisterSCBTab_Sandcat(L: PLua_State);

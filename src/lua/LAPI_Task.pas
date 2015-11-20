@@ -53,7 +53,7 @@ implementation
 
 uses
   uTab, uSettings, uMain, LAPI_Browser, CatFiles, CatUI, CatZIP, CatStrings,
-  CatTasks, CatChromium, PLua, uConst, CatUtils, CatMsg;
+  CatTasks, CatChromium, PLua, uConst, CatUtils, CatMsg, LAPI_CEF;
 
 var
   UserParams: TSandJSON;
@@ -254,11 +254,9 @@ begin
   fLuaWrap.RegisterLuaMethod('printsuccess', @lua_method_printsuccess);
   fLuaWrap.RegisterLuaMethod('outputmsg', @lua_method_outputmsg);
   fLuaWrap.RegisterLuaMethod('runtabcmd', @lua_method_runtabcmd);
-  // for io redirect from Runik.dll
+  // for io redirect from Underscript
   fLuaWrap.RegisterLuaMethod('sandcat_writeln', @lua_task_writeln);
-  // for io redirect from Runik.dll
   fLuaWrap.RegisterLuaMethod('sandcat_write', @lua_task_write);
-  // for io redirect from Runik.dll
   fLuaWrap.RegisterLuaMethod('sandcat_logerror', @lua_ScriptLogError);
   // LuaWrap.RegisterLuaMethod('cswrite', @lua_console_Write);
   // LuaWrap.RegisterLuaMethod('cswriteln', @lua_console_WriteLn);
@@ -267,6 +265,7 @@ begin
   fLuaWrap.RegisterLuaMethod('parambool', @lua_getParamBool);
   fLuaWrap.RegisterLuaMethod('paramint', @lua_getParamInt);
   RegisterTaskProcessObject(fLuaWrap.LuaState);
+  RegisterCEF(fLuaWrap.LuaState);
   fLuaWrap.RegisterLuaTable('params', @lua_Params_getParam,
     @lua_Params_SetParam);
   UserParams := TSandJSON.Create;

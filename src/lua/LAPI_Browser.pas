@@ -10,7 +10,7 @@ unit LAPI_Browser;
 interface
 
 uses Windows, Messages, Classes, Forms, SysUtils, Dialogs, Controls,
-  StdCtrls, Lua;
+  StdCtrls, Lua, uTabMan;
 
 function lua_addlibraryinfo(L: plua_State): integer; cdecl;
 function lua_scriptlogerror(L: plua_State): integer; cdecl;
@@ -68,7 +68,7 @@ implementation
 
 uses uMain, pLua, CatStrings, CatFiles, CatTime, uUIComponents, uConst,
   CatTasks, CatZIP, CatHTTP, CatChromium, CatChromiumLib, uSettings, TypInfo,
-  uZones, uTab, uMisc, LAPI_Task, CatConsole, uTaskMan;
+  uZones, uTab, uMisc, LAPI_Task, LAPI_Tab, CatConsole, uTaskMan;
 
 type
   TReqOptionType = (ropt_headers, ropt_postdata, ropt_showheaders,
