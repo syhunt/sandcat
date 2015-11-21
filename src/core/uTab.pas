@@ -126,6 +126,7 @@ type
       const isLoading, canGoBack, canGoForward: boolean);
     procedure CrmLoadError(Sender: TObject; const errorCode: integer;
       const errorText, failedUrl: string);
+    procedure LogCustomScriptError(const json: string);
     procedure ResourcesListViewClick(Sender: TObject);
     procedure ResourcesListviewColumnClick(Sender: TObject;
       Column: TListColumn);
@@ -234,6 +235,7 @@ const // messages from the V8 extension or Sandcat tasks
   SCBM_TASK_STOPPED = 19;
   SCBM_TASK_SUSPENDED = 20;
   SCBM_TASK_RESUMED = 21;
+  SCBM_LOGCUSTOMSCRIPTERROR = 22;
 
 implementation
 
@@ -521,6 +523,8 @@ begin
       LogWrite(str);
     SCBM_LOGADD:
       fLog.lines.Add(str);
+    SCBM_LOGCUSTOMSCRIPTERROR:
+      LogCustomScriptError(str);
     SCBM_LOGDYNAMICREQUEST:
       fRequests.LogDynamicRequest(str);
     SCBM_LOGEXTERNALREQUEST_JSON:
@@ -639,6 +643,16 @@ procedure TSandcatTab.CrmStatusMessage(Sender: TObject; const value: string);
 begin
   if Assigned(OnMessage) then
     OnMessage(self, SCBT_STATUS, [value]);
+end;
+
+// Used by Sandcat tasks to log a Lua error during execution
+procedure TSandcatTab.LogCustomScriptError(const json: string);
+var
+  j: TSandJSON;
+begin
+  j := TSandJSON.Create(json);
+  Extensions.LogScriptError(j['sender'], j['line'], j['msg'],false);
+  j.Free;
 end;
 
 // Called when there is a JavaScript execution error or when console.log is called

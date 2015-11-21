@@ -91,6 +91,19 @@ begin
   j.free;
 end;
 
+procedure LogLuaError(sender:string; line: integer;msg:string);
+var
+  j: TSandJSON;
+begin
+  j := TSandJSON.Create;
+  j['tid'] := TaskID;
+  j['sender'] := sender;
+  j['line'] := line;
+  j['msg'] := msg;
+  SendCDMessage(tabhandle, SCBM_LOGCUSTOMSCRIPTERROR, j.text);
+  j.free;
+end;
+
 procedure Task_SetParam(tabhandle: Integer; tid, name, value: string);
 var
   p: TSandJINI;
@@ -163,8 +176,7 @@ end;
 
 function lua_ScriptLogError(L: PLua_State): Integer; cdecl;
 begin
-  SendCDMessage(tabhandle, SCBM_LOGWRITELN,
-    'Task Error: ' + inttostr(lua_tointeger(L, 1)) + lua_tostring(L, 2));
+  LogLuaError('Task',lua_tointeger(L, 1),lua_tostring(L, 2));
   Result := 1;
 end;
 
@@ -203,8 +215,7 @@ end;
 procedure TSandcatTaskProcess.ScriptExceptionHandler(Title: string;
   Line: Integer; Msg: string; var handled: Boolean);
 begin
-  SendCDMessage(tabhandle, SCBM_LOGWRITELN, 'Task Error: ' + inttostr(Line) +
-    ' ' + format('%s: %s', [Title, Msg]));
+  logluaerror('Task',Line,format('%s: %s', [Title, Msg]));
   handled := true;
 end;
 

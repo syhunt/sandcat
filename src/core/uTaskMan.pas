@@ -174,19 +174,6 @@ type
     cmd_special, cmd_print, cmd_outputmsg, cmd_showmsg, cmd_stop, cmd_writeln,
     cmd_write);
 
-procedure TSandcatTaskManager.SetTaskParam_JSON(const json:string);
-var
-    p: TSandJINI;
-    task: tsandcattask;
-begin
-    p := TSandJINI.Create;
-    p.Text := json;
-    task := SelectTask(p.values['TID']);
-    if task <> nil then
-      task.SetParam(p.values['Name'], base64decode(p.values['Value']));
-    p.Free;
-end;
-
 procedure TSandcatTaskManager.RunJSONCmd(const json: string);
 var
   j: TSandJSON;
@@ -224,6 +211,19 @@ begin
     end;
   end;
   j.Free;
+end;
+
+procedure TSandcatTaskManager.SetTaskParam_JSON(const json:string);
+var
+    p: TSandJINI;
+    task: tsandcattask;
+begin
+    p := TSandJINI.Create;
+    p.Text := json;
+    task := SelectTask(p.values['TID']);
+    if task <> nil then
+      task.SetParam(p.values['Name'], base64decode(p.values['Value']));
+    p.Free;
 end;
 
 function TSandcatTaskManager.CountActive: integer;
