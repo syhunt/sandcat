@@ -17,7 +17,6 @@ uses
 function BeginsWithSpecialParam(param: string): boolean;
 function CaptureChromeBitmap(tab: TSandcatTab; filename: string = ''): string;
 function GetPakResourceAsString(filename: string): string;
-function ShortTitle(s: string; maxchars: integer = 30): string;
 function SandEnc(s: string): string;
 function UseSingleInstance: boolean;
 procedure ConfigPanel(p: TPanel; align: TAlign = alNone);
@@ -155,20 +154,6 @@ end;
 function GetPakResourceAsString(filename: string): string;
 begin
   result := GetTextFileFromZIP(pluginsdir + cResourcesPak, filename);
-end;
-
-// Shortens a title string (if s exceeds maxchars adds dots)
-function ShortTitle(s: string; maxchars: integer = 30): string;
-const
-  cDots = '...';
-begin
-  result := s;
-  if Length(s) > maxchars then
-  begin
-    result := copy(s, 1, maxchars);
-    if endswith(result, cDots) = false then
-      result := result + cDots;
-  end;
 end;
 
 // ------------------------------------------------------------------------//

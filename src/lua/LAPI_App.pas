@@ -16,26 +16,33 @@ uses Lua, Classes, Windows, Messages, SysUtils, Forms, Dialogs, TypInfo,
 
 function lua_getappinfo(L: plua_State): Integer; cdecl;
 function lua_setappinfo(L: plua_State): Integer; cdecl;
-function app_askyesorno(L: plua_State): integer; cdecl;
-function app_editlist(L: plua_State): integer; cdecl;
-function app_gettitle(L: plua_State): integer; cdecl;
-function app_processmessages(L: plua_State): integer; cdecl;
-function app_settitle(L: plua_State): integer; cdecl;
-function app_showalert(L: plua_State): integer; cdecl;
-function app_showcustomdialog(L: plua_State): integer; cdecl;
-function app_showinputdialog(L: plua_State): integer; cdecl;
-function app_showmessage(L: plua_State): integer; cdecl;
-function app_showmessage_classic(L: plua_State): integer; cdecl;
-function app_showopendialog(L: plua_State): integer; cdecl;
-function app_showopendirdialog(L: plua_State): integer; cdecl;
-function app_showsavedialog(L: plua_State): integer; cdecl;
-function app_showhtmlmessage(L: plua_State): integer; cdecl;
-function app_seticonfromres(L: plua_State): integer; cdecl;
+function app_askyesorno(L: plua_State): Integer; cdecl;
+function app_editlist(L: plua_State): Integer; cdecl;
+function app_gettitle(L: plua_State): Integer; cdecl;
+function app_processmessages(L: plua_State): Integer; cdecl;
+function app_settitle(L: plua_State): Integer; cdecl;
+function app_showalert(L: plua_State): Integer; cdecl;
+function app_showcustomdialog(L: plua_State): Integer; cdecl;
+function app_showinputdialog(L: plua_State): Integer; cdecl;
+function app_showmessage(L: plua_State): Integer; cdecl;
+function app_showmessage_classic(L: plua_State): Integer; cdecl;
+function app_showopendialog(L: plua_State): Integer; cdecl;
+function app_showopendirdialog(L: plua_State): Integer; cdecl;
+function app_showsavedialog(L: plua_State): Integer; cdecl;
+function app_showhtmlmessage(L: plua_State): Integer; cdecl;
+function app_seticonfromres(L: plua_State): Integer; cdecl;
 
 implementation
 
 uses uMain, uConst, uSettings, uExtensions, CatStrings, CatListEditor, pLua,
   uZones, LAPI, CatFiles;
+
+type
+  TAppInfoType = (info_abouturl, info_cachedir, info_ceflibrary, info_configdir,
+    info_commands, info_downloads, info_exefilename, info_extensions,
+    info_errorlog, info_fullname, info_handle, info_iconfilename, info_initmode,
+    info_libraries, info_name, info_options, info_previewdir, info_proxy,
+    info_tasks, info_useragent, info_version, info_tempscript);
 
 function lua_setappinfo(L: plua_State): Integer; cdecl;
 var
@@ -84,6 +91,7 @@ var
   end;
 
 begin
+  result := 1;
   s := lua_tostring(L, 2);
   case TAppInfoType(GetEnumValue(TypeInfo(TAppInfoType),
     'info_' + lowercase(s))) of
@@ -107,6 +115,8 @@ begin
       lua_pushstring(L, extensions.ErrorList.Text);
     info_fullname:
       lua_pushstring(L, vAppNameShort);
+    info_handle:
+      lua_pushinteger(L, SandBrowser.Handle);
     info_iconfilename:
       lua_pushstring(L, vExeFileName);
     info_initmode:
@@ -117,23 +127,26 @@ begin
       lua_pushstring(L, vAppNameShortest);
     info_options:
       lua_pushstring(L, settings.preferences.CIDList);
+    info_previewdir:
+      lua_pushstring(L, GetSandcatDir(SCDIR_PREVIEW));
     info_proxy:
       lua_pushstring(L, settings.preferences.GetValue(SCO_PROXY_SERVER,
         emptystr));
     info_tasks:
       lua_pushstring(L, gettasklist);
     info_useragent:
-      lua_pushstring(L, settings.preferences.GetValue(SCO_USERAGENT,
-        emptystr));
+      lua_pushstring(L, settings.preferences.GetValue(SCO_USERAGENT, emptystr));
     info_version:
       lua_pushstring(L, GetFileVersion(vExeFileName));
     info_tempscript:
       lua_pushstring(L, extensions.TempScript);
+  else
+    result := 0;
   end;
-  result := 1;
+
 end;
 
-function app_editlist(L: plua_State): integer; cdecl;
+function app_editlist(L: plua_State): Integer; cdecl;
 var
   s, prevlist, exampletext, wintitle, caption: string;
 begin
@@ -150,7 +163,7 @@ begin
   result := 1;
 end;
 
-function app_seticonfromres(L: plua_State): integer; cdecl;
+function app_seticonfromres(L: plua_State): Integer; cdecl;
 var
   s: string;
 begin
@@ -160,7 +173,7 @@ begin
   result := 1;
 end;
 
-function app_showinputdialog(L: plua_State): integer; cdecl;
+function app_showinputdialog(L: plua_State): Integer; cdecl;
 var
   s, caption: string;
 begin
@@ -172,51 +185,51 @@ begin
   result := 1;
 end;
 
-function app_gettitle(L: plua_State): integer; cdecl;
+function app_gettitle(L: plua_State): Integer; cdecl;
 begin
   lua_pushstring(L, Application.Title);
   result := 1;
 end;
 
-function app_settitle(L: plua_State): integer; cdecl;
+function app_settitle(L: plua_State): Integer; cdecl;
 begin
   Application.Title := lua_tostring(L, 1);
   result := 1;
 end;
 
-function app_showmessage(L: plua_State): integer; cdecl;
+function app_showmessage(L: plua_State): Integer; cdecl;
 begin
   sanddlg.ShowMessage(lua_tostring(L, 1));
   result := 1;
 end;
 
-function app_showmessage_classic(L: plua_State): integer; cdecl;
+function app_showmessage_classic(L: plua_State): Integer; cdecl;
 begin
   Dialogs.ShowMessage(lua_tostring(L, 1));
   result := 1;
 end;
 
-function app_showalert(L: plua_State): integer; cdecl;
+function app_showalert(L: plua_State): Integer; cdecl;
 begin
   sanddlg.ShowAlert(lua_tostring(L, 1), true);
   result := 1;
 end;
 
-function app_showhtmlmessage(L: plua_State): integer; cdecl;
+function app_showhtmlmessage(L: plua_State): Integer; cdecl;
 begin
   sanddlg.ShowHTMLMessage(lua_tostring(L, 1));
   result := 1;
 end;
 
-function app_processmessages(L: plua_State): integer; cdecl;
+function app_processmessages(L: plua_State): Integer; cdecl;
 begin
   Application.processmessages;
   result := 1;
 end;
 
-function app_askyesorno(L: plua_State): integer; cdecl;
+function app_askyesorno(L: plua_State): Integer; cdecl;
 var
-  button: integer;
+  button: Integer;
   msg, caption: string;
 begin
   msg := lua_tostring(L, 1);
@@ -232,7 +245,7 @@ begin
   result := 1;
 end;
 
-function app_showopendirdialog(L: plua_State): integer; cdecl;
+function app_showopendirdialog(L: plua_State): Integer; cdecl;
 var
   dir, caption: string;
 begin
@@ -246,7 +259,7 @@ begin
   result := 1;
 end;
 
-function app_showopendialog(L: plua_State): integer; cdecl;
+function app_showopendialog(L: plua_State): Integer; cdecl;
 var
   sd: topendialog;
   f: string;
@@ -263,11 +276,11 @@ begin
     lua_pushstring(L, sd.FileName)
   else
     lua_pushstring(L, emptystr);
-  sd.Free;
+  sd.free;
   result := 1;
 end;
 
-function app_showsavedialog(L: plua_State): integer; cdecl;
+function app_showsavedialog(L: plua_State): Integer; cdecl;
 var
   sd: tsavedialog;
   f: string;
@@ -286,11 +299,11 @@ begin
     lua_pushstring(L, sd.FileName)
   else
     lua_pushstring(L, emptystr);
-  sd.Free;
+  sd.free;
   result := 1;
 end;
 
-function app_showcustomdialog(L: plua_State): integer; cdecl;
+function app_showcustomdialog(L: plua_State): Integer; cdecl;
 begin
   sanddlg.ShowCustomDialog(lua_tostring(L, 1), lua_tostring(L, 2));
   result := 1;

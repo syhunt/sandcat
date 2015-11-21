@@ -71,6 +71,7 @@ function PageMenu:CloseAllButActiveTab()
 end
 
 function PageMenu:SaveCachedAs_Ask(filename)
+ debug.print('Saving cached resource from: '..filename)
  if slx.file.exists(filename) then
   local name = slx.url.getfilename(self.saveurl)
   local ext = slx.url.getfileext(self.saveurl,false)
@@ -95,12 +96,20 @@ function PageMenu:SaveCachedAs(url)
   end
   self.saveurl = url
   if url ~= '' then
-   tab:loadcached(url,1,'PageMenu:SaveCachedAs_Ask')
+   if self.crm == nil then
+    self.crm = osr:new()
+   end
+   local c = self.crm
+   c.onsetsource = function(s,h)
+     PageMenu:SaveCachedAs_Ask(PageMenu.crm:savetofile())
+   end
+   c:loadcached(url)
   end
 end
 
 function PageMenu:SavePageAs()
  if Sandcat:IsURLLoaded(true) then
+  debug.print('Saving Page from the cloud...')
   browser.navbar:eval('SandcatDownloader.SaveURL_As($(#url).value)')
  end
 end

@@ -602,7 +602,7 @@ end;
 procedure TSandcatTab.ResourcesListViewClick(Sender: TObject);
 begin
   if (fResourcesLv.Selected <> nil) then
-    UIX.ShowResouce(fResourcesLv.Selected.SubItems[0]);
+    UIX.ShowResource(fResourcesLv.Selected.SubItems[0]);
 end;
 
 // Called when a page starts loading, updates the navigation bar

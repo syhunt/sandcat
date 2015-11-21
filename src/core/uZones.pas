@@ -164,14 +164,10 @@ type
     fReqBuilder: TSandRequestPanel;
     fSplitter: TSplitter;
     fTaskMsgs: TTaskMessages;
-    procedure CacheLoadEnd(Sender: TObject; httpStatusCode: integer);
   public
-    CacheViewChrome: TCatChromiumOSR;
-    CacheViewChrome_Callback: string;
     procedure Load;
     procedure LoadBottomBar(const HTML: string);
     procedure LoadBottomBarRight(const pagename: string);
-    procedure LoadCached(const URL: string; const action: integer = 0);
     procedure LoadSettings(settings, DefaultSettings: TSandJSON);
     procedure ViewBottomBar(const b: boolean = true);
     procedure ShowRequestBuilderBar;
@@ -247,7 +243,6 @@ type
     function GetFileImageIndex(const filename: string;
       const isselect: boolean = false): integer;
     function ImageListGetIndex(const src: string): integer;
-    procedure CacheSourceAvailable(const s: string);
   public
     TIS: TSandcatTISUserScript;
     Pages: TSandcatHTMLPages;
@@ -264,7 +259,7 @@ type
     procedure LoadUI;
     procedure ShowRequest(const Requests: TSandcatRequests;
       const filename: string);
-    procedure ShowResouce(const URL: string);
+    procedure ShowResource(const URL: string);
     procedure StdOut(ASender: TObject; const msg: WideString);
     procedure StdErr(ASender: TObject; const msg: WideString);
     procedure Tree_FilePathToTreeNode(aTreeView: TTreeView; aRoot: TTreeNode;
@@ -286,10 +281,6 @@ const // IDs for the main Sciter engines
   ENGINE_EXTENSIONPAGE = 8;
   ENGINE_CUSTOMTABTOOLBAR = 9;
   ENGINE_REQBUILDERTOOLBAR = 10;
-
-const // Cache loading actions
-  CACHE_SAVETOFILE = 1;
-  CACHE_VIEW = 0;
 
 const
   cContent = '{$Content}';
@@ -535,94 +526,30 @@ end;
 procedure TSandcatUIX.ShowRequest(const Requests: TSandcatRequests;
   const filename: string);
 var
-  sfile: string;
   e: ISandUIElement;
-  request: TSandcatRequestDetails;
-  eng: TSandUIEngine;
-  procedure LoadPreview;
-  begin
-    Extensions.RunLuaCmd('ReqViewer:loadheaders() ReqViewer:handlepreview()');
-  end;
-
 begin
-  eng := ExtensionPage;
   if settings.preferences.getvalue(SCO_EXTENSIONS_ENABLED, true) = false then
     exit;
-  // if Extensions.IsExtensionEnabled('syhunt') = false then
-  // exit;
-  e := eng.Root.Select('meta[content=''ReqViewer.ui'']');
+  e := ExtensionPage.Root.Select('meta[content=''ReqViewer.ui'']');
   if e = nil then
     Extensions.RunLuaCmd('ReqViewer:load()', cResourcesPak, 'reqviewer.lua');
   ContentArea.SetActivePage('response');
-  eng := ExtensionPage;
-  e := eng.Root.Select('#warn');
-  if e <> nil then
-    e.StyleAttr['display'] := 'none';
-  e := eng.Root.Select('#rt_reqhead');
-  if e <> nil then
-    e.value := emptystr;
-  e := eng.Root.Select('#rt_resphead');
-  if e <> nil then
-    e.value := emptystr;
-  e := eng.Root.Select('#hexview');
-  if e <> nil then
-    e.value := emptystr;
-  e := eng.Root.Select('#rt_preview');
-  if e <> nil then
-    e.value := emptystr;
-  sfile := filename;
-  if Requests.requestexists(sfile) then
-  begin
-    request := Requests.GetRequest(sfile);
-    e := eng.Root.Select('#url');
-    if e <> nil then
-      e.value := request.URL;
-    e := eng.Root.Select('#logfilename');
-    if e <> nil then
-      e.value := filename;
-    e := eng.Root.Select('#resphead');
-    if e <> nil then
-      e.value := request.RcvdHead;
-    e := eng.Root.Select('#reqhead');
-    if e <> nil then
-      e.value := request.SentHead;
-    e := eng.Root.Select('#method');
-    if e <> nil then
-      e.value := request.method;
-    e := eng.Root.Select('#headurl');
-    if e <> nil then
-      e.value := shorttitle(request.URL, 100);
-    e := eng.Root.Select('#resptext');
-    if e <> nil then
-      e.value := request.response;
-    if request.response = emptystr then
-    begin
-      if request.islow then
-        LoadPreview
-      else
-        BottomBar.LoadCached(request.URL)
-    end
-    else
-    begin
-      LoadPreview;
-    end;
-  end;
+  Extensions.LuaWrap.value['_tempfilename'] := filename;
+  Extensions.RunLuaCmd('ReqViewer:loadrequest(_tempfilename)');
 end;
 
-procedure TSandcatUIX.ShowResouce(const URL: string);
+procedure TSandcatUIX.ShowResource(const URL: string);
 var
   e: ISandUIElement;
 begin
   if settings.preferences.getvalue(SCO_EXTENSIONS_ENABLED, true) = false then
     exit;
-  // if Extensions.IsExtensionEnabled('syhunt') = false then
-  // exit;
   ContentArea.SetActivePage('response');
   e := ExtensionPage.Root.Select('meta[content=''ReqViewer.ui'']');
   if e = nil then
     Extensions.RunLuaCmd('ReqViewer:load()', cResourcesPak, 'reqviewer.lua');
   Extensions.LuaWrap.value['_tempresourceurl'] := URL;
-  Extensions.RunLuaCmd('ReqViewer:viewcached(_tempresourceurl)');
+  Extensions.RunLuaCmd('ReqViewer:loadcachedurl(_tempresourceurl)');
 end;
 
 procedure TSandcatUIX.StdErr(ASender: TObject; const msg: WideString);
@@ -659,65 +586,6 @@ begin
     else if z = 'reqbuilder.toolbar' then
       TIS.ReqBuilderToolbar := TIS.ReqBuilderToolbar + crlf + Script;
   end;
-end;
-
-procedure TSandcatUIX.CacheSourceAvailable(const s: string);
-var
-  e: ISandUIElement;
-  urlext, dir, filename: string;
-  eng: TSandUIEngine;
-begin
-  // cacheres:=tstringlist.Create;
-  eng := ExtensionPage;
-  urlext := ExtractUrlFileExt(BottomBar.CacheViewChrome.GetURL);
-  urlext := FixInvalidFilename(urlext);
-  dir := GetSandcatDir(SCDIR_PREVIEW, true);
-  filename := dir + inttostr(sandbrowser.Handle) + urlext;
-  case BottomBar.CacheViewChrome.Tag of
-    CACHE_VIEW:
-      begin
-        Debug('Viewing cache resource...');
-        if RegExpFind(urlext, '.bmp|.gif|.ico|.jpg|.jpeg|.png|.svg') <> emptystr
-        then
-        begin
-          Debug('Begin: ChromeCacheExtract');
-          ChromeCacheExtract(s, filename);
-          Debug('End: ChromeCacheExtract');
-        end
-        else
-        begin
-          e := eng.Root.Select('#resptext');
-          if e <> nil then
-          begin
-            Debug('Begin: ChromeCacheToString');
-            // cacheres.Text:=s;
-            // cacheres.SaveToFile('cached.txt');
-            e.value := ChromeCacheToString(s);
-            // e.Value := '';
-            Debug('End: ChromeCacheToString');
-          end;
-        end;
-        // e:=eng.root.Select('#hexview'); if e<>nil then e.Value :=GetChromeCacheRawData(s);
-        e := eng.Root.Select('#resphead');
-        if e <> nil then
-        begin
-          if e.value = emptystr then
-            e.value := GetChromeCacheResponseHeaders(s);
-        end;
-        Extensions.RunLuaCmd
-          ('ReqViewer:loadheaders() ReqViewer:handlepreview()');
-      end;
-    CACHE_SAVETOFILE:
-      begin
-        Debug('Saving Cache resource to file...');
-        Extensions.LuaWrap.value['Cache_Temp'] := filename;
-        ChromeCacheExtract(s, filename);
-        Extensions.RunLuaCmd(BottomBar.CacheViewChrome_Callback +
-          '(Cache_Temp)');
-      end;
-  end;
-  BottomBar.CacheViewChrome_Callback := emptystr;
-  // cacheres.Free;
 end;
 
 procedure TSandcatUIX.AddHTML(const Engine, Selector, HTML: string;
@@ -1340,7 +1208,6 @@ begin
   fNote := TNoteBook.Create(Self);
   fNote.Parent := Self;
   fNote.Align := alClient;
-  fNote.Pages.add('cache');
   fNote.Pages.add('console');
   fNote.Pages.add('extension');
   fNote.ActivePage := 'default';
@@ -1466,32 +1333,6 @@ begin
   ReqBuilder.Load;
 end;
 
-procedure TSandcatBottomBar.CacheLoadEnd(Sender: TObject;
-  httpStatusCode: integer);
-begin
-  CacheViewChrome.GetSourceAsText;
-end;
-
-procedure TSandcatBottomBar.LoadCached(const URL: string;
-  const action: integer = 0);
-begin
-  if CacheViewChrome = nil then
-  begin // Creates Chromium
-    CacheViewChrome := TCatChromiumOSR.Create(StatBar);
-    CacheViewChrome.Parent :=
-      TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('Cache')]);
-    CacheViewChrome.Align := alClient;
-    CacheViewChrome.OnLoadEnd := CacheLoadEnd;
-    CacheViewChrome.AdjustSourceDisplayMethod := false;
-    CacheViewChrome.OnAfterSetSource := uix.CacheSourceAvailable;
-  end;
-  CacheViewChrome.Tag := action;
-  CacheViewChrome_Callback := emptystr;
-  if CacheViewChrome.isLoading then
-    CacheViewChrome.Stop;
-  CacheViewChrome.Load('chrome://view-http-cache/' + URL);
-end;
-
 procedure TSandcatBottomBar.ShowURL(const URL: string;
   const source: string = '');
 begin
@@ -1565,7 +1406,6 @@ begin
   fNote.Align := alClient;
   fNote.Pages.add('codeedit');
   fNote.Pages.add('browser');
-  fNote.Pages.add('cache');
   fNote.Pages.add('reqbuilder');
   fNote.Pages.add('taskmon');
   fNote.ActivePage := 'Default';
@@ -1620,10 +1460,10 @@ procedure TSandcatTabstrip.SetTabTitle(const tabid, newtitle: string);
 begin
   fe := fEngine.Root.Select('code#' + tabid);
   if fe <> nil then
-    fe.value := shorttitle(newtitle, 25);
+    fe.value := strmaxlen(newtitle, 25, true);
   fe := fEngine.Root.Select('popup#for-sandcat_' + tabid);
   if fe <> nil then
-    fe.value := shorttitle(newtitle);
+    fe.value := strmaxlen(newtitle, 30, true);
 end;
 
 procedure TSandcatTabstrip.EvalTIS(const s: string);

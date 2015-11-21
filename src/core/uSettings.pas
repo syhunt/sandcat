@@ -29,7 +29,7 @@ type
   TSandcatSettings = class
   private
     fCacheFilesInUse: boolean;
-    fJSValues: TSandJSON;
+    fJSONValues: TSandJSON;
     fPreferences: TCatPreferences;
     function GetStartupHomepage: string;
     procedure DeleteCacheFile(const filename: string;
@@ -47,7 +47,7 @@ type
     procedure Update;
     procedure Save;
     procedure WriteJSValue(const Key: string; const Value: Variant);
-    procedure WriteJSValue_FromJSON(json: string);
+    //procedure WriteJSValue_FromJSON(json: string);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
     property Preferences: TCatPreferences read fPreferences;
@@ -267,7 +267,7 @@ begin
   history.Free;
 end;
 
-procedure TSandcatSettings.WriteJSValue_FromJSON(json: string);
+{procedure TSandcatSettings.WriteJSValue_FromJSON(json: string);
 var
   j: TSandJSON;
   Key: string;
@@ -279,17 +279,17 @@ begin
   Value := j['v'];
   WriteJSValue(Key, Value);
   j.Free;
-end;
+end; }
 
 procedure TSandcatSettings.WriteJSValue(const Key: string;
   const Value: Variant);
 begin
-  fJSValues[Key] := Value;
+  fJSONValues[Key] := Value;
 end;
 
 function TSandcatSettings.ReadJSValue(const Key: string): Variant;
 begin
-  result := Settings.fJSValues[Key];
+  result := Settings.fJSONValues[Key];
 end;
 
 procedure TSandcatSettings.DeleteCacheFile(const filename: string;
@@ -461,12 +461,13 @@ begin
   forcedir(GetSandcatDir(SCDIR_TEMP));
   fPreferences := TCatPreferences.Create;
   fPreferences.filename := (GetSandcatDir(SCDIR_CONFIG, true) + vConfigFile);
-  fJSValues := TSandJSON.Create;
+  fJSONValues := TSandJSON.Create;
   fCacheFilesInUse := false;
 end;
 
 destructor TSandcatSettings.Destroy;
 begin
+  fJSONValues.Free;
   fPreferences.Free;
   // Deletes the temporary directories
   DeleteFolder(GetSandcatDir(SCDIR_PREVIEW));

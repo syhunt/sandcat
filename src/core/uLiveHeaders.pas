@@ -67,8 +67,8 @@ type
     procedure FilterEditChange(Sender: TObject);
     procedure PauseBtnClick(Sender: TObject);
     procedure ClearBtnClick(Sender: TObject);
-    //procedure HeadersListViewChange(Sender: TObject; Item: TListItem;
-    //  Change: TItemChange);
+    // procedure HeadersListViewChange(Sender: TObject; Item: TListItem;
+    // Change: TItemChange);
     procedure HeadersListViewClick(Sender: TObject);
     procedure HeadersListviewColumnClick(Sender: TObject; Column: TListColumn);
     procedure FilteredListviewColumnClick(Sender: TObject; Column: TListColumn);
@@ -82,7 +82,8 @@ type
     procedure AddRequest(const request: TSandcatRequestDetails);
     procedure LoadFromFile(const Filename: string);
     procedure SaveToFile(const Filename: string);
-    procedure AddRequestToList(const lv: TListView; const request: TSandcatRequestDetails);
+    procedure AddRequestToList(const lv: TListView;
+      const request: TSandcatRequestDetails);
     procedure ApplyFilter(const s: string);
     procedure Clear;
     constructor Create(AOwner: TComponent); override;
@@ -168,19 +169,19 @@ begin
   TListView(Sender).CustomSort(@Filtered_SortByColumn, Column.Index);
 end;
 
-{procedure TLiveHeaders.HeadersListViewChange(Sender: TObject; Item: TListItem;
+{ procedure TLiveHeaders.HeadersListViewChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
-begin
+  begin
   HeadersListViewClick(Sender);
-end;  }
+  end; }
 
 procedure TLiveHeaders.HeadersListViewClick(Sender: TObject);
 begin
   if (fMainLv.Selected = nil) then
     exit;
   application.ProcessMessages;
-  uix.ShowRequest(tabmanager.ActiveTab.requests,fMainLv.Selected.SubItems
-    [fMainLv.Selected.SubItems.Count - 1]);
+  uix.ShowRequest(tabmanager.ActiveTab.requests,
+    fMainLv.Selected.SubItems[fMainLv.Selected.SubItems.Count - 1]);
 end;
 
 procedure TLiveHeaders.FilteredListViewClick(Sender: TObject);
@@ -188,13 +189,13 @@ begin
   if (fFilterLv.Selected = nil) then
     exit;
   application.ProcessMessages;
-  uix.ShowRequest(tabmanager.ActiveTab.requests,fFilterLv.Selected.SubItems
-    [fFilterLv.Selected.SubItems.Count - 1]);
+  uix.ShowRequest(tabmanager.ActiveTab.requests,
+    fFilterLv.Selected.SubItems[fFilterLv.Selected.SubItems.Count - 1]);
 end;
 
 procedure TLiveHeaders.ClearBtnClick(Sender: TObject);
 begin
-  tabmanager.ActiveTab.Requests.Clear;
+  tabmanager.ActiveTab.requests.Clear;
 end;
 
 procedure TLiveHeaders.PauseBtnClick(Sender: TObject);
@@ -225,7 +226,8 @@ begin
   end;
 end;
 
-function TLiveHeaders.GetImageIndex(const request: TSandcatRequestDetails): integer;
+function TLiveHeaders.GetImageIndex(const request
+  : TSandcatRequestDetails): integer;
 var
   ext: string;
 begin
@@ -272,7 +274,8 @@ begin
     result := ICONIDX_AUDIO;
 end;
 
-function TLiveHeaders.PassFilter(const request: TSandcatRequestDetails): boolean;
+function TLiveHeaders.PassFilter(const request: TSandcatRequestDetails)
+  : boolean;
 var
   matched, foundext, foundtype: boolean;
   URL: string;
@@ -433,13 +436,21 @@ begin
     ImageIndex := -1;
     subitemimages[0] := GetImageIndex(request);
     if request.PostData <> emptystr then
-      SubItems.Add(shorttitle(request.PostData, 100))
+      SubItems.Add(strmaxlen(request.PostData, 100, true))
     else
       SubItems.Add(emptystr);
     SubItems.Add(inttostr(request.StatusCode));
     ImageIndex := GetStatusImageIndex(request.StatusCode);
-    SubItems.Add(request.MimeType);
-    SubItems.Add(getsizedescription(request.Length));
+    if request.MimeType <> emptystr then
+      SubItems.Add(request.MimeType)
+    else // display assumed mime type
+      SubItems.Add(FilenameToMimeType(extracturlfilename(request.URL)));
+    // Length will be zero for 304 because Chromium reads the resource
+    // from the cache
+    if request.StatusCode <> 304 then
+      SubItems.Add(getsizedescription(request.Length))
+    else
+      SubItems.Add('Unknown');
     SubItems.Add(request.Details);
     SubItems.Add(inttostr(ImageIndex));
     SubItems.Add(request.Filename);

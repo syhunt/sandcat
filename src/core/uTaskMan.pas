@@ -692,7 +692,7 @@ var
   ns:string;
 begin
   ns := s;
-  ns := ShortTitle(ns, 200);
+  ns := strmaxlen(ns, 200, true);
   fStatus := ns;
   if fHasMonitor then
   begin
@@ -786,7 +786,7 @@ procedure TSandcatTask.SetCaption(const s: string);
 var
   e: ISandUIElement;
 begin
-  fCaption := ShortTitle(s, 100);
+  fCaption := strmaxlen(s, 100, true);
   if fHasMonitor then
   begin
     e := fMonitor.Root.Select('code.caption[tid="' + ftid + '"]');

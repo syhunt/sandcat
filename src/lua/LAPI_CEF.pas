@@ -17,7 +17,9 @@ type
   { TSandOSR }
   TSandOSR = class(TLuaObject)
   private
+    fiscachedurl: boolean;
     fgetsourceastext: boolean;
+    fcachedsource: string;
     procedure AddressChange(Sender: TObject; const URL: string);
     procedure BeforeDownload(Sender: TObject; const id: integer;
       const suggestedName: string);
@@ -37,6 +39,7 @@ type
     procedure SendRequestCustom(req: TCatChromiumRequest;
       load: boolean = false);
     procedure SourceAvailable(const s: string);
+    function GetURL: string;
   public
     obj: TCatChromiumOSR;
     constructor Create(LuaState: PLua_State; AParent: TLuaObject = nil);
@@ -53,9 +56,15 @@ function BuildRequestFromLuaTable(L: PLua_State): TCatChromiumRequest;
 function BuildRequestDetailsFromJSON(const json: string;
   const response: string = ''): TSandcatRequestDetails;
 
+procedure lua_pushrequestdetails(L: PLua_State; r: TSandcatRequestDetails);
+
 implementation
 
-uses uMain, uConst, uUIComponents, pLuaTable;
+uses uMain, uConst, uUIComponents, uSettings, pLuaTable, CatCEFCache, CatFiles,
+  CatHTTP, CatStrings;
+
+const
+  cURL_Cache = 'chrome://view-http-cache/';
 
 const
   REQUESTKEY_METHOD = 'method';
@@ -133,12 +142,71 @@ begin
   j.Free;
 end;
 
+procedure lua_pushrequestdetails(L: PLua_State; r: TSandcatRequestDetails);
+begin
+  lua_newtable(L);
+  plua_SetFieldValue(L, 'host', r.host);
+  plua_SetFieldValue(L, 'port', r.port);
+  plua_SetFieldValue(L, 'requestid', r.reqid);
+  plua_SetFieldValue(L, REQUESTKEY_DETAILS, r.details);
+  plua_SetFieldValue(L, REQUESTKEY_METHOD, r.method);
+  plua_SetFieldValue(L, REQUESTKEY_URL, r.URL);
+  plua_SetFieldValue(L, REQUESTKEY_POSTDATA, r.postdata);
+  plua_SetFieldValue(L, 'status', r.StatusCode);
+  plua_SetFieldValue(L, 'mimetype', r.MimeType);
+  plua_SetFieldValue(L, 'length', r.Length);
+  plua_SetFieldValue(L, REQUESTKEY_HEADERS, r.SentHead);
+  plua_SetFieldValue(L, 'responseheaders', r.RcvdHead);
+  plua_SetFieldValue(L, 'response', r.response);
+  plua_SetFieldValue(L, 'responsefilename', r.responsefilename);
+  plua_SetFieldValue(L, 'isredir', r.isredir);
+  plua_SetFieldValue(L, 'islow', r.IsLow);
+  plua_SetFieldValue(L, 'filename', r.Filename);
+end;
+
+function get_temp_preview_filename(URL: string): string;
+var
+  dir, urlext: string;
+begin
+  urlext := ExtractUrlFileExt(URL);
+  urlext := CleanFilename(urlext);
+  dir := GetSandcatDir(SCDIR_PREVIEW, true);
+  Result := dir + inttostr(sandbrowser.Handle) + urlext;
+end;
+
+function method_savetofile(L: PLua_State): integer; cdecl;
+var
+  ht: TSandOSR;
+  outfilename: string;
+begin
+  outfilename := lua_tostring(L, 2);
+  ht := TSandOSR(LuaToTLuaObject(L, 1));
+  if outfilename = emptystr then
+    outfilename := get_temp_preview_filename(ht.obj.GetURL);
+  if ht.fiscachedurl = true then
+    ChromeCacheExtract(ht.fcachedsource, outfilename);
+  lua_pushstring(L, outfilename);
+  Result := 1;
+end;
+
 function method_loadurl(L: PLua_State): integer; cdecl;
 var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
+  ht.fiscachedurl := false;
   ht.obj.load(lua_tostring(L, 2));
+  Result := 1;
+end;
+
+function method_loadurlfromcache(L: PLua_State): integer; cdecl;
+var
+  ht: TSandOSR;
+begin
+  ht := TSandOSR(LuaToTLuaObject(L, 1));
+  ht.fgetsourceastext := true;
+  ht.fiscachedurl := true;
+  ht.obj.load(cURL_Cache + lua_tostring(L, 2));
   Result := 1;
 end;
 
@@ -147,6 +215,7 @@ var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
+  ht.fiscachedurl := false;
   ht.obj.loadfromstring(lua_tostring(L, 2), lua_tostring(L, 3));
   Result := 1;
 end;
@@ -156,6 +225,7 @@ var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
+  ht.fiscachedurl := false;
   if lua_istable(L, 2) then // user provided a Lua table
     ht.SendRequestCustom(BuildRequestFromLuaTable(L), true)
   else
@@ -225,13 +295,15 @@ end;
 procedure register_methods(L: PLua_State; classTable: integer);
 begin
   RegisterMethod(L, 'loadurl', @method_loadurl, classTable);
+  RegisterMethod(L, 'loadcached', @method_loadurlfromcache, classTable);
   RegisterMethod(L, 'loadsource', @method_loadsource, classTable);
   RegisterMethod(L, 'loadrequest', @method_loadrequest, classTable);
   RegisterMethod(L, 'reload', @method_reload, classTable);
   RegisterMethod(L, 'runjs', @method_runjavascript, classTable);
+  RegisterMethod(L, 'savetofile', @method_savetofile, classTable);
   RegisterMethod(L, 'sendrequest', @method_sendrequest, classTable);
   RegisterMethod(L, 'showauthdialog', @method_showauthdialog, classTable);
-  RegisterMethod(L, 'stopload', method_stopload, classTable);
+  RegisterMethod(L, 'stop', method_stopload, classTable);
 end;
 
 const
@@ -253,6 +325,13 @@ end;
 procedure RegisterCEF(L: PLua_State);
 begin
   RegisterTLuaObject(L, ObjName, @Create, @register_methods);
+end;
+
+function TSandOSR.GetURL: string;
+begin
+  Result := obj.GetURL;
+  if fiscachedurl = true then
+    Result := after(obj.GetURL, cURL_Cache);
 end;
 
 // Called before starting a file download
@@ -291,24 +370,7 @@ begin
   if LocateEvent('onrequestdone') then
   begin
     r := BuildRequestDetailsFromJSON(json);
-    lua_newtable(L);
-    plua_SetFieldValue(L, 'host', r.host);
-    plua_SetFieldValue(L, 'port', r.port);
-    plua_SetFieldValue(L, 'requestid', r.reqid);
-    plua_SetFieldValue(L, REQUESTKEY_DETAILS, r.details);
-    plua_SetFieldValue(L, REQUESTKEY_METHOD, r.method);
-    plua_SetFieldValue(L, REQUESTKEY_URL, r.URL);
-    plua_SetFieldValue(L, REQUESTKEY_POSTDATA, r.postdata);
-    plua_SetFieldValue(L, 'status', r.StatusCode);
-    plua_SetFieldValue(L, 'mimetype', r.MimeType);
-    plua_SetFieldValue(L, 'length', r.Length);
-    plua_SetFieldValue(L, REQUESTKEY_HEADERS, r.SentHead);
-    plua_SetFieldValue(L, 'responseheaders', r.RcvdHead);
-    plua_SetFieldValue(L, 'response', r.response);
-    plua_SetFieldValue(L, 'responsefilename', r.responsefilename);
-    plua_SetFieldValue(L, 'isredir', r.isredir);
-    plua_SetFieldValue(L, 'islow', r.IsLow);
-    plua_SetFieldValue(L, 'filename', r.Filename);
+    lua_pushrequestdetails(L, r);
     lua_pushstring(L, json);
     lua_pcall(L, 2, 0, 0);
   end;
@@ -345,7 +407,15 @@ end;
 
 procedure TSandOSR.SourceAvailable(const s: string);
 begin
-  CallEvent('onsetsource', [s])
+  if fiscachedurl = false then
+    CallEvent('onsetsource', [s])
+  else
+  begin
+    // store the response for using if the savetofile method is called
+    fcachedsource := s;
+    CallEvent('onsetsource', [ChromeCacheToString(s),
+      GetChromeCacheResponseHeaders(s)]);
+  end;
 end;
 
 procedure TSandOSR.LoadError(Sender: TObject; const errorCode: integer;
@@ -424,6 +494,7 @@ begin
   obj.OnBeforeDownload := BeforeDownload;
   obj.EnableDownloads := false;
   fgetsourceastext := false;
+  fiscachedurl := false;
   obj.LoadSettings(settings.preferences.current, settings.preferences.Default);
 end;
 
@@ -433,10 +504,14 @@ begin
     Result := obj.LogURLs
   else if CompareText(propName, 'downloadfiles') = 0 then
     Result := obj.EnableDownloads
+  else if CompareText(propName, 'getsourceastext') = 0 then
+    Result := fgetsourceastext
+  else if CompareText(propName, 'isloading') = 0 then
+    Result := obj.isLoading
   else if CompareText(propName, 'reslist') = 0 then
     Result := obj.ResourceList.text
   else if CompareText(propName, 'url') = 0 then
-    Result := obj.GetURL
+    Result := GetURL
   else if CompareText(propName, 'urllist') = 0 then
     Result := obj.URLLog.text
   else
@@ -453,8 +528,14 @@ begin
     obj.EnableDownloads := AValue
   else if CompareText(propName, 'getsourceastext') = 0 then
     fgetsourceastext := AValue
+  else if CompareText(propName, 'isloading') = 0 then
+    Result := true // readonly
+  else if CompareText(propName, 'reslist') = 0 then
+    Result := true // readonly
   else if CompareText(propName, 'url') = 0 then
     obj.load(string(AValue))
+  else if CompareText(propName, 'urllist') = 0 then
+    Result := true // readonly
   else
     Result := inherited SetPropValue(propName, AValue);
 end;

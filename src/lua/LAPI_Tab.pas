@@ -30,7 +30,7 @@ implementation
 
 uses
   uMain, uTaskMan, uTab, plua, CatFiles, uMisc, CatStrings, uUIComponents,
-  CatChromium, uSettings, uConst, uZones, pLuaTable, LAPI_CEF;
+  CatChromium, uSettings, uConst, uZones, uLiveHeaders, pLuaTable, LAPI_CEF;
 
 function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
 var
@@ -67,18 +67,6 @@ function method_viewdevtools(L: PLua_State): integer; cdecl;
 begin
   if tabmanager.ActiveTab <> nil then
     tabmanager.ActiveTab.ViewDevTools;
-  result := 1;
-end;
-
-function method_showcached(L: PLua_State): integer; cdecl;
-begin
-  if lua_isnone(L, 3) = true then
-    BottomBar.loadcached(lua_tostring(L, 2))
-  else
-  begin
-    BottomBar.loadcached(lua_tostring(L, 2), lua_tointeger(L, 3));
-    BottomBar.CacheViewChrome_Callback := lua_tostring(L, 4);
-  end;
   result := 1;
 end;
 
@@ -350,6 +338,21 @@ begin
   result := 1;
 end;
 
+function method_request_exists(L: PLua_State): integer; cdecl;
+begin
+  lua_pushboolean(L,tabmanager.ActiveTab.Requests.requestexists(lua_tostring(L, 2)));
+  result := 1;
+end;
+
+function method_request_getdetails(L: PLua_State): integer; cdecl;
+var
+  r: TSandcatRequestDetails;
+begin
+  r := tabmanager.ActiveTab.Requests.GetRequest(lua_tostring(L, 2));
+  lua_pushrequestdetails(L,r);
+  result := 1;
+end;
+
 function method_runluatask(L: PLua_State): integer; cdecl;
 var
   task: TSandcatTask;
@@ -570,8 +573,10 @@ begin
   RegisterMethod(L, 'cache_import', method_cache_import, classTable);
   RegisterMethod(L, 'cache_export', method_cache_export, classTable);
   RegisterMethod(L, 'cache_gettextfile', method_cache_gettextfile, classTable);
+  RegisterMethod(L, 'cache_getrequestdetails', method_request_getdetails, classTable);
   RegisterMethod(L, 'cache_extractfile', method_cache_extractfile, classTable);
   RegisterMethod(L, 'cache_setreqresp', method_request_setresponse, classTable);
+  RegisterMethod(L, 'cache_requestexists', method_request_exists, classTable);
   RegisterMethod(L, 'clearlog', method_clearlog, classTable);
   RegisterMethod(L, 'clearheaders', method_clearheaders, classTable);
   RegisterMethod(L, 'evaljs', method_evaljavascript, classTable);
@@ -579,7 +584,6 @@ begin
   RegisterMethod(L, 'goforward', method_goforward, classTable);
   RegisterMethod(L, 'gotosrcline', method_gotosrcline, classTable);
   RegisterMethod(L, 'gotourl', method_gotourl, classTable);
-  RegisterMethod(L, 'loadcached', method_showcached, classTable);
   RegisterMethod(L, 'loadrequest', method_loadrequest, classTable);
   RegisterMethod(L, 'loadheaders', method_loadheaders, classTable);
   RegisterMethod(L, 'loadsourcetabs', method_loadsourcetabs, classTable);

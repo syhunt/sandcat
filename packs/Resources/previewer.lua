@@ -100,6 +100,7 @@ function Previewer:HandleArchive(f)
 end
 
 function Previewer:NoHighlight(s)
+ debug.print('Previewing with no highlighter...');
  local html = slx.html.escape(s)
  html = '<pre style="background-color:white;border:0;">'..html..'</pre>'
  return html

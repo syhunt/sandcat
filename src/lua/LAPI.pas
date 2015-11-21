@@ -11,30 +11,6 @@ interface
 
 uses SysUtils, Lua;
 
-type
-  TAppInfoType = (
-   info_abouturl,
-   info_cachedir,
-   info_ceflibrary,
-   info_configdir,
-   info_commands,
-   info_downloads,
-   info_exefilename,
-   info_extensions,
-   info_errorlog,
-   info_fullname,
-   info_iconfilename,
-   info_initmode,
-   info_libraries,
-   info_name,
-   info_options,
-   info_proxy,
-   info_tasks,
-   info_useragent,
-   info_version,
-   info_tempscript
-  );
-
 procedure RegisterApp(L: plua_State);
 procedure RegisterBrowser(L: plua_State);
 procedure RegisterConsole(L: plua_State);
@@ -46,7 +22,7 @@ procedure RegisterActiveCodeEdit(L: plua_State);
 implementation
 
 uses pLua, LAPI_Browser, uSettings, uTaskMan, LAPI_Console, LAPI_App,
-  LAPI_CodeEdit, LAPI_TaskMan;
+  LAPI_CodeEdit, LAPI_TaskMan, LAPI_CEF;
 
 procedure RegisterBrowser(L: plua_State);
 const

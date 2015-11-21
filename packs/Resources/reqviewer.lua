@@ -9,10 +9,79 @@ function ReqViewer:clearrequest()
  local ui = self.ui
  ui.reqhead.value = ''
  ui.resphead.value = ''
+ ui.rt_reqhead.value = ''
  ui.rt_preview.value = ''
+ ui.rt_resphead.value = ''
  ui.resptext.value = ''
  ui.hexview.value = ''
  ui.warn:setstyle('display','none')
+end
+
+function ReqViewer:handlecrmsource(source,headers)
+ local ui = self.ui
+ local urlext = slx.url.getfileext(self.crm.url)
+ debug.print('Viewing cache resource...')
+ if slx.re.match(urlext,'.bmp|.gif|.ico|.jpg|.jpeg|.png|.svg') == true then
+  self.crm:savetofile()
+ else
+  ui.resptext.value = source
+ end
+ if ui.resphead.value == '' then
+  ui.resphead.value = headers
+ end
+ if ui.method.value == '' then
+  ui.method.value = 'Cached'
+ end
+ if ui.url.value == '' then
+  ui.url.value = self.crm.url
+ end
+ --ui.hexview.value = not implemented GetChromeCacheRawData(s)
+ self:loadheaders()
+ self:handlepreview()
+end
+
+function ReqViewer:loadcachedurl(url)
+ if self.crm == nil then
+  self.crm = osr:new()
+ end
+ local c = self.crm
+ c.onsetsource = function(s,h) ReqViewer:handlecrmsource(s,h) end
+ if c.isloading == true then
+  c:stop()
+ end
+ c:loadcached(url)
+end
+
+function ReqViewer:loadpreview(r)
+ local std_load = function() ReqViewer:loadheaders() ReqViewer:handlepreview() end
+ if r.response == '' then
+  if r.islow == false then
+   debug.print('Loading URL from cache...')
+   self:loadcachedurl(r.url)
+  else
+   debug.print('Standard preview load (empty response)...')
+   std_load()
+  end
+ else
+  std_load()
+ end
+end
+
+-- Loads a request from the tab live headers VFS
+function ReqViewer:loadrequest(filename)
+ local ui = self.ui
+ self:clearrequest()
+ if tab:cache_requestexists(filename) == true then
+  local r = tab:cache_getrequestdetails(filename)
+  ui.url.value = r.url
+  ui.logfilename.value = filename
+  ui.resphead.value = r.responseheaders
+  ui.reqhead.value = r.headers
+  ui.method.value = r.method
+  --ui.headurl.value = slx.string.maxlen(r.url, 100, true)
+  ui.resptext.value = r.response 
+  self:loadpreview(r)
+ end
 end
 
 function ReqViewer:editrequest(mode)
@@ -210,18 +279,4 @@ function ReqViewer:sendrequest()
  else
   tab:sendxhr(j)
  end
-end
-
-function ReqViewer:viewcached(url)
- if url == nil then
-  url = tab.url
- end
- if browser.bottombar.uix ~= 'ReqViewer.ui' then
-  self:load()
- end
- local ui = self.ui
- ui.url.value = url
- ui.method.value = 'Cached'
- self:clearrequest()
- tab:loadcached(url)
 end
