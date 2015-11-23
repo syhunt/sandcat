@@ -77,6 +77,7 @@ type
   public
     Filter: TLiveHeadersFilter;
     function GetImageIndex(const request: TSandcatRequestDetails): integer;
+    function GetImageIndexForURL(const URL: string): integer;
     function GetStatusImageIndex(const Status: integer): integer;
     function PassFilter(const request: TSandcatRequestDetails): boolean;
     procedure AddRequest(const request: TSandcatRequestDetails);
@@ -224,6 +225,14 @@ begin
     503:
       result := 15;
   end;
+end;
+
+function TLiveHeaders.GetImageIndexForURL(const URL: string): integer;
+var
+  r: TSandcatRequestDetails;
+begin
+  r.URL := URL;
+  result := GetImageIndex(r);
 end;
 
 function TLiveHeaders.GetImageIndex(const request

@@ -252,6 +252,19 @@ begin
   result := 1;
 end;
 
+function method_resources_loadcol(L: PLua_State): integer; cdecl;
+begin
+  tabmanager.ActiveTab.Resources.RedefineColumns(lua_tostring(L, 2),
+    lua_tostring(L, 3));
+  result := 1;
+end;
+
+function method_resources_clear(L: PLua_State): integer; cdecl;
+begin
+  tabmanager.ActiveTab.Resources.Lv.Items.Clear;
+  result := 1;
+end;
+
 { function method_setparam(L:plua_State):integer; cdecl;
   const cParams='Params';
   var t:integer; section:string;
@@ -340,7 +353,8 @@ end;
 
 function method_request_exists(L: PLua_State): integer; cdecl;
 begin
-  lua_pushboolean(L,tabmanager.ActiveTab.Requests.requestexists(lua_tostring(L, 2)));
+  lua_pushboolean(L, tabmanager.ActiveTab.Requests.requestexists
+    (lua_tostring(L, 2)));
   result := 1;
 end;
 
@@ -349,7 +363,7 @@ var
   r: TSandcatRequestDetails;
 begin
   r := tabmanager.ActiveTab.Requests.GetRequest(lua_tostring(L, 2));
-  lua_pushrequestdetails(L,r);
+  lua_pushrequestdetails(L, r);
   result := 1;
 end;
 
@@ -573,7 +587,8 @@ begin
   RegisterMethod(L, 'cache_import', method_cache_import, classTable);
   RegisterMethod(L, 'cache_export', method_cache_export, classTable);
   RegisterMethod(L, 'cache_gettextfile', method_cache_gettextfile, classTable);
-  RegisterMethod(L, 'cache_getrequestdetails', method_request_getdetails, classTable);
+  RegisterMethod(L, 'cache_getrequestdetails', method_request_getdetails,
+    classTable);
   RegisterMethod(L, 'cache_extractfile', method_cache_extractfile, classTable);
   RegisterMethod(L, 'cache_setreqresp', method_request_setresponse, classTable);
   RegisterMethod(L, 'cache_requestexists', method_request_exists, classTable);
@@ -594,6 +609,8 @@ begin
   RegisterMethod(L, 'logrequest', method_logrequest, classTable);
   RegisterMethod(L, 'reload', method_reload, classTable);
   RegisterMethod(L, 'sendrequest', method_sendrequest, classTable);
+  RegisterMethod(L, 'resources_clear', method_resources_clear, classTable);
+  RegisterMethod(L, 'resources_loadcol', method_resources_loadcol, classTable);
   RegisterMethod(L, 'runluaonlog', method_runluaonlog, classTable);
   RegisterMethod(L, 'runjs', method_runjavascript, classTable);
   RegisterMethod(L, 'runsrccmd', method_runsourcecommand, classTable);

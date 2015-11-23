@@ -34,8 +34,6 @@ type // Used for restoring the state of a tab when switching tabs
     IsCustom: boolean;
     IsBookmarked: boolean;
     ProtoIcon: string;
-    ResourcesAscending: boolean;
-    ResourcesLastSortedColumn: integer;
     ShowNavBar: boolean;
     ShowTabsStrip: boolean;
     URL: string;
@@ -44,6 +42,26 @@ type // Used for restoring the state of a tab when switching tabs
     procedure SaveState;
     constructor Create;
     destructor Destroy; override;
+  end;
+
+type
+  TTabResourceList = class(TCustomControl)
+  private
+    fLv: TListView;
+    fAscending: boolean;
+    fOpenItemFunc: string;
+    fLastSortedColumn: integer;
+    procedure ListViewDblClick(Sender: TObject);
+    procedure ListviewColumnClick(Sender: TObject; Column: TListColumn);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure AddPageResource(const URL: string; ImgIdx: integer);
+    procedure AddPageResourceCustom(const JSON: string);
+    procedure RedefineColumns(const def, itemclickfunc: string);
+    // properties
+    property Lv: TListView read fLv;
+    property Ascending: boolean read fAscending;
   end;
 
 type
@@ -82,7 +100,7 @@ type
     fNumber: integer; // unique tab number
     fOnMessage: TSandcatTabOnMessage;
     fRequests: TSandcatRequests;
-    fResourcesLv: TListView;
+    fResources: TTabResourceList;
     fRetrieveFavIcon: boolean;
     fSideTree: TTreeView;
     fSyncWithTask: boolean;
@@ -100,7 +118,6 @@ type
     function GetIcon: string;
     function GetSitePrefsFile: string;
     function GetTitle: string;
-    procedure AddPageResource(const URL: string);
     procedure BrowserMessage(const msg: integer; const str: string);
     procedure CopyDataMessage(const msg: integer; const str: string);
     // procedure CodeEditDropFiles(Sender: TObject; X, Y: integer;
@@ -126,11 +143,8 @@ type
       const isLoading, canGoBack, canGoForward: boolean);
     procedure CrmLoadError(Sender: TObject; const errorCode: integer;
       const errorText, failedUrl: string);
-    procedure LogCustomScriptError(const json: string);
-    procedure ResourcesListViewClick(Sender: TObject);
-    procedure ResourcesListviewColumnClick(Sender: TObject;
-      Column: TListColumn);
-    procedure RunJSONCmd(const json: string);
+    procedure LogCustomScriptError(const JSON: string);
+    procedure RunJSONCmd(const JSON: string);
     procedure RunUserScript(var script: string; const lang: integer;
       const runonce: boolean = false);
     procedure RunUserScripts(const event: integer);
@@ -197,6 +211,7 @@ type
     property msg: TCatMsg read fMsg;
     property Number: integer read fNumber write fNumber;
     property Requests: TSandcatRequests read fRequests;
+    property Resources: TTabResourceList read fResources;
     property SitePrefsFile: string read GetSitePrefsFile;
     property SourceInspect: TSyCodeInspector read fSourceInspect;
     property state: TTabState read fState;
@@ -249,19 +264,6 @@ var
 procedure Debug(const s: string; const component: string = 'Tab');
 begin
   uMain.Debug(s, component);
-end;
-
-// Sorts the resources page listview columns
-function Resources_SortByColumn(Item1, Item2: TListItem; Data: integer)
-  : integer; stdcall;
-begin
-  if Data = 0 then
-    Result := AnsiCompareText(Item1.Caption, Item2.Caption)
-  else
-    Result := AnsiCompareText(Item1.SubItems[Data - 1],
-      Item2.SubItems[Data - 1]);
-  if not tabmanager.ActiveTab.state.ResourcesAscending then
-    Result := -Result;
 end;
 
 // Returns the filename of a site preferences file. This is a JSON file that
@@ -395,7 +397,6 @@ procedure TSandcatTab.LoadState;
 begin
   fState.LoadState(UID, GetURL);
   fSubTabs.ActivePage := fState.ActivePage;
-
   SetLoading(fLoading); // Reloads the state of stop/reload button
   contentarea.SetActivePage(fState.ActivePageName);
   if fState.IsCustom then
@@ -538,20 +539,6 @@ begin
   end;
 end;
 
-// Adds a resource to the resource list in the resource page
-procedure TSandcatTab.AddPageResource(const URL: string);
-var
-  r: TSandcatRequestDetails;
-begin
-  r.URL := URL;
-  with fResourcesLv.Items.Add do
-  begin
-    Caption := extracturlfilename(URL);
-    SubItems.Add(URL);
-    imageindex := fLiveHeaders.GetImageIndex(r);
-  end;
-end;
-
 // Handling of messages originating from the Chromium component
 // Can also originate from the V8 engine running in the isolated tab process
 procedure TSandcatTab.BrowserMessage(const msg: integer; const str: string);
@@ -560,7 +547,7 @@ begin
     exit;
   case (msg) of
     CRM_NEWPAGERESOURCE:
-      AddPageResource(str);
+      Resources.AddPageResource(str, fLiveHeaders.GetImageIndexForURL(str));
     CRM_JS_ALERT:
       sanddlg.ShowAlertText(str);
     CRM_LOG_REQUEST_JSON:
@@ -590,25 +577,6 @@ begin
   fChrome.SetV8MsgHandle(fMsgV8.msgHandle);
 end;
 
-// Sorts items by the clicked resources page column
-procedure TSandcatTab.ResourcesListviewColumnClick(Sender: TObject;
-  Column: TListColumn);
-begin
-  if Column.index = state.ResourcesLastSortedColumn then
-    state.ResourcesAscending := not state.ResourcesAscending
-  else
-    state.ResourcesLastSortedColumn := Column.index;
-  TListView(Sender).CustomSort(@Resources_SortByColumn, Column.index);
-end;
-
-// Called when a list item is clicked in the resources page, displays the
-// resource (usually from the cache)
-procedure TSandcatTab.ResourcesListViewClick(Sender: TObject);
-begin
-  if (fResourcesLv.Selected <> nil) then
-    UIX.ShowResource(fResourcesLv.Selected.SubItems[0]);
-end;
-
 // Called when a page starts loading, updates the navigation bar
 procedure TSandcatTab.CrmLoadStart(Sender: TObject);
 begin
@@ -621,7 +589,7 @@ begin
     fSourceInspect.setsource(emptystr);
   fState.ProtoIcon := '@ICON_GLOBE';
   fState.IsBookmarked := false;
-  fResourcesLv.Items.Clear;
+  fResources.Lv.Items.Clear;
   if IsActiveTab then
   begin
     // update the nav bar only if this is not a tab loading in the background
@@ -646,12 +614,12 @@ begin
 end;
 
 // Used by Sandcat tasks to log a Lua error during execution
-procedure TSandcatTab.LogCustomScriptError(const json: string);
+procedure TSandcatTab.LogCustomScriptError(const JSON: string);
 var
   j: TSandJSON;
 begin
-  j := TSandJSON.Create(json);
-  Extensions.LogScriptError(j['sender'], j['line'], j['msg'],false);
+  j := TSandJSON.Create(JSON);
+  Extensions.LogScriptError(j['sender'], j['line'], j['msg'], false);
   j.Free;
 end;
 
@@ -1001,26 +969,30 @@ begin
 end;
 
 type
-  TJSONCmds = (cmd_runtbtis, cmd_setaffecteditems, cmd_seticon,
-    cmd_syncwithtask);
+  TJSONCmds = (cmd_resaddcustomitem, cmd_runtbtis, cmd_setaffecteditems,
+    cmd_seticon, cmd_syncwithtask);
 
   // Runs simple commands in the form of a JSON object (used by Sandcat tasks
   // that run in an isolated process)
-procedure TSandcatTab.RunJSONCmd(const json: string);
+procedure TSandcatTab.RunJSONCmd(const JSON: string);
 var
   j: TSandJSON;
-  cmd: string;
+  cmd, str: string;
 begin
-  j := TSandJSON.Create(json);
+  j := TSandJSON.Create(JSON);
   cmd := lowercase(j['cmd']);
+  str := j['s'];
+  Debug('received JSON cmd:' + cmd + ' with content:' + str);
   case TJSONCmds(GetEnumValue(TypeInfo(TJSONCmds), 'cmd_' + cmd)) of
+    cmd_resaddcustomitem:
+      fResources.AddPageResourceCustom(str);
     cmd_runtbtis:
       if fCustomToolbar <> nil then
-        fCustomToolbar.Eval(j['s']);
+        fCustomToolbar.Eval(str);
     cmd_setaffecteditems:
-      SideTree_LoadAffectedScripts(j['s']);
+      SideTree_LoadAffectedScripts(str);
     cmd_seticon:
-      SetIcon(j['s']);
+      SetIcon(str);
     cmd_syncwithtask:
       fSyncWithTask := true;
   end;
@@ -1132,29 +1104,10 @@ begin
   fLog.Color := clBtnFace;
   fLog.ScrollBars := ssBoth;
   // Creates the resources page
-  fResourcesLv := TListView.Create(fBrowserPanel);
-  fResourcesLv.Parent :=
+  fResources := TTabResourceList.Create(fBrowserPanel);
+  fResources.Parent :=
     TPage(fSubTabs.Pages.Objects[fSubTabs.Pages.IndexOf('resources')]);
-  fResourcesLv.Align := AlClient;
-  fResourcesLv.SmallImages := SandBrowser.LiveImages;
-  fResourcesLv.ReadOnly := true;
-  fResourcesLv.DoubleBuffered := true;
-  fResourcesLv.ViewStyle := vsReport;
-  fResourcesLv.RowSelect := true;
-  fResourcesLv.HideSelection := false;
-  fResourcesLv.OnDblClick := ResourcesListViewClick;
-  fResourcesLv.OnColumnClick := ResourcesListviewColumnClick;
-  fResourcesLv.SortType := stBoth;
-  with fResourcesLv.Columns.Add do
-  begin
-    Caption := 'Name';
-    Width := 200;
-  end;
-  with fResourcesLv.Columns.Add do
-  begin
-    Caption := 'URL';
-    autosize := true;
-  end;
+  fResources.Align := AlClient;
 end;
 
 // Creates the live headers panel and associated components
@@ -1228,7 +1181,7 @@ begin
   fLog.Free;
   fSourceInspect.Free;
   fLiveHeaders.Free;
-  fResourcesLv.Free;
+  fResources.Free;
   fBrowserPanel.Free;
   fSubTabs.Free;
   fLuaOnLog.Free;
@@ -1293,5 +1246,149 @@ destructor TTabState.Destroy;
 begin
   inherited Destroy;
 end;
+
+// ------------------------------------------------------------------------//
+// TTabResourceList                                                        //
+// ------------------------------------------------------------------------//
+
+// Sorts the resources page listview columns
+function Resources_SortByColumn(Item1, Item2: TListItem; Data: integer)
+  : integer; stdcall;
+begin
+  if Data = 0 then
+    Result := AnsiCompareText(Item1.Caption, Item2.Caption)
+  else
+    Result := AnsiCompareText(Item1.SubItems[Data - 1],
+      Item2.SubItems[Data - 1]);
+  if not tabmanager.activetab.Resources.Ascending then
+    Result := -Result;
+end;
+
+// Sorts items by the clicked resources page column
+procedure TTabResourceList.ListviewColumnClick(Sender: TObject;
+  Column: TListColumn);
+begin
+  if Column.index = fLastSortedColumn then
+    fAscending := not fAscending
+  else
+    fLastSortedColumn := Column.index;
+  TListView(Sender).CustomSort(@Resources_SortByColumn, Column.index);
+end;
+
+// Called when a list item is double clicked in the resources page, displays the
+// resource (usually from the cache)
+procedure TTabResourceList.ListViewDblClick(Sender: TObject);
+begin
+  if (fLv.Selected = nil) then
+    exit;
+  if fOpenItemFunc = emptystr then
+    UIX.ShowResource(fLv.Selected.SubItems[0]) // regular display of URL
+  else
+  begin
+    Extensions.LuaWrap.value['_temppath'] := fLv.Selected.SubItems
+      [fLv.Selected.SubItems.Count - 1]; // gets parameter from last subitem
+    Extensions.RunLuaCmd(fOpenItemFunc + '(_temppath)');
+  end;
+end;
+
+// Adds a resource URL (like a .js or .css) to the resource list
+procedure TTabResourceList.AddPageResource(const URL: string; ImgIdx: integer);
+begin
+  with fLv.Items.Add do
+  begin
+    Caption := extracturlfilename(URL);
+    SubItems.Add(URL);
+    imageindex := ImgIdx;
+  end;
+end;
+
+// Experimental: allows an extension to add custom resource items
+procedure TTabResourceList.AddPageResourceCustom(const JSON: string);
+var
+  j: TSandJSON;
+  i, c: integer;
+  itemstr: string;
+begin
+  j := TSandJSON.Create(JSON);
+  c := j.GetValue('subitemcount', 0);
+  Debug('add custom page resource with subitemcount:' + IntToStr(c));
+  with fLv.Items.Add do
+  begin
+    Caption := j['caption'];
+    imageindex := j.GetValue('imageindex', -1);
+    if c <> 0 then
+    begin
+      for i := 1 to c do
+      begin
+        itemstr := j['subitem' + IntToStr(i)];
+        SubItems.Add(itemstr);
+      end;
+    end;
+  end;
+  j.Free;
+end;
+
+// Experimental: allows an extension to redefine the resource listview columns
+procedure TTabResourceList.RedefineColumns(const def, itemclickfunc: string);
+var
+  slp: TSandSLParser;
+begin
+  fOpenItemFunc := itemclickfunc;
+  fLv.Columns.Clear;
+  fLv.SortType := stNone;
+  slp := TSandSLParser.Create;
+  slp.LoadFromString(def);
+  while slp.Found do
+  begin
+    if slp.current <> emptystr then
+    begin
+      with fLv.Columns.Add do
+      begin
+        Caption := slp['c'];
+        if slp['a'] = '1' then
+          AutoSize := true
+        else
+          AutoSize := false;
+        Width := strtointsafe(slp['w'], 0);
+      end;
+    end;
+  end;
+  slp.Free;
+end;
+
+constructor TTabResourceList.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  fLv := TListView.Create(self);
+  fLv.Parent := self;
+  fLv.Align := AlClient;
+  fLv.SmallImages := SandBrowser.LiveImages;
+  fLv.ReadOnly := true;
+  fLv.DoubleBuffered := true;
+  fLv.ViewStyle := vsReport;
+  fLv.RowSelect := true;
+  fLv.HideSelection := false;
+  fLv.OnDblClick := ListViewDblClick;
+  fLv.OnColumnClick := ListviewColumnClick;
+  fLv.SortType := stBoth;
+  with fLv.Columns.Add do
+  begin
+    Caption := 'Name';
+    Width := 200;
+  end;
+  with fLv.Columns.Add do
+  begin
+    Caption := 'URL';
+    AutoSize := true;
+  end;
+end;
+
+destructor TTabResourceList.Destroy;
+begin
+  fLv.Free;
+  inherited Destroy;
+end;
+
+// ------------------------------------------------------------------------//
 
 end.

@@ -129,9 +129,10 @@ procedure Debug(const s: string; const component: string = 'UI');
 var
   Msg: string;
 begin
+  Msg := component + ': ' + s;
+  OutputDebugString(pWideChar(msg));
   if DebugMode = false then
     exit;
-  Msg := component + ': ' + s;
   DebugMemo.Lines.add(Msg);
   if CreateDebugLog then
     SendToLog(DbgLogFileName, Msg);
