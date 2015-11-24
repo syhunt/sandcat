@@ -211,6 +211,8 @@ end;
 
 procedure TSandBrowser.FormCreate(Sender: TObject);
 begin
+  // makes the app. icon blank during startup
+  Application.Icon := Self.Icon;
   DbgLogFileName := ProgDir + '\' + vDebugFile;
   //EnableDebugMode;
   if fileexists(DbgLogFileName) then

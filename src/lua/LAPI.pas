@@ -76,7 +76,7 @@ end;
 
 procedure RegisterApp(L: plua_State);
 const
-  app_table: array [1 .. 16] of luaL_reg = (
+  app_table: array [1 .. 17] of luaL_reg = (
   (name: 'ask_yn';func: app_askyesorno),
   // (name:'doedit';func:app_do_operation),
   (name: 'editlist'; func: app_editlist),
@@ -84,6 +84,7 @@ const
   (name: 'openfile'; func: app_showopendialog),
   (name: 'savefile'; func: app_showsavedialog),
   (name: 'selectdir'; func: app_showopendirdialog),
+  (name: 'seticonfromfile'; func: app_seticonfromfile),
   (name: 'seticonfromres'; func: app_seticonfromres),
   (name: 'settitle'; func: app_settitle),
   (name: 'showalert'; func: app_showalert),

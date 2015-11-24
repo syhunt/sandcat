@@ -12,7 +12,7 @@ interface
 {$I Catarinka.inc}
 
 uses Lua, Classes, Windows, Messages, SysUtils, Forms, Dialogs, TypInfo,
-  FileCtrl;
+  FileCtrl, ShellAPI;
 
 function lua_getappinfo(L: plua_State): Integer; cdecl;
 function lua_setappinfo(L: plua_State): Integer; cdecl;
@@ -31,6 +31,7 @@ function app_showopendirdialog(L: plua_State): Integer; cdecl;
 function app_showsavedialog(L: plua_State): Integer; cdecl;
 function app_showhtmlmessage(L: plua_State): Integer; cdecl;
 function app_seticonfromres(L: plua_State): Integer; cdecl;
+function app_seticonfromfile(L: plua_State): Integer; cdecl;
 
 implementation
 
@@ -169,6 +170,18 @@ var
 begin
   s := lua_tostring(L, 1);
   Application.Icon.Handle := LoadIcon(HInstance, pWideChar(s));
+  SandBrowser.Icon := Application.Icon;
+  result := 1;
+end;
+
+function app_seticonfromfile(L: plua_State): Integer; cdecl;
+var
+  s: string;
+  LargeIco, SmallIco : hIcon;
+begin
+  s := lua_tostring(L, 1);
+  ExtractIconEx(pWideChar(s), 0, LargeIco, SmallIco, 1);
+  Application.Icon.Handle := LargeIco;
   SandBrowser.Icon := Application.Icon;
   result := 1;
 end;

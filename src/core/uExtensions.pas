@@ -10,7 +10,7 @@ unit uExtensions;
 interface
 
 uses
-  SysUtils, Classes, Forms, Controls, Dialogs, TypInfo, ExtCtrls,
+  Windows, SysUtils, Classes, Forms, Controls, Dialogs, TypInfo, ExtCtrls,
   Lua, uUIComponents;
 
 type
@@ -120,7 +120,7 @@ end;
 
 procedure TSandcatExtensions.CreateLuaEngine;
 begin
-  debug('createluaengine.begin');
+  Debug('createluaengine.begin');
   fCanRunLua := true;
   fLuaWrap := TSandLua.Create(nil);
   fLuaWrap.UseDebug := false;
@@ -134,12 +134,12 @@ begin
     @lua_method_getjsvalue);
   Register_Sandcat(fLuaWrap.LuaState);
   fLuaWrap.Value['ProgDir'] := progdir;
-  debug('createluaengine.sandcatlua.begin');
+  Debug('createluaengine.sandcatlua.begin');
   fLuaWrap.ExecuteCmd(GetResourceAsString('SANDCAT', 'Lua'));
-  debug('createluaengine.sandcatlua.end');
+  Debug('createluaengine.sandcatlua.end');
   fLuaWrap.ExecuteCmd('Sandcat:Init()');
   // fLuaWrap.ExecuteCmd(GetPakResourceAsString('Sandcat.lua'));
-  debug('createluaengine.end');
+  Debug('createluaengine.end');
 end;
 
 procedure TSandcatExtensions.RunLua(const cmd: string);
@@ -324,7 +324,12 @@ end;
 procedure TSandcatExtensions.Load(const param: string);
 begin
   if beginswith(param, cModeParam) then
-    CurrentInitMode := after(param, ':');
+    CurrentInitMode := after(param, ':')
+  else
+  begin
+    Application.icon.Handle := LoadIcon(HInstance, pWideChar('MAINICON'));
+    SandBrowser.icon := Application.icon;
+  end;
   CreateLuaEngine;
   if Enabled = true then
     Broadcast('init', true);
@@ -435,7 +440,7 @@ begin
     else
     begin
       extensions.RunLuaCmd(s);
-      application.ProcessMessages;
+      Application.ProcessMessages;
     end;
   end;
   d.free;

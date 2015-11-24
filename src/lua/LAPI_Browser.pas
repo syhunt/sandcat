@@ -412,8 +412,14 @@ begin
 end;
 
 function lua_newtab(L: plua_State): integer; cdecl;
+var
+  tab: TSandcatTab;
 begin
-  tabmanager.NewTab(lua_tostring(L, 1), lua_tostring(L, 2));
+  tab := tabmanager.NewTab(lua_tostring(L, 1), lua_tostring(L, 2));
+  if tab.UID <> emptystr then
+    lua_pushinteger(L, tab.number)
+  else
+    lua_pushinteger(L, 0);
   result := 1;
 end;
 
