@@ -26,13 +26,14 @@ uses pLua, LAPI_Browser, uSettings, uTaskMan, LAPI_Console, LAPI_App,
 
 procedure RegisterBrowser(L: plua_State);
 const
-  sandcatbrowser_table: array [1 .. 32] of luaL_reg = (
+  sandcatbrowser_table: array [1 .. 33] of luaL_reg = (
   (name: 'addjs'; func: lua_addjavascript),
   (name: 'addlibinfo'; func: lua_addlibraryinfo),
   (name: 'addlua'; func: lua_addluascript),
   (name: 'addtis'; func: lua_addtis),
   (name: 'bookmark'; func: lua_method_bookmark),
   (name: 'cleardata'; func: lua_clearprivatedata),
+  (name: 'cleartasks'; func: lua_bgtaskclear),
   (name: 'closepage'; func: lua_closepage),
   (name: 'closetab'; func: lua_closetab),
   (name: 'closetabs'; func: lua_closetabs),

@@ -40,7 +40,7 @@ type
     fMonitor: TSandUIEngine;
     fMonitorQueue: TStringList;
     fMonitorQueueTimer: TTimer;
-    fMsg:TCatMsg;
+    fMsg: TCatMsg;
     fOnStop: TSandcatTaskOnStop;
     fOriginatorTab: string;
     fParams: TSandJSON;
@@ -88,10 +88,10 @@ type
     property Icon: string read fIcon write SetIcon;
     property IsDownload: boolean read fIsDownload;
     property IsSuspended: boolean read fSuspended;
-    property Msg: TCatMsg read fMsg;
+    property msg: TCatMsg read fMsg;
     property OnStop: TSandcatTaskOnStop read fOnStop write fOnStop;
     property Status: string read fStatus write SetStatus;
-    property TID: string read fTID;
+    property tid: string read fTID;
   end;
 
 type
@@ -106,13 +106,15 @@ type
     procedure ShutDown;
     procedure TaskStopped(const tid: string);
   public
-    function AddTask(const MenuHTML: string; const Hidden: boolean = false): TSandcatTask;
+    function AddTask(const MenuHTML: string; const Hidden: boolean = false)
+      : TSandcatTask;
     function SelectTask(const tid: string): TSandcatTask;
+    procedure ClearInactiveTasks;
     procedure GetDownloadList(var sl: TStringList);
     procedure GetTaskList(var sl: TStringList);
     procedure RemoveTask(const tid: string);
     procedure RunJSONCmd(const json: string);
-    procedure SetTaskParam_JSON(const json:string);
+    procedure SetTaskParam_JSON(const json: string);
     procedure StopTask(const tid: string);
     procedure SuspendResumeTask(const tid: string);
     procedure SuspendTask(const tid: string; const resume: boolean = false);
@@ -131,11 +133,11 @@ type
   public
     function Add(did: integer; fullpath: string): TSandcatDownload;
     function Get(did: integer): TSandcatDownload;
-    procedure CancelList(list:TStringList);
+    procedure CancelList(list: TStringList);
     procedure Delete(did: integer);
-    procedure HandleUpdate(list:TStringList; var cancel: boolean;
-     const id, state, percentcomplete: integer; const fullPath: string);
-    procedure RemoveDownloadFromList(list:TStringList;const id: string);
+    procedure HandleUpdate(list: TStringList; var cancel: boolean;
+      const id, state, percentcomplete: integer; const fullpath: string);
+    procedure RemoveDownloadFromList(list: TStringList; const id: string);
     procedure SetDownloadFilename(did: integer; suggestedname: string);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
@@ -152,6 +154,11 @@ uses uMain, uZones, uTab, uMisc, LAPI_Task, CatHTTP, CatUI, pLua, pLuaTable,
 
 var
   tasks_shutdown: boolean = false;
+
+procedure Debug(const s: string; const component: string = 'Taskman');
+begin
+  uMain.Debug(s, component);
+end;
 
 procedure SendAMessage(desthandle, msgid: integer; msgstr: string);
 var
@@ -213,17 +220,17 @@ begin
   j.Free;
 end;
 
-procedure TSandcatTaskManager.SetTaskParam_JSON(const json:string);
+procedure TSandcatTaskManager.SetTaskParam_JSON(const json: string);
 var
-    p: TSandJINI;
-    task: tsandcattask;
+  p: TSandJINI;
+  Task: TSandcatTask;
 begin
-    p := TSandJINI.Create;
-    p.Text := json;
-    task := SelectTask(p.values['TID']);
-    if task <> nil then
-      task.SetParam(p.values['Name'], base64decode(p.values['Value']));
-    p.Free;
+  p := TSandJINI.Create;
+  p.Text := json;
+  Task := SelectTask(p.values['TID']);
+  if Task <> nil then
+    Task.SetParam(p.values['Name'], base64decode(p.values['Value']));
+  p.Free;
 end;
 
 function TSandcatTaskManager.CountActive: integer;
@@ -263,7 +270,7 @@ begin
   begin
     Task := TSandcatTask(fCache.ObjectAt(c));
     if Task <> nil then
-      sl.Add(Task.ftid);
+      sl.Add(Task.fTID);
   end;
 end;
 
@@ -279,7 +286,7 @@ begin
     if Task <> nil then
     begin
       if Task.fIsDownload then
-        sl.Add(Task.ftid);
+        sl.Add(Task.fTID);
     end;
   end;
 end;
@@ -294,7 +301,7 @@ begin
   begin
     Task := TSandcatTask(fCache.ObjectAt(c));
     if Task <> nil then
-      if Task.ftid = tid then
+      if Task.fTID = tid then
         result := true;
   end;
 end;
@@ -309,7 +316,7 @@ begin
   begin
     Task := TSandcatTask(fCache.ObjectAt(c));
     if Task <> nil then
-      if Task.ftid = tid then
+      if Task.fTID = tid then
         result := Task;
   end;
 end;
@@ -333,7 +340,8 @@ begin
   Task.Suspend(Task.IsSuspended);
 end;
 
-procedure TSandcatTaskManager.SuspendTask(const tid: string; const resume: boolean = false);
+procedure TSandcatTaskManager.SuspendTask(const tid: string;
+  const resume: boolean = false);
 var
   Task: TSandcatTask;
 begin
@@ -355,15 +363,17 @@ begin
   fCache.Remove(Task);
 end;
 
-function TSandcatTaskManager.AddTask(const MenuHTML: string; const Hidden: boolean = false)
-  : TSandcatTask;
+function TSandcatTaskManager.AddTask(const MenuHTML: string;
+  const Hidden: boolean = false): TSandcatTask;
 const
   basic_menu = '<li .stop onclick="browser.stoptask([[%t]])">Stop</li>' + crlf +
     '<li .suspend onclick="browser.suspendtask([[%t]])">Suspend/Resume</li>' +
-    crlf + '<li .remove onclick="browser.removetask([[%t]])">Remove</li>';
+    crlf + '<li .remove onclick="browser.removetask([[%t]])">Remove</li>' + crlf
+    + '<hr/>' + crlf
+    + '<li onclick="browser.cleartasks()">Clear Tasks</li>';
 var
   Task: TSandcatTask;
-  taskid,menu: string;
+  taskid, menu: string;
   tab: TSandcatTab;
   j: TSandJSON;
   function myformat(s: string): string;
@@ -373,7 +383,7 @@ var
 
 begin
   result := nil;
-  menu:=menuhtml;
+  menu := MenuHTML;
   fStartedTasks := fStartedTasks + 1;
   taskid := inttostr(DateTimeToUnix(Now)) + '-' + inttostr(fStartedTasks);
   if TaskExists(taskid) then
@@ -396,7 +406,7 @@ begin
     if tab <> nil then
     begin
       Task.fOriginatorTab := tab.UID;
-      Task.fTabMsgHandle := tab.Msg.msgHandle;
+      Task.fTabMsgHandle := tab.msg.msgHandle;
       if contentarea.PageExists('tasks') = false then
       begin
         contentarea.createpage('tasks');
@@ -416,12 +426,30 @@ begin
   end;
 end;
 
+procedure TSandcatTaskManager.ClearInactiveTasks;
+var
+  c: integer;
+  Task: TSandcatTask;
+begin
+  Debug('clear.inactivetasks.begin');
+  for c := fCache.Count - 1 downto 0 do
+  begin
+    Task := TSandcatTask(fCache.ObjectAt(c));
+    if Task <> nil then
+    begin
+      if Task.Enabled = false then
+        RemoveTask(Task.tid);
+    end;
+  end;
+  Debug('clear.inactivetasks.end');
+end;
+
 procedure TSandcatTaskManager.KillActiveTasks;
 var
   c: integer;
   Task: TSandcatTask;
 begin
-  debug('kill.activetasks.begin', 'TaskMan');
+  Debug('kill.activetasks.begin');
   for c := fCache.Count - 1 downto 0 do
   begin
     Task := TSandcatTask(fCache.ObjectAt(c));
@@ -435,7 +463,7 @@ begin
       end;
     end;
   end;
-  debug('kill.activetasks.end', 'TaskMan');
+  Debug('kill.activetasks.end');
 end;
 
 constructor TSandcatTaskManager.Create(AOwner: TWinControl);
@@ -448,7 +476,7 @@ end;
 
 procedure TSandcatTaskManager.ShutDown;
 begin
-  debug('shutdown', 'TaskMan');
+  Debug('shutdown');
   tasks_shutdown := true;
   KillActiveTasks;
 end;
@@ -481,7 +509,7 @@ var
 begin
   Task := tasks.AddTask(emptystr);
   Task.fIsDownload := true;
-  fDownloads.writestring(inttostr(did), 'tid', Task.ftid);
+  fDownloads.writestring(inttostr(did), 'tid', Task.fTID);
   Task.SetCaption(fDownloads.readstring(inttostr(did), 'file', emptystr));
   result := Task;
 end;
@@ -493,26 +521,27 @@ begin
 end;
 
 // Cancels any active downloads that are in a list of download IDs
-procedure TSandcatDownloadManager.CancelList(list:TStringList);
+procedure TSandcatDownloadManager.CancelList(list: TStringList);
 var
   slp: TSandSLParser;
   d: TSandcatDownload;
 begin
-  slp := TSandSLParser.Create(List);
+  slp := TSandSLParser.Create(list);
   while slp.Found do
   begin
     d := Get(strtoint(slp.current));
     if d <> nil then
     begin
-      d.stop;
-      RemoveDownloadFromList(List,slp.current);
+      d.Stop;
+      RemoveDownloadFromList(list, slp.current);
     end;
   end;
   slp.Free;
 end;
 
-procedure TSandcatDownloadManager.HandleUpdate(list:TStringList; var cancel: boolean;
-  const id, state, percentcomplete: integer; const fullPath: string);
+procedure TSandcatDownloadManager.HandleUpdate(list: TStringList;
+  var cancel: boolean; const id, state, percentcomplete: integer;
+  const fullpath: string);
 var
   d: TSandcatDownload;
 begin
@@ -521,9 +550,9 @@ begin
   begin // Task not found, creates it
     if state = SCD_INPROGRESS then
     begin
-      if List.IndexOf(inttostr(id)) = -1 then
-        List.Add(inttostr(id));
-      d := Add(id, fullPath);
+      if list.IndexOf(inttostr(id)) = -1 then
+        list.Add(inttostr(id));
+      d := Add(id, fullpath);
       contentarea.SetActivePage('tasks');
     end;
   end;
@@ -543,32 +572,33 @@ begin
     SCD_COMPLETE:
       begin
         d.SetProgress(100);
-        d.stop('Download Complete.');
+        d.Stop('Download Complete.');
         d.Icon := ICON_CHECKED;
-        if fullPath <> emptystr then
+        if fullpath <> emptystr then
         begin
           d.SetScript('ondblclick', 'Downloader:launch(slx.base64.decode[[' +
-            base64encode(fullPath) + ']])');
-          d.DownloadFilename := fullPath;
+            base64encode(fullpath) + ']])');
+          d.DownloadFilename := fullpath;
         end;
-        RemoveDownloadFromList(List, inttostr(id));
+        RemoveDownloadFromList(list, inttostr(id));
       end;
     SCD_CANCELED:
       begin
         if percentcomplete <= 100 then
           d.SetProgress(percentcomplete);
-        d.stop;
-        RemoveDownloadFromList(List, inttostr(id));
+        d.Stop;
+        RemoveDownloadFromList(list, inttostr(id));
       end;
   end;
 end;
 
 // Removes a download from a list of downloads by its ID
-procedure TSandcatDownloadManager.RemoveDownloadFromList(list:TStringList;const id: string);
+procedure TSandcatDownloadManager.RemoveDownloadFromList(list: TStringList;
+  const id: string);
 begin
-  if List.IndexOf(id) <> -1 then
+  if list.IndexOf(id) <> -1 then
   begin
-    List.Delete(List.IndexOf(id));
+    list.Delete(list.IndexOf(id));
     Delete(strtoint(id));
   end;
 end;
@@ -616,6 +646,7 @@ begin
       fIcon := ICON_LUA;
   end;
   plua_SetFieldValue(L, 'icon', fIcon);
+  plua_SetFieldValue(L, 'enabled', fEnabled);
   plua_SetFieldValue(L, 'filename', fDownloadFilename);
   plua_SetFieldValue(L, 'status', fStatus);
   plua_SetFieldValue(L, 'onclick', fScripts.OnClick);
@@ -676,12 +707,12 @@ var
   processid: cardinal;
   e: ISandUIElement;
 begin
-  processid := RunTaskSeparateProcess(ftid, s,
-    tabmanager.ActiveTab.Msg.msgHandle, fParams);
+  processid := RunTaskSeparateProcess(fTID, s,
+    tabmanager.ActiveTab.msg.msgHandle, fParams);
   self.fPID := processid;
   if fHasMonitor then
   begin
-    e := fMonitor.Root.Select('code.pid[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('code.pid[tid="' + fTID + '"]');
     e.value := 'PID ' + inttostr(fPID);
   end;
 end;
@@ -689,14 +720,14 @@ end;
 procedure TSandcatTask.SetStatus(const s: string);
 var
   e: ISandUIElement;
-  ns:string;
+  ns: string;
 begin
   ns := s;
   ns := strmaxlen(ns, 200, true);
   fStatus := ns;
   if fHasMonitor then
   begin
-    e := fMonitor.Root.Select('code.stat[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('code.stat[tid="' + fTID + '"]');
     e.value := ns;
   end;
 end;
@@ -707,18 +738,18 @@ var
   cMainDiv: string;
   procedure setfontcolor(color: string);
   begin
-    e := fMonitor.Root.Select('code.pid[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('code.pid[tid="' + fTID + '"]');
     e.StyleAttr['color'] := color;
-    e := fMonitor.Root.Select('code.stat[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('code.stat[tid="' + fTID + '"]');
     e.StyleAttr['color'] := color;
-    e := fMonitor.Root.Select('table.log[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('table.log[tid="' + fTID + '"]');
     e.StyleAttr['color'] := color;
   end;
 
 begin
   if fHasMonitor = false then
     exit;
-  cMainDiv := 'div[tid="' + ftid + '"]';
+  cMainDiv := 'div[tid="' + fTID + '"]';
   if s = 'paintred' then
   begin
     e := fMonitor.Root.Select(cMainDiv);
@@ -742,7 +773,7 @@ end;
 procedure TSandcatTask.SetScript(const event, script: string);
 var
   e: ISandUIElement;
-  ev,s:string;
+  ev, s: string;
 begin
   ev := lowercase(event);
   s := Format(script);
@@ -755,14 +786,14 @@ begin
     if ev = 'onclick' then
     begin
       fScripts.OnClick := s;
-      e := fMonitor.Root.Select('div[tid="' + ftid + '"]');
+      e := fMonitor.Root.Select('div[tid="' + fTID + '"]');
       if e <> nil then
         e.Attr[ev] := s;
     end;
     if ev = 'ondblclick' then
     begin
       fScripts.OnDoubleClick := s;
-      e := fMonitor.Root.Select('div[tid="' + ftid + '"]');
+      e := fMonitor.Root.Select('div[tid="' + fTID + '"]');
       if e <> nil then
         e.Attr[ev] := s;
     end;
@@ -789,7 +820,7 @@ begin
   fCaption := strmaxlen(s, 100, true);
   if fHasMonitor then
   begin
-    e := fMonitor.Root.Select('code.caption[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('code.caption[tid="' + fTID + '"]');
     if e <> nil then
       e.value := fCaption;
   end;
@@ -801,7 +832,7 @@ var
 begin
   if fHasMonitor then
   begin
-    e := fMonitor.Root.Select('img.staticon[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('img.staticon[tid="' + fTID + '"]');
     if e <> nil then
       e.StyleAttr['foreground-image'] := url;
   end;
@@ -812,7 +843,8 @@ begin
   fIcon := url;
 end;
 
-procedure TSandcatTask.SetProgress(const pos: integer = 0; const max: integer = 100);
+procedure TSandcatTask.SetProgress(const pos: integer = 0;
+  const max: integer = 100);
 var
   e: ISandUIElement;
 begin
@@ -822,12 +854,12 @@ begin
   // debug('settings progress:'+inttostr(pos)+' : '+inttostr(max));
   if fHasMonitor then
   begin
-    e := fMonitor.Root.Select('div.dprog[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('div.dprog[tid="' + fTID + '"]');
     e.StyleAttr['display'] := 'block';
-    e := fMonitor.Root.Select('progress.prog[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('progress.prog[tid="' + fTID + '"]');
     if e <> nil then
     begin
-      e.value := integer(GetPercentage(pos, max));
+      e.value := integer(getpercentage(pos, max));
     end;
   end;
 end;
@@ -866,7 +898,7 @@ begin
   fLog.Add(s);
   j := TSandJSON.Create;
   j['ln'] := s;
-  QueueTIS('Tasks.Print("' + ftid + '",' + j.TextUnquoted + ');');
+  QueueTIS('Tasks.Print("' + fTID + '",' + j.TextUnquoted + ');');
   j.Free;
 end;
 
@@ -893,7 +925,8 @@ begin
   end;
 end;
 
-procedure TSandcatTask.Stop(const reason: string = ''; const quickstop: boolean = false);
+procedure TSandcatTask.Stop(const reason: string = '';
+  const quickstop: boolean = false);
 var
   e: ISandUIElement;
 begin
@@ -911,7 +944,7 @@ begin
   if quickstop then
     exit;
   if Assigned(OnStop) then
-    OnStop(ftid);
+    OnStop(fTID);
   if reason = emptystr then
   begin
     SendAMessage(fTabMsgHandle, SCBM_TASK_STOPPED, '1');
@@ -924,19 +957,19 @@ begin
   end;
   if fHasMonitor then
   begin
-    e := fMonitor.Root.Select('menu#' + ftid + '-menu > li.stop');
+    e := fMonitor.Root.Select('menu#' + fTID + '-menu > li.stop');
     if e <> nil then
       e.Attr['disabled'] := 'disabled';
-    e := fMonitor.Root.Select('menu#' + ftid + '-menu > li.suspend');
+    e := fMonitor.Root.Select('menu#' + fTID + '-menu > li.suspend');
     if e <> nil then
       e.Attr['disabled'] := 'disabled';
-    e := fMonitor.Root.Select('img.stop[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('img.stop[tid="' + fTID + '"]');
     if e <> nil then
       e.StyleAttr['display'] := 'none';
-    e := fMonitor.Root.Select('img.staticon[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('img.staticon[tid="' + fTID + '"]');
     if e <> nil then
       e.StyleAttr['foreground-image'] := '@ICON_BLANK';
-    e := fMonitor.Root.Select('code.pid[tid="' + ftid + '"]');
+    e := fMonitor.Root.Select('code.pid[tid="' + fTID + '"]');
     if e <> nil then
       e.StyleAttr['color'] := 'gray';
   end;
@@ -944,16 +977,16 @@ end;
 
 function TSandcatTask.Format(const s: string): string;
 begin
-  result := replacestr(s, '%t', ftid);
+  result := replacestr(s, '%t', fTID);
 end;
 
 constructor TSandcatTask.Create(const tid: string);
 begin
   inherited Create;
-  self.ftid := tid;
-  fMsg:=TCatMsg.Create;
-  fMsg.OnCopyDataMessage:=CopyDataMessage;
-  debug('task created (handle ' + inttostr(fMsg.msgHandle) + ')');
+  self.fTID := tid;
+  fMsg := TCatMsg.Create;
+  fMsg.OnCopyDataMessage := CopyDataMessage;
+  Debug('task created (handle ' + inttostr(fMsg.msgHandle) + ')');
   fEnabled := true;
   fStopped := false;
   fIsDownload := false;

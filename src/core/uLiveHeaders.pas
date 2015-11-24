@@ -10,7 +10,7 @@ unit uLiveHeaders;
 interface
 
 uses Forms, SysUtils, Windows, Controls, Graphics, Classes, StdCtrls,
-  ExtCtrls, Types, ComCtrls;
+  ExtCtrls, Types, Menus, ComCtrls;
 
 type
   TSandcatRequestDetails = record
@@ -52,12 +52,14 @@ type
   private
     fMainLv: TListView;
     fFilterLv: TListView;
+    fFilterMode: boolean;
     fControlPanel: TPanel;
     fPauseBtn: TButton;
     fEraseBtn: TButton;
     fFilterEdit: TEdit;
     fFilterTimer: TTimer;
     fPaused: boolean;
+    fPopupMenu: TPopupMenu;
     fHeadersLastSortedColumn: integer;
     fFilteredLastSortedColumn: integer;
     fHeadersAscending: boolean;
@@ -73,6 +75,7 @@ type
     procedure HeadersListviewColumnClick(Sender: TObject; Column: TListColumn);
     procedure FilteredListviewColumnClick(Sender: TObject; Column: TListColumn);
     procedure FilteredListViewClick(Sender: TObject);
+    procedure MenuCopyClick(Sender: TObject);
   protected
   public
     Filter: TLiveHeadersFilter;
@@ -380,9 +383,13 @@ var
   request: TSandcatRequestDetails;
 begin
   if s = emptystr then
-    fMainLv.BringToFront
+  begin
+    fMainLv.BringToFront;
+    fFilterMode := false;
+  end
   else
   begin
+    fFilterMode := true;
     fFilterLv.Clear;
     fFilterLv.BringToFront;
     m := fMainLv.Items.Count;
@@ -486,7 +493,21 @@ begin
   fFilterLv.Clear;
 end;
 
+procedure TLiveHeaders.MenuCopyClick(Sender: TObject);
+var
+  lv: TListView;
+begin
+  if fFilterMode = false then
+    lv := fMainLv
+  else
+    lv := fFilterLv;
+  if (lv.Selected <> nil) then
+    GetLVItemAsString(lv, lv.Selected, true);
+end;
+
 constructor TLiveHeaders.Create(AOwner: TComponent);
+var
+  mi: TMenuItem;
   procedure AddColumn(lv: TListView; c: string; w: integer = 0);
   begin
     with lv.Columns.Add do
@@ -538,6 +559,7 @@ begin
   ConfigLV(fFilterLv);
   fMainLv.BringToFront;
   fPaused := false;
+  fFilterMode := false;
   fControlPanel := TPanel.Create(self);
   fControlPanel.Align := albottom;
   fControlPanel.ParentBackground := true;
@@ -581,10 +603,19 @@ begin
   fFilterTimer.Interval := 500;
   fFilterTimer.enabled := false;
   fFilterTimer.OnTimer := Timer1Timer;
+
+  fPopupMenu := TPopupMenu.Create(self);
+  mi := TMenuItem.Create(fPopupMenu);
+  mi.Caption := '&Copy';
+  mi.OnClick := MenuCopyClick;
+  fPopupMenu.Items.Add(mi);
+  fMainLv.PopupMenu := fPopupMenu;
+  fFilterLv.PopupMenu := fPopupMenu;
 end;
 
 destructor TLiveHeaders.Destroy;
 begin
+  fPopupMenu.Free;
   fFilterTimer.Free;
   fMainLv.Free;
   fFilterLv.Free;

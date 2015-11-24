@@ -14,10 +14,10 @@ uses
 {$IF CompilerVersion >= 23} // XE2 or higher
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls,
-  Vcl.StdCtrls, Vcl.ComCtrls, System.TypInfo,
+  Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Menus, System.TypInfo,
 {$ELSE}
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls, ComCtrls, TypInfo,
+  ExtCtrls, StdCtrls, ComCtrls, Menus, TypInfo,
 {$IFEND}
   CatUI, uUIComponents, CatConsole, CatChromium, CatChromiumLib, uRequests,
   SynUnicode, uLiveHeaders, uCodeInspect, CatMsg;
@@ -50,9 +50,11 @@ type
     fLv: TListView;
     fAscending: boolean;
     fOpenItemFunc: string;
+    fPopupMenu: TPopupMenu;
     fLastSortedColumn: integer;
     procedure ListViewDblClick(Sender: TObject);
     procedure ListviewColumnClick(Sender: TObject; Column: TListColumn);
+    procedure MenuCopyClick(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1356,7 +1358,15 @@ begin
   slp.Free;
 end;
 
+procedure TTabResourceList.MenuCopyClick(Sender: TObject);
+begin
+  if (fLv.Selected <> nil) then
+    GetLVItemAsString(fLv, fLv.Selected, true);
+end;
+
 constructor TTabResourceList.Create(AOwner: TComponent);
+var
+  mi: TMenuItem;
 begin
   inherited Create(AOwner);
   fLv := TListView.Create(self);
@@ -1381,10 +1391,18 @@ begin
     Caption := 'URL';
     AutoSize := true;
   end;
+
+  fPopupMenu := TPopupMenu.Create(self);
+  mi := TMenuItem.Create(fPopupMenu);
+  mi.Caption := '&Copy';
+  mi.OnClick := MenuCopyClick;
+  fPopupMenu.Items.Add(mi);
+  fLv.PopupMenu := fPopupMenu;
 end;
 
 destructor TTabResourceList.Destroy;
 begin
+  fPopupMenu.Free;
   fLv.Free;
   inherited Destroy;
 end;

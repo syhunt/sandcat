@@ -291,7 +291,7 @@ end;
 function method_getparam(L: PLua_State): integer; cdecl;
 begin
   lua_pushstring(L, tabmanager.ActiveTab.UserData.getvalue(lua_tostring(L, 2),
-    emptystr));
+    lua_tostring(L, 3)));
   result := 1;
 end;
 
@@ -375,6 +375,7 @@ begin
   if lua_isnone(L, 3) = false then
     task.SetParams(lua_tostring(L, 3));
   task.runscript(lua_tostring(L, 2));
+  lua_pushstring(L, task.TID);
   result := 1;
 end;
 

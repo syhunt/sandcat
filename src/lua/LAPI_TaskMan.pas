@@ -28,6 +28,7 @@ type
 procedure RegisterSandcatTaskObject(L: PLua_State);
 function lua_addbackgroundtask(L: PLua_State): integer; cdecl;
 function lua_addbackgroundtask_hidden(L: PLua_State): integer; cdecl;
+function lua_bgtaskclear(L: PLua_State): integer; cdecl;
 function lua_bgtasksetstatus(L: PLua_State): integer; cdecl;
 function lua_bgtasksetcaption(L: PLua_State): integer; cdecl;
 function lua_bgtaskseticon(L: PLua_State): integer; cdecl;
@@ -206,6 +207,12 @@ begin
   if Task <> nil then
     s := Task.GetParam(lua_tostring(L, 2), lua_tostring(L, 3));
   lua_pushstring(L, s);
+  result := 1;
+end;
+
+function lua_bgtaskclear(L: PLua_State): integer; cdecl;
+begin
+  tasks.clearinactivetasks;
   result := 1;
 end;
 
