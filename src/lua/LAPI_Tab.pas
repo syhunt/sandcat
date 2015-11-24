@@ -475,59 +475,64 @@ type
     urllist, zoomlevel);
 
 function TSCBTabObject.GetPropValue(propName: String): Variant;
+var
+  tab: TSandcatTab;
 begin
+  tab := tabmanager.ActiveTab;
   case TProps(GetEnumValue(TypeInfo(TProps), lowercase(propName))) of
     datafilename:
-      result := tabmanager.ActiveTab.Cache.getFileName;
+      result := tab.Cache.getFileName;
     handle:
-      result := tabmanager.ActiveTab.Msg.msgHandle;
+      result := tab.Msg.msgHandle;
     icon:
-      result := tabmanager.ActiveTab.icon;
+      result := tab.icon;
     capture:
-      result := tabmanager.ActiveTab.Requests.logrequests;
+      result := tab.Requests.logrequests;
     capturebrowser:
-      result := tabmanager.ActiveTab.logbrowserrequests;
+      result := tab.logbrowserrequests;
     captureurls:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        result := tabmanager.ActiveTab.Chrome.LogURLs;
+      if tab.Chrome <> nil then
+        result := tab.Chrome.LogURLs;
     headersfilter:
-      result := tabmanager.ActiveTab.liveheaders.FilterEdit.Text;
+      result := tab.liveheaders.FilterEdit.Text;
     lastjslogmsg:
-      result := tabmanager.ActiveTab.LastConsoleLogMessage;
+      result := tab.LastConsoleLogMessage;
     logtext:
-      result := tabmanager.ActiveTab.log.lines.Text;
+      result := tab.log.lines.Text;
     name:
-      result := tabmanager.ActiveTab.UID;
+      result := tab.UID;
     rcvdheaders:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        result := tabmanager.ActiveTab.Chrome.Headers.rcvdhead;
+      if tab.Chrome <> nil then
+        result := tab.Chrome.Headers.rcvdhead;
     reslist:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        result := tabmanager.ActiveTab.Chrome.ResourceList.Text;
+      if tab.Chrome <> nil then
+        result := tab.Chrome.ResourceList.Text;
     screenshot:
-      result := tabmanager.ActiveTab.GetScreenshot;
+      result := tab.GetScreenshot;
     sentheaders:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        result := tabmanager.ActiveTab.Chrome.Headers.senthead;
+      if tab.Chrome <> nil then
+        result := tab.Chrome.Headers.senthead;
     siteprefsfilename:
-      result := tabmanager.ActiveTab.SitePrefsFile;
+      result := tab.SitePrefsFile;
     Source:
-      result := tabmanager.ActiveTab.SourceInspect.Source.Text;
+      result := tab.SourceInspect.Source.Text;
     sourcefilename:
-      result := tabmanager.ActiveTab.SourceInspect.sourcefilename;
+      result := tab.SourceInspect.sourcefilename;
+    status:
+      result := tab.StatusBarText;
     statuscode:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        result := strtointsafe(tabmanager.ActiveTab.Chrome.Headers.statuscode);
+      if tab.Chrome <> nil then
+        result := strtointsafe(tab.Chrome.Headers.statuscode);
     Title:
-      result := tabmanager.ActiveTab.Title;
+      result := tab.Title;
     url:
-      result := tabmanager.ActiveTab.GetURL;
+      result := tab.GetURL;
     urllist:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        result := tabmanager.ActiveTab.Chrome.URLLog.Text;
+      if tab.Chrome <> nil then
+        result := tab.Chrome.URLLog.Text;
     zoomlevel:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        result := tabmanager.ActiveTab.Chrome.zoomlevel;
+      if tab.Chrome <> nil then
+        result := tab.Chrome.zoomlevel;
   else
     result := inherited GetPropValue(propName);
   end;
@@ -535,46 +540,48 @@ end;
 
 function TSCBTabObject.SetPropValue(propName: String;
   const AValue: Variant): Boolean;
+var
+  tab: TSandcatTab;
 begin
   result := true;
+  tab := tabmanager.ActiveTab;
   case TProps(GetEnumValue(TypeInfo(TProps), lowercase(propName))) of
     downloadfiles:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        tabmanager.ActiveTab.Chrome.EnableDownloads := AValue;
+      if tab.Chrome <> nil then
+        tab.Chrome.EnableDownloads := AValue;
     icon:
-      tabmanager.ActiveTab.SetIcon(String(AValue), true);
+      tab.SetIcon(String(AValue), true);
     loadend:
-      tabmanager.ActiveTab.usertabscript.Lua_LoadEnd_RunOnce := String(AValue);
+      tab.usertabscript.Lua_LoadEnd_RunOnce := String(AValue);
     loadendjs:
-      tabmanager.ActiveTab.usertabscript.JS_LoadEnd_RunOnce := String(AValue);
+      tab.usertabscript.JS_LoadEnd_RunOnce := String(AValue);
     capture:
-      tabmanager.ActiveTab.Requests.logrequests := AValue;
+      tab.Requests.logrequests := AValue;
     capturebrowser:
-      tabmanager.ActiveTab.logbrowserrequests := AValue;
+      tab.logbrowserrequests := AValue;
     captureurls:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        tabmanager.ActiveTab.Chrome.LogURLs := AValue;
+      if tab.Chrome <> nil then
+        tab.Chrome.LogURLs := AValue;
     headersfilter:
-      tabmanager.ActiveTab.liveheaders.FilterEdit.Text := String(AValue);
+      tab.liveheaders.FilterEdit.Text := String(AValue);
     logtext:
-      tabmanager.ActiveTab.log.lines.Text := String(AValue);
+      tab.log.lines.Text := String(AValue);
     Source:
       begin
-        tabmanager.ActiveTab.AdjustHighlighter;
-        tabmanager.ActiveTab.SourceInspect.Source.Text := String(AValue);
+        tab.AdjustHighlighter;
+        tab.SourceInspect.Source.Text := String(AValue);
       end;
     showtree:
-      tabmanager.ActiveTab.ShowSideTree(AValue);
+      tab.ShowSideTree(AValue);
     status:
-      StatBar.Text := String(AValue);
-    // ToDo: associate with current tab
+      tab.StatusBarText := String(AValue);
     Title:
-      tabmanager.ActiveTab.SetTitle(String(AValue));
+      tab.SetTitle(String(AValue));
     updatesource:
-      tabmanager.ActiveTab.CanUpdateSource := AValue;
+      tab.CanUpdateSource := AValue;
     zoomlevel:
-      if tabmanager.ActiveTab.Chrome <> nil then
-        tabmanager.ActiveTab.Chrome.zoomlevel := AValue;
+      if tab.Chrome <> nil then
+        tab.Chrome.zoomlevel := AValue;
   else
     result := inherited SetPropValue(propName, AValue);
   end;

@@ -36,6 +36,7 @@ type // Used for restoring the state of a tab when switching tabs
     ProtoIcon: string;
     ShowNavBar: boolean;
     ShowTabsStrip: boolean;
+    StatusBarText: string;
     URL: string;
     procedure LoadDefault;
     procedure LoadState(const TabID, CurrentURL: string);
@@ -119,6 +120,7 @@ type
     fUserTag: string;
     function GetIcon: string;
     function GetSitePrefsFile: string;
+    function GetStatusBarText: string;
     function GetTitle: string;
     procedure BrowserMessage(const msg: integer; const str: string);
     procedure CopyDataMessage(const msg: integer; const str: string);
@@ -151,6 +153,7 @@ type
       const runonce: boolean = false);
     procedure RunUserScripts(const event: integer);
     procedure SetLoading(const b: boolean);
+    procedure SetStatusBarText(const s: string);
     procedure SideTree_LoadItem(const path: string);
     procedure SideTreeChange(Sender: TObject; Node: TTreeNode);
     procedure SideTreeDblClick(Sender: TObject);
@@ -217,6 +220,7 @@ type
     property SitePrefsFile: string read GetSitePrefsFile;
     property SourceInspect: TSyCodeInspector read fSourceInspect;
     property state: TTabState read fState;
+    property StatusBarText: string read GetStatusBarText write SetStatusBarText;
     property SubTabs: TNoteBook read fSubTabs;
     property title: string read GetTitle;
     property UID: string read fUID write fUID;
@@ -608,11 +612,24 @@ begin
     OnMessage(self, SCBT_URLCHANGE, [URL]);
 end;
 
+// Returns the current status bar text
+function TSandcatTab.GetStatusBarText: string;
+begin
+  Result := state.StatusBarText;
+end;
+
+// Saves the status bar text. Update it only if this is the active tab
+procedure TSandcatTab.SetStatusBarText(const s: string);
+begin
+  state.StatusBarText := s;
+  if Assigned(OnMessage) then
+    OnMessage(self, SCBT_STATUS, [s]);
+end;
+
 // Called when there is a new status bar message, updates the status bar text
 procedure TSandcatTab.CrmStatusMessage(Sender: TObject; const value: string);
 begin
-  if Assigned(OnMessage) then
-    OnMessage(self, SCBT_STATUS, [value]);
+  StatusBarText := value;
 end;
 
 // Used by Sandcat tasks to log a Lua error during execution
@@ -972,7 +989,7 @@ end;
 
 type
   TJSONCmds = (cmd_resaddcustomitem, cmd_runtbtis, cmd_setaffecteditems,
-    cmd_seticon, cmd_syncwithtask);
+    cmd_seticon, cmd_setstatus, cmd_syncwithtask);
 
   // Runs simple commands in the form of a JSON object (used by Sandcat tasks
   // that run in an isolated process)
@@ -995,6 +1012,8 @@ begin
       SideTree_LoadAffectedScripts(str);
     cmd_seticon:
       SetIcon(str);
+    cmd_setstatus:
+      SetStatusBarText(str);
     cmd_syncwithtask:
       fSyncWithTask := true;
   end;
@@ -1210,6 +1229,7 @@ begin
   ActivePageName := 'browser';
   ProtoIcon := '@ICON_BLANK';
   URL := emptystr;
+  StatusBarText := emptystr;
 end;
 
 procedure TTabState.LoadState(const TabID, CurrentURL: string);
@@ -1231,6 +1251,7 @@ begin
     Navbar.URL := CurrentURL;
   end;
   Navbar.ProtoIcon := ProtoIcon;
+  StatBar.Text := StatusBarText;
 end;
 
 procedure TTabState.SaveState;
