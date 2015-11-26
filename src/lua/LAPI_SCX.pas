@@ -101,6 +101,19 @@ begin
   result := 1;
 end;
 
+function method_fileexists(L: PLua_State): integer; cdecl;
+var
+  scx: TSCXObject;
+  b: boolean;
+begin
+  scx := TSCXObject(LuaToTLuaObject(L, 1));
+  b := false;
+  if scx.PakFilename <> emptystr then
+    b := ZIPFileExists(scx.PakFilename, lua_tostring(L, 2));
+  lua_pushboolean(L, b);
+  result := 1;
+end;
+
 function method_addtoimagelist(L: PLua_State): integer; cdecl;
 var
   scx: TSCXObject;
@@ -114,9 +127,10 @@ end;
 
 procedure registermethods(L: PLua_State; classTable: integer);
 begin
-  RegisterMethod(L, 'imagelist_add', @method_addtoimagelist, classTable);
   RegisterMethod(L, 'dofile', @method_dofile, classTable);
+  RegisterMethod(L, 'fileexists', @method_fileexists, classTable);
   RegisterMethod(L, 'getfile', @method_readfile, classTable);
+  RegisterMethod(L, 'imagelist_add', @method_addtoimagelist, classTable);
 end;
 
 const
