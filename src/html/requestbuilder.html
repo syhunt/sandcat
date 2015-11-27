@@ -69,8 +69,8 @@ $(#ignorecache).onClick = function() {
   
 <div id="toolbar" class="toolbar" style="vertical-align:middle;">
 	<div .button style="foreground-image: url(Resources.pak#16\icon_addressbar.png)" onclick="reqbuilder.request.url = tab.url" titleid="for_useurl"/>
-	<div .button style="foreground-image: url(Resources.pak#16\icon_go.png)" onclick="reqbuildermenu:sendrequest()" titleid="for_sendreq"/>
-	<div .button style="foreground-image: url(Resources.pak#16\icon_load.png)" onclick="reqbuildermenu:loadrequest()" titleid="for_loadreq"/>
+	<div .button style="foreground-image: url(Resources.pak#16\icon_go.png)" onclick="Sandcat.reqbuildermenu:sendrequest()" titleid="for_sendreq"/>
+	<div .button style="foreground-image: url(Resources.pak#16\icon_load.png)" onclick="Sandcat.reqbuildermenu:loadrequest()" titleid="for_loadreq"/>
 	<div .sep />
   <div .button ismain="true" id="viewreqdata" style="foreground-image: url(Resources.pak#16\icon_splitwin.png);" titleid="for_view-reqdata"/>
   <div .button ismain="true" id="viewheaders" style="foreground-image: url(Resources.pak#16\icon_headview.png);" titleid="for_view-headers"/>
@@ -79,7 +79,7 @@ $(#ignorecache).onClick = function() {
   <div .button ismain="true" id="usecred" style="foreground-image: url(Resources.pak#16\icon_credentials.png);" titleid="for_usecred"/>
   <div .button ismain="true" id="usecookies" style="foreground-image: url(Resources.pak#16\icon_cookies.png);display:none;" titleid="for_usecookies"/>
 	<div .sepv />
-	<div .button style="foreground-image: url(Resources.pak#16\icon_filesplit.png)" onclick="reqbuildermenu:spliturl()" titleid="for_spliturl"/>
+	<div .button style="foreground-image: url(Resources.pak#16\icon_filesplit.png)" onclick="Sandcat.reqbuildermenu:spliturl()" titleid="for_spliturl"/>
 	<div .button style="foreground-image: @ICON_CUT" onclick="reqbuilder.edit.cut()" titleid="for_cut"/>
 	<div .button style="foreground-image: @ICON_COPY" onclick="reqbuilder.edit.copy()" titleid="for_copy"/>
 	<div .button style="foreground-image: @ICON_PASTE" onclick="reqbuilder.edit.paste()" titleid="for_paste"/>

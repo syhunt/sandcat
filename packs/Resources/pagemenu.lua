@@ -231,26 +231,13 @@ function PageMenu:ViewTasks()
  else
   app.showmessage('No tasks to display.')
  end
- --[[if TaskView == nil then
-  Sandcat:dofile('taskview.lua')
- end
- TaskView:loadtasks()]]
+ --[[ 
+ TaskView = TaskView or Sandcat:require('taskview')
+ TaskView:loadtasks()
+ ]]
 end
 
 function PageMenu:ViewDownloads()
- if TaskView == nil then
-  Sandcat:dofile('taskview.lua')
- end
+ TaskView = TaskView or Sandcat:require('taskview')
  TaskView:loaddownloads()
-end
-
-Downloader = {}
-Downloader.title = 'Download Manager'
-function Downloader:launch(f)
- if (f ~= '') then
-   local resp=app.ask_yn('Are you sure you want to launch "'..slx.file.getname(f)..'"?',self.title)
-   if resp == true then
-    slx.file.exec(f)
-   end
- end
 end

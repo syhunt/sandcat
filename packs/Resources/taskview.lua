@@ -1,7 +1,7 @@
-TaskView = {}
-TaskView.uitable = 'TaskView.ui'
+local M = {}
+M.uitable = 'TaskView.ui'
 
-function TaskView:loadlist(newtab,tabtitle,list)
+function M:loadlist(newtab,tabtitle,list)
  local html = Sandcat:getfile('taskview.html')
  local slp = slx.string.loop:new()
  local htmllist = slx.string.list:new()
@@ -51,10 +51,12 @@ function TaskView:loadlist(newtab,tabtitle,list)
  slp:release()
 end
 
-function TaskView:loaddownloads(newtab)
+function M:loaddownloads(newtab)
  self:loadlist(newtab,'Downloads',browser.info.downloads)
 end
 
-function TaskView:loadtasks(newtab)
+function M:loadtasks(newtab)
  self:loadlist(newtab,'Tasks',browser.info.tasks)
 end
+
+return M

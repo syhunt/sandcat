@@ -34,7 +34,7 @@ procedure RegisterSCX(L: PLua_State);
 implementation
 
 uses
-  uMain, CatStrings, CatZIP, pLua, uSettings, uConst;
+  uMain, CatStrings, CatFiles, CatZIP, pLua, uSettings, uConst;
 
 type
   TProps = (prop_filename);
@@ -88,6 +88,37 @@ begin
   result := 1;
 end;
 
+function method_require(L: PLua_State): integer; cdecl;
+var
+  scx: TSCXObject;
+  module, outfilename, pakshortname, outdir: string;
+begin
+  scx := TSCXObject(LuaToTLuaObject(L, 1));
+  if scx.PakFilename <> emptystr then
+  begin
+    pakshortname := extractfilename(scx.Filename);
+    pakshortname := changefileext(pakshortname, '');
+    module := replacestr(lua_tostring(L, 2), '.', '\');
+    module := module + '.lua';
+    outfilename := GetAppDataDir + 'Lib\lua\' + pakshortname + '\' + module;
+    outdir := extractfilepath(outfilename);
+    if ZIPFileExists(scx.PakFilename, module) then
+    begin
+      ForceDir(outdir);
+      ExtractZIPFile(scx.PakFilename, module, outfilename);
+      debug('requiring file:' + module + ' (from: ' + scx.PakFilename + ')');
+      lua_getglobal(L, 'require');
+      lua_pushstring(L, pakshortname + '.' + lua_tostring(L, 2));
+      lua_call(L, 1, 1);
+    end
+    else
+    begin
+      debug('require ' + lua_tostring(L, 2) + ' not found in ZIP.');
+    end;
+  end;
+  result := 1;
+end;
+
 function method_readfile(L: PLua_State): integer; cdecl;
 var
   scx: TSCXObject;
@@ -104,7 +135,7 @@ end;
 function method_fileexists(L: PLua_State): integer; cdecl;
 var
   scx: TSCXObject;
-  b: boolean;
+  b: Boolean;
 begin
   scx := TSCXObject(LuaToTLuaObject(L, 1));
   b := false;
@@ -131,6 +162,7 @@ begin
   RegisterMethod(L, 'fileexists', @method_fileexists, classTable);
   RegisterMethod(L, 'getfile', @method_readfile, classTable);
   RegisterMethod(L, 'imagelist_add', @method_addtoimagelist, classTable);
+  RegisterMethod(L, 'require', @method_require, classTable);
 end;
 
 const

@@ -576,7 +576,7 @@ begin
         d.Icon := ICON_CHECKED;
         if fullpath <> emptystr then
         begin
-          d.SetScript('ondblclick', 'Downloader:launch(slx.base64.decode[[' +
+          d.SetScript('ondblclick', 'Sandcat.Downloader:launch(slx.base64.decode[[' +
             base64encode(fullpath) + ']])');
           d.DownloadFilename := fullpath;
         end;

@@ -21,7 +21,7 @@ procedure RegisterActiveCodeEdit(L: plua_State);
 
 implementation
 
-uses pLua, LAPI_Browser, uSettings, uTaskMan, LAPI_Console, LAPI_App,
+uses pLua, pLuaTable, LAPI_Browser, uSettings, uTaskMan, LAPI_Console, LAPI_App,
   LAPI_CodeEdit, LAPI_TaskMan, LAPI_CEF;
 
 procedure RegisterBrowser(L: plua_State);
@@ -98,8 +98,8 @@ const
   );
 begin
   lual_register(L, PAnsiChar('app'), @app_table);
-  lua_pushstring(L,extractfilepath(paramstr(0)));
-  lua_setfield(L,-2,'dir');
+  plua_setfieldvalue(L,'dir',extractfilepath(paramstr(0)));
+  plua_setfieldvalue(L,'datadir',GetAppDataDir);
 end;
 
 procedure RegisterSettings(L: plua_State);

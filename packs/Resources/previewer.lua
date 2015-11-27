@@ -21,15 +21,15 @@ function Previewer:Register()
  application/json
  application/x-json
  ]]
- Sandcat:RegisterPreviewHandler('sc_archive',self.HandleArchive,'zip','application/zip')
- Sandcat:RegisterPreviewHandler('sc_css',self.HandleCSS,'css','text/css')
- Sandcat:RegisterPreviewHandler('sc_flash',self.HandleFlash,'swf','application/x-shockwave-flash')
- Sandcat:RegisterPreviewHandler('sc_html',self.HandleHTML,'htm,html','text/html')
- Sandcat:RegisterPreviewHandler('sc_image',self.HandleImage,'bmp,gif,ico,jpg,jpe,jpeg,png,svg',imagetypelist)
- Sandcat:RegisterPreviewHandler('sc_js',self.HandleJS,'js',javascriptlist)
- Sandcat:RegisterPreviewHandler('sc_json',self.HandleJSON,'json',jsonlist)
- Sandcat:RegisterPreviewHandler('sc_text',self.HandleText,'txt','text/plain')
- Sandcat:RegisterPreviewHandler('sc_xml',self.HandleXML,'xml','image/svg+xml')
+ Sandcat.Preview:RegisterPreviewHandler('sc_archive',self.HandleArchive,'zip','application/zip')
+ Sandcat.Preview:RegisterPreviewHandler('sc_css',self.HandleCSS,'css','text/css')
+ Sandcat.Preview:RegisterPreviewHandler('sc_flash',self.HandleFlash,'swf','application/x-shockwave-flash')
+ Sandcat.Preview:RegisterPreviewHandler('sc_html',self.HandleHTML,'htm,html','text/html')
+ Sandcat.Preview:RegisterPreviewHandler('sc_image',self.HandleImage,'bmp,gif,ico,jpg,jpe,jpeg,png,svg',imagetypelist)
+ Sandcat.Preview:RegisterPreviewHandler('sc_js',self.HandleJS,'js',javascriptlist)
+ Sandcat.Preview:RegisterPreviewHandler('sc_json',self.HandleJSON,'json',jsonlist)
+ Sandcat.Preview:RegisterPreviewHandler('sc_text',self.HandleText,'txt','text/plain')
+ Sandcat.Preview:RegisterPreviewHandler('sc_xml',self.HandleXML,'xml','image/svg+xml')
 end
 
 function Previewer:HandleCode(f,format)
@@ -58,7 +58,7 @@ end
 function Previewer:HandleText(f)
  local source = f.responsetext
   if source ~= '' then
-  f.previewhtml = self:NoHighlight(source)
+  f.previewhtml = Previewer:NoHighlight(source)
  else
   f.warnempty = true
  end

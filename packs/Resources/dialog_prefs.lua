@@ -2,10 +2,10 @@
 --  License: 3-clause BSD license
 --  See https://github.com/felipedaragon/sandcat/ for details.
 
-Preferences = {}
-Preferences.backup = ''
+local M = {}
+M.backup = ''
 
-function Preferences:Edit()
+function M:Edit()
  local t = {}
  t.pak = Sandcat.filename
  t.filename = 'dialog_prefs.html'
@@ -14,13 +14,13 @@ function Preferences:Edit()
  self:EditCustom(t)
 end
 
-function Preferences:EditCancel()
+function M:EditCancel()
  prefs.load(self.backup)
 end
 
 -- Expects a table as parameter containing the following keys:
 -- pak,filename,id,options,jsonfile
-function Preferences:EditCustomFile(t)
+function M:EditCustomFile(t)
  t.iscustomfile = true
  if t.jsonfile ~= '' then
   local browsercfg = prefs.getall() -- Preferences backup
@@ -39,7 +39,7 @@ end
 -- Expects a table as parameter containing the following keys:
 -- pak,filename,id,options
 -- optional: iscustomfile, options_disabled
-function Preferences:EditCustom(t)
+function M:EditCustom(t)
  local html = browser.getpackfile(t.pak,t.filename)
  local script = ''
  if t.iscustomfile == nil then
@@ -58,7 +58,7 @@ function Preferences:EditCustom(t)
  end
 end
 
-function Preferences:GetOptionsImport(list,options,options_disabled)
+function M:GetOptionsImport(list,options,options_disabled)
  local slp = slx.string.loop:new()
  local disabled = slx.string.list:new()
  if options_disabled ~= nil then
@@ -80,7 +80,7 @@ function Preferences:GetOptionsImport(list,options,options_disabled)
  slp:release()
 end
 
-function Preferences:GetOptionValue(cid)
+function M:GetOptionValue(cid)
  local s = ''
  local j = slx.json.object:new()
  j.cid = cid
@@ -90,7 +90,7 @@ function Preferences:GetOptionValue(cid)
  return s
 end
 
-function Preferences:GetImportScript(options,options_disabled)
+function M:GetImportScript(options,options_disabled)
  local s = ''
  local sl = slx.string.list:new()
  self:GetOptionsImport(sl,options,options_disabled)
@@ -100,7 +100,9 @@ function Preferences:GetImportScript(options,options_disabled)
 end
 
 -- Usage: self:ImportOption(list,'#plugins','chrome.options.plugins')
-function Preferences:ImportOption(list,selector,cid,enabled)
+function M:ImportOption(list,selector,cid,enabled)
  local value = self:GetOptionValue(cid)
  list:add('import_option($("'..selector..'"),'..value..','..enabled..');')
 end
+
+return M

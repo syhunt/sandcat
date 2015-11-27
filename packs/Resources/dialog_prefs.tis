@@ -1,5 +1,5 @@
  function cancel_edit() {
-  Sandcat.RunLua("Preferences:EditCancel()");
+  Sandcat.RunLua("Sandcat.Preferences:EditCancel()");
   view.close();
  }
  function canset_value(sel,j) {

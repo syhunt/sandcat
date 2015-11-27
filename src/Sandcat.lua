@@ -1,29 +1,22 @@
 --[[
 
-  Copyright (c) 2011-2014, Syhunt Informatica
+  Copyright (c) 2011-2015, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
   
 ]]
 
 package.path = package.path .. ";"..app.dir.."/Lib/lua/?.lua"
+package.path = package.path .. ";"..app.datadir.."/Lib/lua/?.lua"
 package.cpath = package.cpath .. ";"..app.dir.."/Lib/clibs/?.dll"
 slx = require "Selenite"
 
-debug.print('create pack object for Resources')
 Sandcat = extensionpack:new()
-debug.print('create pack object done')
 Sandcat.filename = 'Resources.pak'
-Sandcat.aboutdisplayed = false
 Sandcat.cfg_expextension = 'scpref'
 Sandcat.cfg_expfilter = 'Preferences files (*.scpref)|*.scpref'
 
 function Sandcat:Init()
- self.Preview = {}
- self.Preview.Handlers = {}
- self.Preview.Types = {}
- self.Preview.Extensions = {}
- self.Preview.About = slx.string.list:new()
  browser.info = _appinfo
  browser.jsvalues = _jsvalues
  browser.options = _appoptions
@@ -44,13 +37,24 @@ function Sandcat:Init()
 end
 
 function Sandcat:AfterLoad()
- browser.addlua('task.init',Sandcat:getfile('task.lua'))
- self:dofile('requestbuilder.lua')
- self:dofile('commands.lua')
- self:dofile('previewer.lua')
- self:dofile('addons.lua')
+ -- sets an initialization script to be executed when a Sandcat task is
+ -- launched
+ local initscript = Sandcat:getfile('task.lua')
+ browser.addlua('task.init',initscript)
+ 
+ self:require('pagemenu')
+ self.reqbuildermenu = self:require('reqbuildmenu')
+ self.Downloader = self:require('downloader')
+ self.Preferences = self:require('dialog_prefs')
+ 
+ -- adds Sandcat Console commands
+ self.Commands = self:require('commands')
+ self.Commands:AddCommands()
+ 
+ -- registers response preview handlers
+ self.Preview = self:require('preview')
+ self:require('previewer')
  Previewer:Register()
- SandCommands:AddCommands()
 end
 
 function Sandcat:GetUIZone(name)
@@ -59,43 +63,13 @@ function Sandcat:GetUIZone(name)
  return z
 end
 
-function Sandcat:RegisterPreviewHandler(id,func,extlist,typelist)
- if id ~= '' then
-  self.Preview.Handlers[id]=func
-  self.Preview.About:add('<tr role="option"><td>'..id..'</td><td>'..extlist..'</td></tr>')
-  self.Preview.About:sort()
-  local slp = slx.string.loop:new()
-  -- associates extensions with handler
-  local s = ''
-  slp.commatext = extlist
-  while slp:parsing() do
-    s = slx.string.trim(slp.current)
-    if s ~= '' then
-     self.Preview.Extensions[s]=id
-    end
-  end
-  -- associates types with handler
-   if typelist ~= nil then
-      slp:load(typelist)
-      while slp:parsing() do
-       s = slx.string.trim(slp.current)
-       if s ~= '' then
-        self.Preview.Types[s]=id
-       end
-      end
-   end
-  slp:release()
- end
-end
-
 function Sandcat:ClearPrivateData()
  local html = Sandcat:getfile('dialog_clear.html')
  app.showdialogx(html)
 end
 
 function Sandcat:EditPreferences()
- self:dofile('dialog_prefs.lua')
- Preferences:Edit()
+ self.Preferences:Edit()
 end
 
 function Sandcat:EditList(key,caption,eg)
@@ -157,7 +131,7 @@ function Sandcat:SetConsoleMode(mode,silent)
    console.setcolor('#FFFFFF')
    console.setfontcolor('#0066bb')
     if silent == false then
-     SandCommands:DisplayUserAgent()
+     self.Commands:DisplayUserAgent()
     end
    end
  end
@@ -175,11 +149,8 @@ function Sandcat:SetConsoleMode(mode,silent)
 end
 
 function Sandcat:ShowAbout()
- if self.aboutdisplayed == false then
-  self.aboutdisplayed = true
-  self:dofile('credits.lua')
- end
- self:dofile('dialog_about.lua')
+ self.about = self.about or self:require('dialog_about')
+ self.about:show()
 end
 
 function Sandcat:ShowPreviewHandlers()

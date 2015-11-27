@@ -1,17 +1,17 @@
-reqbuildermenu = {}
-reqbuildermenu.msgnotext = 'No text selected.'
-reqbuildermenu.warnedualimit = false
+local M = {}
+M.msgnotext = 'No text selected.'
+M.warnedualimit = false
 
-function reqbuildermenu:run(func)
+function M:run(func)
  local sel = reqbuilder.edit.getsel()
  if sel ~= '' then
   reqbuilder.edit.replacesel(func(sel))
  else
-  app.showmessage(reqbuildermenu.msgnotext)
+  app.showmessage(M.msgnotext)
  end
 end
 
-function reqbuildermenu:spliturl()
+function M:spliturl()
  local text = reqbuilder.edit.gettext()
  if text ~= '' then
   text = slx.string.replace(text,'?','?'..string.char(10))
@@ -20,7 +20,7 @@ function reqbuildermenu:spliturl()
  end
 end
 
-function reqbuildermenu:getmethod()
+function M:getmethod()
  local method = 'GET'
  if reqbuilder.request.postdata ~= '' then
   method = 'POST'
@@ -28,7 +28,7 @@ function reqbuildermenu:getmethod()
  return method
 end
 
-function reqbuildermenu:getrequestparams()
+function M:getrequestparams()
  return {
   url = reqbuilder.request.url,
   method = self:getmethod(),
@@ -41,7 +41,7 @@ function reqbuildermenu:getrequestparams()
  }
 end
 
-function reqbuildermenu:sendrequest()
+function M:sendrequest()
  browser.options.showheaders = true
  if reqbuilder.request.url ~= '' then
   tab:sendrequest(self:getrequestparams())
@@ -49,7 +49,7 @@ function reqbuildermenu:sendrequest()
  reqbuilder.edit.setfocus()
 end
 
-function reqbuildermenu:loadrequest()
+function M:loadrequest()
  if Sandcat:IsURLLoaded(true) == true then
  browser.options.showheaders = true
  if reqbuilder.request.agent ~= '' then
@@ -64,3 +64,5 @@ function reqbuildermenu:loadrequest()
  end
  reqbuilder.edit.setfocus()
 end
+
+return M

@@ -77,6 +77,7 @@ const // Sandcat Settings
 var
   IsSandcatPortable: boolean = false;
 
+function GetAppDataDir: string;
 function GetCustomUserAgent: string;
 function GetProxySettings: TSandcatProxySettings;
 function GetSandcatDir(dir: integer; Create: boolean = false): string;
