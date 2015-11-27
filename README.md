@@ -16,8 +16,9 @@ Sandcat is a lightweight multi-tabbed web browser that combines the speed and po
 
 Compiled binaries for Windows can be downloaded from the links below.
 
-* [Community Edition](https://syhunt.websiteseguro.com/pub/downloads/sandcat-5.1b4-ce.exe)
-* [Community Edition](https://syhunt.websiteseguro.com/pub/downloads/sandcat-5.1b4-pentester.exe) (with the Syhunt Pen-Tester Extension Pack)
+* [5.2 Beta 0 32-bit](https://syhunt.websiteseguro.com/pub/downloads/sandcat-5.2b0-win32.exe)
+* [5.2 Beta 0 64-bit](https://syhunt.websiteseguro.com/pub/downloads/sandcat-5.2b0-win64.exe)
+* [5.1 with Pen-Tester Tools](http://www.syhunt.com/en/?n=Syhunt.DownloadHybridCE) (included as part of Syhunt Community)
 
 ## Compiling
 
