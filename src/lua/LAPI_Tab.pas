@@ -265,6 +265,12 @@ begin
   result := 1;
 end;
 
+function method_resources_additem(L: PLua_State): integer; cdecl;
+begin
+  tabmanager.ActiveTab.Resources.AddPageResourceCustom(lua_tostring(L, 2));
+  result := 1;
+end;
+
 { function method_setparam(L:plua_State):integer; cdecl;
   const cParams='Params';
   var t:integer; section:string;
@@ -617,6 +623,7 @@ begin
   RegisterMethod(L, 'logrequest', method_logrequest, classTable);
   RegisterMethod(L, 'reload', method_reload, classTable);
   RegisterMethod(L, 'sendrequest', method_sendrequest, classTable);
+  RegisterMethod(L, 'resources_add', method_resources_additem, classTable);
   RegisterMethod(L, 'resources_clear', method_resources_clear, classTable);
   RegisterMethod(L, 'resources_loadcol', method_resources_loadcol, classTable);
   RegisterMethod(L, 'runluaonlog', method_runluaonlog, classTable);
