@@ -20,14 +20,14 @@
 		  <hr/>
       <li>Import & Export
         <menu id="tsetiemenu">
-         <li onclick="Sandcat:ImportPreferences()">Import Preferences...</li>
+         <li onclick="Sandcat.Preferences:LoadFromFile()">Import Preferences...</li>
          <hr id="tsetiesep"/>
-         <li onclick="Sandcat:ExportPreferences()">Export Preferences...</li>
+         <li onclick="Sandcat.Preferences:SaveToFile()">Export Preferences...</li>
          <li onclick="PageMenu:SaveCacheAs()" style="display:none;">Export Cache...</li>
         </menu>
       </li>
 		  <hr/>
-			<li id="tprefs" onclick="Sandcat:EditPreferences()">Preferences...</li>
+			<li id="tprefs" onclick="Sandcat.Preferences:Edit()">Preferences...</li>
 			<li id="tabout" onclick="Sandcat:ShowAbout()">About Syhunt Sandcat</li>
 			<hr/>
 			<li id="texit" onclick="browser.exit()">Exit</li>

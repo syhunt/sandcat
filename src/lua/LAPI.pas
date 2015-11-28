@@ -71,6 +71,10 @@ const
   );
 begin
   lual_register(L, 'browser', @sandcatbrowser_table);
+  // sets browser.info, browser.options...
+  plua_SetFieldValue(L,'info', @lua_getappinfo, @lua_setappinfo);
+  plua_SetFieldValue(L,'jsvalues', @lua_method_getjsvalue, @lua_method_getjsvalue);
+  plua_SetFieldValue(L,'options', @lua_getbrowseroption, @lua_setbrowseroption);
   lual_register(L, 'debug', @sandcatdebug_table);
 end;
 
@@ -174,6 +178,8 @@ const
   );
 begin
   lual_register(L, 'reqbuilder', @sandcatbuilder_table);
+  // sets reqbuilder.request
+  plua_SetFieldValue(L,'request', @lua_builder_getrequestoption, @lua_builder_setrequestoption);
 end;
 
 procedure RegisterSideBar(L: plua_State);

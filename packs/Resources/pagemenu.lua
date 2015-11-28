@@ -108,14 +108,14 @@ function PageMenu:SaveCachedAs(url)
 end
 
 function PageMenu:SavePageAs()
- if Sandcat:IsURLLoaded(true) then
+ if tab:hasloadedurl(true) then
   debug.print('Saving Page from the cloud...')
   browser.navbar:eval('SandcatDownloader.SaveURL_As($(#url).value)')
  end
 end
 
 function PageMenu:TakeScreenshot()
- if Sandcat:IsURLLoaded(true) then
+ if tab:hasloadedurl(true) then
   local sf = tab.screenshot
   if sf ~= '' then
    local sug = app.dir..slx.file.getname(sf)
@@ -129,7 +129,7 @@ function PageMenu:TakeScreenshot()
 end
 
 function PageMenu:ViewDevTools()
- if Sandcat:IsURLLoaded(true) then
+ if tab:hasloadedurl(true) then
    tab:viewdevtools()
  end
 end

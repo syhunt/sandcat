@@ -4,6 +4,34 @@
 
 local M = {}
 M.backup = ''
+M.cfg_expextension = 'scpref'
+M.cfg_expfilter = 'Preferences files (*.scpref)|*.scpref'
+
+function M:LoadFromFile(file)
+ file = file or app.openfile(self.cfg_expfilter,self.cfg_expextension)
+ if file ~= '' then
+  prefs.load(slx.file.getcontents(file))
+  prefs.update()
+ end
+end
+
+function M:SaveToFile(destfile)
+ destfile = destfile or app.savefile(self.cfg_expfilter,self.cfg_expextension)
+ if destfile ~= '' then
+  local sl = slx.string.list:new()
+  sl.text = prefs.getall()
+  sl:savetofile(destfile)
+  sl:release()
+ end
+end
+
+function M:EditList(key,caption,eg)
+ if key ~= '' then
+  local list = prefs.get(key,'')
+  local s = app.editlist(list,caption,eg)
+  prefs.set(key,s)
+ end
+end
 
 function M:Edit()
  local t = {}

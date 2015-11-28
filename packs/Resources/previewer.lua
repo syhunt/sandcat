@@ -21,15 +21,15 @@ function Previewer:Register()
  application/json
  application/x-json
  ]]
- Sandcat.Preview:RegisterPreviewHandler('sc_archive',self.HandleArchive,'zip','application/zip')
- Sandcat.Preview:RegisterPreviewHandler('sc_css',self.HandleCSS,'css','text/css')
- Sandcat.Preview:RegisterPreviewHandler('sc_flash',self.HandleFlash,'swf','application/x-shockwave-flash')
- Sandcat.Preview:RegisterPreviewHandler('sc_html',self.HandleHTML,'htm,html','text/html')
- Sandcat.Preview:RegisterPreviewHandler('sc_image',self.HandleImage,'bmp,gif,ico,jpg,jpe,jpeg,png,svg',imagetypelist)
- Sandcat.Preview:RegisterPreviewHandler('sc_js',self.HandleJS,'js',javascriptlist)
- Sandcat.Preview:RegisterPreviewHandler('sc_json',self.HandleJSON,'json',jsonlist)
- Sandcat.Preview:RegisterPreviewHandler('sc_text',self.HandleText,'txt','text/plain')
- Sandcat.Preview:RegisterPreviewHandler('sc_xml',self.HandleXML,'xml','image/svg+xml')
+ Sandcat.Preview:RegisterHandler('sc_archive',self.HandleArchive,'zip','application/zip')
+ Sandcat.Preview:RegisterHandler('sc_css',self.HandleCSS,'css','text/css')
+ Sandcat.Preview:RegisterHandler('sc_flash',self.HandleFlash,'swf','application/x-shockwave-flash')
+ Sandcat.Preview:RegisterHandler('sc_html',self.HandleHTML,'htm,html','text/html')
+ Sandcat.Preview:RegisterHandler('sc_image',self.HandleImage,'bmp,gif,ico,jpg,jpe,jpeg,png,svg',imagetypelist)
+ Sandcat.Preview:RegisterHandler('sc_js',self.HandleJS,'js',javascriptlist)
+ Sandcat.Preview:RegisterHandler('sc_json',self.HandleJSON,'json',jsonlist)
+ Sandcat.Preview:RegisterHandler('sc_text',self.HandleText,'txt','text/plain')
+ Sandcat.Preview:RegisterHandler('sc_xml',self.HandleXML,'xml','image/svg+xml')
 end
 
 function Previewer:HandleCode(f,format)

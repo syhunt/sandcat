@@ -125,15 +125,7 @@ begin
   fLuaWrap := TSandLua.Create(nil);
   fLuaWrap.UseDebug := false;
   fLuaWrap.OnException := ScriptExceptionHandler;
-  fLuaWrap.RegisterLuaTable('_appoptions', @lua_getbrowseroption,
-    @lua_setbrowseroption);
-  fLuaWrap.RegisterLuaTable('_appinfo', @lua_getappinfo, @lua_setappinfo);
-  fLuaWrap.RegisterLuaTable('_builderreq', @lua_builder_getrequestoption,
-    @lua_builder_setrequestoption);
-  fLuaWrap.RegisterLuaTable('_jsvalues', @lua_method_getjsvalue,
-    @lua_method_getjsvalue);
   Register_Sandcat(fLuaWrap.LuaState);
-  fLuaWrap.Value['ProgDir'] := progdir;
   Debug('createluaengine.sandcatlua.begin');
   fLuaWrap.ExecuteCmd(GetResourceAsString('SANDCAT', 'Lua'));
   Debug('createluaengine.sandcatlua.end');

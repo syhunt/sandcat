@@ -50,7 +50,7 @@ function M:sendrequest()
 end
 
 function M:loadrequest()
- if Sandcat:IsURLLoaded(true) == true then
+ if tab:hasloadedurl(true) == true then
  browser.options.showheaders = true
  if reqbuilder.request.agent ~= '' then
   if self.warnedualimit == false then
