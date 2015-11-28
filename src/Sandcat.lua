@@ -83,7 +83,7 @@ function Sandcat:AfterLoad()
  Previewer:Register()
 end
 
--- Creates an returns a simple module for storing or registering new
+-- Creates and returns a simple module for storing or registering new
 -- response preview handlers
 function Sandcat:GetPreview()
  local M = {}

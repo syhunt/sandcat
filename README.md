@@ -1,10 +1,11 @@
 # Sandcat Browser
 
-Sandcat is a lightweight multi-tabbed web browser that combines the speed and power of Chromium and Lua. Sandcat comes with built-in live headers, an extensible user interface and command line console, resource viewer, and many other features that are useful for web developers and pen-testers and when you need to examine live web applications. For more details, visit [http://www.syhunt.com/sandcat/](http://www.syhunt.com/sandcat/). See also the credits section below for a few more details about the Sandcat architecture.
+Sandcat is a lightweight multi-tabbed web browser that combines the speed and power of Chromium and Lua. Sandcat comes with built-in live headers, an extensible user interface and command line console, resource viewer, and many other features that are useful for web developers and pen-testers and when you need to examine live web applications. For more details, visit [http://www.syhunt.com/sandcat/](http://www.syhunt.com/sandcat/). See also the docs directory and credits section below for a few more details about the Sandcat architecture.
 
 ## Directories
 
-* `/packs`
+* `/docs` - Lua API documentation
+* `/packs` - contents of uncompressed pack files
  * `/Common` - common CSS, widgets and scripts package (Common.pak)
  * `/Resources` - resources package (Resources.pak)
 * `/src` - the main executable source and built-in resource files
