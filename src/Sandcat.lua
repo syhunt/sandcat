@@ -117,8 +117,8 @@ function Sandcat:IsURLLoaded(warnuser)
 end
 
 function Sandcat:SetConsoleMode(mode,silent)
- if mode == nil then mode = 'sc' end
- if silent == nil then silent = false end
+ mode = mode or 'sc'
+ silent = silent or false
  if mode == 'sc' then
   if console.gethandler() ~= '' then 
    console.reset()
