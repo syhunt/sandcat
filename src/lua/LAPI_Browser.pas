@@ -59,6 +59,7 @@ function lua_sandcatsettings_getalldefaultjson(L: plua_State): integer; cdecl;
 function lua_sandcatsettings_save(L: plua_State): integer; cdecl;
 function lua_sandcatsettings_settext(L: plua_State): integer; cdecl;
 function lua_sandcatsettings_getfilename(L: plua_State): integer; cdecl;
+function lua_sandcatsettings_getsiteprefsfilename(L: plua_State): integer; cdecl;
 function lua_sandcatsettings_registerdefault(L: plua_State): integer; cdecl;
 function lua_sandcatsettings_update(L: plua_State): integer; cdecl;
 function lua_sandcatsettings_savetofile(L: plua_State): integer; cdecl;
@@ -534,6 +535,12 @@ end;
 function lua_sandcatsettings_getfilename(L: plua_State): integer; cdecl;
 begin
   lua_pushstring(L, Settings.Preferences.filename);
+  result := 1;
+end;
+
+function lua_sandcatsettings_getsiteprefsfilename(L: plua_State): integer; cdecl;
+begin
+  lua_pushstring(L, Settings.GetSitePrefsFilename(lua_tostring(L, 1)));
   result := 1;
 end;
 

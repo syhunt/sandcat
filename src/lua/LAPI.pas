@@ -108,11 +108,12 @@ end;
 
 procedure RegisterSettings(L: plua_State);
 const
-  sandcatsettings_table: array [1 .. 12] of luaL_reg = (
+  sandcatsettings_table: array [1 .. 13] of luaL_reg = (
   (name: 'get'; func: lua_sandcatsettings_get),
   (name: 'getall'; func: lua_sandcatsettings_getalljson),
   (name: 'getalldefault'; func: lua_sandcatsettings_getalldefaultjson),
   (name: 'getdefault'; func: lua_sandcatsettings_getdefault),
+  (name: 'getsiteprefsfilename'; func: lua_sandcatsettings_getsiteprefsfilename),
   (name: 'load'; func: lua_sandcatsettings_settext),
   (name: 'loadfromfile'; func: lua_sandcatsettings_loadfromfile),
   (name: 'save'; func: lua_sandcatsettings_save),

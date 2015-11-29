@@ -21,8 +21,8 @@ uses
 
 type
   TSandcatProxySettings = record
-   Server:string;
-   Anonymize:boolean;
+    Server: string;
+    Anonymize: boolean;
   end;
 
 type
@@ -35,10 +35,11 @@ type
     procedure DeleteCacheFile(const filename: string;
       const journal: boolean = false);
   public
+    function GetSitePrefsFilename(const url: string): string;
     function ReadJSValue(const Key: string): Variant;
-    procedure AddToBookmarks(const PageName, URL: string);
-    procedure AddToHistory(const PageName, URL: string);
-    procedure AddToURLList(const PageName, URL: string; const HistFile: string;
+    procedure AddToBookmarks(const PageName, url: string);
+    procedure AddToHistory(const PageName, url: string);
+    procedure AddToURLList(const PageName, url: string; const HistFile: string;
       const Limit: integer = 0);
     procedure ClearPrivateData(const DataType: string = '');
     procedure Load;
@@ -47,7 +48,7 @@ type
     procedure Update;
     procedure Save;
     procedure WriteJSValue(const Key: string; const Value: Variant);
-    //procedure WriteJSValue_FromJSON(json: string);
+    // procedure WriteJSValue_FromJSON(json: string);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
     property Preferences: TCatPreferences read fPreferences;
@@ -202,6 +203,16 @@ begin
   OnbeforeCmdLine(processType, commandLine);
 end;
 
+// Returns the filename of a site preferences file. This is a JSON file that
+// can be used for storing user preferences for each specific host:port
+function TSandcatSettings.GetSitePrefsFilename(const url: string): string;
+begin
+  result := Format('%s [%s].json', [ExtractURLHost(url),
+    IntToStr(ExtractURLPort(url))]);
+  result := CleanFilename(result);
+  result := GetSandcatDir(SCDIR_CONFIGSITE, true) + result;
+end;
+
 function TSandcatSettings.GetStartupHomepage: string;
 var
   method: string;
@@ -219,24 +230,24 @@ begin
     result := cURL_HOME;
 end;
 
-procedure TSandcatSettings.AddToBookmarks(const PageName, URL: string);
+procedure TSandcatSettings.AddToBookmarks(const PageName, url: string);
 begin
-  AddToURLList(PageName, URL, cBookmarksFile);
+  AddToURLList(PageName, url, cBookmarksFile);
 end;
 
-procedure TSandcatSettings.AddToHistory(const PageName, URL: string);
+procedure TSandcatSettings.AddToHistory(const PageName, url: string);
 begin
-  AddToURLList(PageName, URL, cHistoryFile, 100);
+  AddToURLList(PageName, url, cHistoryFile, 100);
 end;
 
-procedure TSandcatSettings.AddToURLList(const PageName, URL: string;
+procedure TSandcatSettings.AddToURLList(const PageName, url: string;
   const HistFile: string; const Limit: integer = 0);
 var
   history: tstringlist;
   hfile, id, page, pageurl: string;
   canadd: boolean;
 begin
-  pageurl := URL;
+  pageurl := url;
   if beginswith(lowercase(pageurl), 'http') = false then
     exit;
   history := tstringlist.Create;
@@ -255,7 +266,7 @@ begin
   end;
   if canadd then
   begin
-    id := inttostr(DateTimeToUnix(now)) + '-' + inttostr(history.count);
+    id := IntToStr(DateTimeToUnix(now)) + '-' + IntToStr(history.count);
     if Limit <> 0 then
     begin // If it is 0 then there is no item limit
       if history.count >= Limit then
@@ -268,19 +279,19 @@ begin
   history.Free;
 end;
 
-{procedure TSandcatSettings.WriteJSValue_FromJSON(json: string);
-var
+{ procedure TSandcatSettings.WriteJSValue_FromJSON(json: string);
+  var
   j: TSandJSON;
   Key: string;
   Value: Variant;
-begin
+  begin
   j := TSandJSON.Create;
   j.Text := json;
   Key := j.sObject.s['k'];
   Value := j['v'];
   WriteJSValue(Key, Value);
   j.Free;
-end; }
+  end; }
 
 procedure TSandcatSettings.WriteJSValue(const Key: string;
   const Value: Variant);

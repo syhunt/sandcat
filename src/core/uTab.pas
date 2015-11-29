@@ -50,6 +50,7 @@ type
   private
     fLv: TListView;
     fAscending: boolean;
+    fCustomized: boolean;
     fOpenItemFunc: string;
     fPopupMenu: TPopupMenu;
     fLastSortedColumn: integer;
@@ -272,13 +273,10 @@ begin
   uMain.Debug(s, component);
 end;
 
-// Returns the filename of a site preferences file. This is a JSON file that
-// can be used for storing user preferences for each specific host:port
+// Returns the filename of a site preferences file
 function TSandcatTab.GetSitePrefsFile: string;
 begin
-  Result := Format('%s [%s].json', [ExtractURLHost(GetURL),
-    IntToStr(ExtractURLPort(GetURL))]);
-  Result := GetSandcatDir(SCDIR_CONFIGSITE, true) + Result;
+  Settings.GetSitePrefsFilename(GetURL);
 end;
 
 // Returns true if this is the currently active tab, false if otherwise
@@ -572,7 +570,7 @@ begin
     CRM_SAVECLOUDRESOURCE:
       sanddlg.SaveResource(str, true);
     CRM_BOOKMARKURL:
-      settings.AddToBookmarks(GetTitle, str);
+      Settings.AddToBookmarks(GetTitle, str);
   end;
 end;
 
@@ -714,7 +712,7 @@ end;
 procedure TSandcatTab.CrmTitleChange(Sender: TObject; const title: string);
 begin
   if Loading then
-    settings.AddToHistory(title, GetURL);
+    Settings.AddToHistory(title, GetURL);
   SetTitle(title);
 end;
 
@@ -828,8 +826,8 @@ end;
 procedure TSandcatTab.LoadSettings;
 begin
   if fChrome <> nil then
-    fChrome.LoadSettings(settings.preferences.current,
-      settings.preferences.Default);
+    fChrome.LoadSettings(Settings.preferences.current,
+      Settings.preferences.Default);
 end;
 
 // Makes the source page highlighter adapt to the URL filename extension
@@ -1317,6 +1315,8 @@ end;
 // Adds a resource URL (like a .js or .css) to the resource list
 procedure TTabResourceList.AddPageResource(const URL: string; ImgIdx: integer);
 begin
+  if fCustomized then
+    exit; // no longer update URL resources if this is a custom user resources tab
   with fLv.Items.Add do
   begin
     Caption := extracturlfilename(URL);
@@ -1356,6 +1356,7 @@ procedure TTabResourceList.RedefineColumns(const def, itemclickfunc: string);
 var
   slp: TSandSLParser;
 begin
+  fCustomized := true;
   fOpenItemFunc := itemclickfunc;
   fLv.Columns.Clear;
   fLv.SortType := stNone;
@@ -1390,6 +1391,7 @@ var
   mi: TMenuItem;
 begin
   inherited Create(AOwner);
+  fCustomized := false;
   fLv := TListView.Create(self);
   fLv.Parent := self;
   fLv.Align := AlClient;
