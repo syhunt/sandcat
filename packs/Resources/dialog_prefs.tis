@@ -2,6 +2,10 @@
   Sandcat.RunLua("Sandcat.Preferences:EditCancel()");
   view.close();
  }
+ function confirm_edit() {
+  Sandcat.RunLua("Sandcat.Preferences:EditConfirm()");
+  view.close();
+ }
  function canset_value(sel,j) {
   var b = true;
   if (sel.attributes["type"] == "file-path") {

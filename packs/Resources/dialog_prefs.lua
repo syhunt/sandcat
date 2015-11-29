@@ -4,6 +4,7 @@
 
 local M = {}
 M.backup = ''
+M.confirmed = false
 M.cfg_expextension = 'scpref'
 M.cfg_expfilter = 'Preferences files (*.scpref)|*.scpref'
 
@@ -43,37 +44,49 @@ function M:Edit()
 end
 
 function M:EditCancel()
- prefs.load(self.backup)
+ self.confirmed = false
+end
+
+function M:EditConfirm()
+ self.confirmed = true
 end
 
 -- Expects a table as parameter containing the following keys:
 -- pak,filename,id,options,jsonfile
 function M:EditCustomFile(t)
+ local ok = false
+ self.confirmed = false
  t.iscustomfile = true
  if t.jsonfile ~= '' then
-  local browsercfg = prefs.getall() -- Preferences backup
+  local browsercfg = prefs.getall() -- Browser Preferences backup
   if slx.file.exists(t.jsonfile) then
    prefs.load(slx.file.getcontents(t.jsonfile))
   else
    prefs.load('')
   end
-  self.backup = prefs.getall()
-  self:EditCustom(t)
-  prefs.savetofile(t.jsonfile)
-  prefs.load(browsercfg)
+  self.backup = prefs.getall() -- Custom File Preferences backup
+  local ok = self:EditCustom(t)
+  if self.backup ~= prefs.getall() then
+    if self.confirmed == true then
+      prefs.savetofile(t.jsonfile)
+    end
+  end
+  prefs.load(browsercfg) -- Restores Browser Preferences
  end
+ return ok
 end
 
 -- Expects a table as parameter containing the following keys:
 -- pak,filename,id,options
 -- optional: iscustomfile, options_disabled
+-- Returns true if the OK button has been pressed, false if the dialog
+-- has been closed or Cancel has been pressed
 function M:EditCustom(t)
  local html = browser.getpackfile(t.pak,t.filename)
  local script = ''
- if t.iscustomfile == nil then
-  t.iscustomfile = false
- end
- self.backup = prefs.getall()
+ t.iscustomfile = t.iscustomfile or false
+ self.backup = prefs.getall() -- Browser Preferences backup
+ self.confirmed = false
  html = browser.var_replace(html) -- must be first
  html = slx.string.replace(html,'%extensions%',browser.info.extensions)
  script = self:GetImportScript(t.options,t.options_disabled)
@@ -81,9 +94,16 @@ function M:EditCustom(t)
  app.showdialogx(html,t.id)
  if t.iscustomfile == false then
   if self.backup ~= prefs.getall() then
-   prefs.update()
+   if self.confirmed == true then
+     -- tells the browser that the settings have changed
+     prefs.update()
+   else
+     -- dialog closed or cancel clicked; keep previous settings
+     prefs.load(self.backup)
+   end
   end
  end
+ return self.confirmed
 end
 
 function M:GetOptionsImport(list,options,options_disabled)
