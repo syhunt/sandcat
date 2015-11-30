@@ -69,8 +69,8 @@ type
     procedure FilterEditChange(Sender: TObject);
     procedure PauseBtnClick(Sender: TObject);
     procedure ClearBtnClick(Sender: TObject);
-    // procedure HeadersListViewChange(Sender: TObject; Item: TListItem;
-    // Change: TItemChange);
+    procedure HeadersListViewChange(Sender: TObject; Item: TListItem;
+      Change: TItemChange);
     procedure HeadersListViewClick(Sender: TObject);
     procedure HeadersListviewColumnClick(Sender: TObject; Column: TListColumn);
     procedure FilteredListviewColumnClick(Sender: TObject; Column: TListColumn);
@@ -173,11 +173,11 @@ begin
   TListView(Sender).CustomSort(@Filtered_SortByColumn, Column.Index);
 end;
 
-{ procedure TLiveHeaders.HeadersListViewChange(Sender: TObject; Item: TListItem;
+procedure TLiveHeaders.HeadersListViewChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
-  begin
-  HeadersListViewClick(Sender);
-  end; }
+begin
+  //HeadersListViewClick(Sender);
+end;
 
 procedure TLiveHeaders.HeadersListViewClick(Sender: TObject);
 begin
@@ -552,6 +552,7 @@ begin
   fMainLv := TListView.Create(self);
   fMainLv.OnClick := HeadersListViewClick;
   fMainLv.OnColumnClick := HeadersListviewColumnClick;
+  fMainLv.OnChange := HeadersListViewChange;
   ConfigLV(fMainLv);
   fFilterLv := TListView.Create(self);
   fFilterLv.OnClick := FilteredListViewClick;

@@ -50,11 +50,13 @@ type
   private
     fLv: TListView;
     fAscending: boolean;
+    fClickFunc: string;
     fCustomized: boolean;
-    fOpenItemFunc: string;
+    fDblClickFunc: string;
     fPopupMenu: TPopupMenu;
     fLastSortedColumn: integer;
     procedure ListViewDblClick(Sender: TObject);
+    procedure ListViewClick(Sender: TObject);
     procedure ListviewColumnClick(Sender: TObject; Column: TListColumn);
     procedure MenuCopyClick(Sender: TObject);
   public
@@ -62,7 +64,7 @@ type
     destructor Destroy; override;
     procedure AddPageResource(const URL: string; ImgIdx: integer);
     procedure AddPageResourceCustom(const JSON: string);
-    procedure RedefineColumns(const def, itemclickfunc: string);
+    procedure RedefineColumns(const def, clickfunc, dblclickfunc: string);
     // properties
     property Lv: TListView read fLv;
     property Ascending: boolean read fAscending;
@@ -1302,13 +1304,29 @@ procedure TTabResourceList.ListViewDblClick(Sender: TObject);
 begin
   if (fLv.Selected = nil) then
     exit;
-  if fOpenItemFunc = emptystr then
+  if fCustomized = false then
     UIX.ShowResource(fLv.Selected.SubItems[0]) // regular display of URL
   else
   begin
+    if fDblClickFunc <> emptystr then
+    begin
+      Extensions.LuaWrap.value['_temppath'] := fLv.Selected.SubItems
+        [fLv.Selected.SubItems.Count - 1]; // gets parameter from last subitem
+      Extensions.RunLuaCmd(fDblClickFunc + '(_temppath)');
+    end;
+  end;
+end;
+
+// Called when a list item is clicked in the resources page
+procedure TTabResourceList.ListViewClick(Sender: TObject);
+begin
+  if (fLv.Selected = nil) then
+    exit;
+  if fClickFunc <> emptystr then
+  begin
     Extensions.LuaWrap.value['_temppath'] := fLv.Selected.SubItems
       [fLv.Selected.SubItems.Count - 1]; // gets parameter from last subitem
-    Extensions.RunLuaCmd(fOpenItemFunc + '(_temppath)');
+    Extensions.RunLuaCmd(fClickFunc + '(_temppath)');
   end;
 end;
 
@@ -1352,12 +1370,14 @@ begin
 end;
 
 // Experimental: allows an extension to redefine the resource listview columns
-procedure TTabResourceList.RedefineColumns(const def, itemclickfunc: string);
+procedure TTabResourceList.RedefineColumns(const def, clickfunc,
+  dblclickfunc: string);
 var
   slp: TSandSLParser;
 begin
   fCustomized := true;
-  fOpenItemFunc := itemclickfunc;
+  fClickFunc := clickfunc;
+  fDblClickFunc := dblclickfunc;
   fLv.Columns.Clear;
   fLv.SortType := stNone;
   slp := TSandSLParser.Create;
@@ -1402,6 +1422,7 @@ begin
   fLv.RowSelect := true;
   fLv.HideSelection := false;
   fLv.OnDblClick := ListViewDblClick;
+  fLv.OnClick := ListViewClick;
   fLv.OnColumnClick := ListviewColumnClick;
   fLv.SortType := stBoth;
   with fLv.Columns.Add do

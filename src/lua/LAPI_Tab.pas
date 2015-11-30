@@ -252,10 +252,19 @@ begin
   result := 1;
 end;
 
-function method_resources_loadcol(L: PLua_State): integer; cdecl;
+function method_resources_loadcustom(L: PLua_State): integer; cdecl;
+var
+  t: TLuaTable;
+  columns: string;
+  clickfunc, dblclickfunc: string;
 begin
-  tabmanager.ActiveTab.Resources.RedefineColumns(lua_tostring(L, 2),
-    lua_tostring(L, 3));
+  t := TLuaTable.Create(L, true);
+  columns := t.readstring('columns', emptystr);
+  clickfunc := t.readstring('clickfunc', emptystr);
+  dblclickfunc := t.readstring('dblclickfunc', emptystr);
+  t.Free;
+  tabmanager.ActiveTab.Resources.RedefineColumns(columns, clickfunc,
+    dblclickfunc);
   result := 1;
 end;
 
@@ -625,7 +634,7 @@ begin
   RegisterMethod(L, 'sendrequest', method_sendrequest, classTable);
   RegisterMethod(L, 'resources_add', method_resources_additem, classTable);
   RegisterMethod(L, 'resources_clear', method_resources_clear, classTable);
-  RegisterMethod(L, 'resources_loadcol', method_resources_loadcol, classTable);
+  RegisterMethod(L, 'resources_customize', method_resources_loadcustom, classTable);
   RegisterMethod(L, 'runluaonlog', method_runluaonlog, classTable);
   RegisterMethod(L, 'runjs', method_runjavascript, classTable);
   RegisterMethod(L, 'runsrccmd', method_runsourcecommand, classTable);
