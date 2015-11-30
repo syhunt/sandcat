@@ -505,19 +505,19 @@ var
   NewNode: TTreeNode;
   SRec: TSearchRec;
 begin
-  if FindFirst(path + '*.*',
-{$IF CompilerVersion >= 23}System.{$IFEND}SysUtils.faAnyFile, SRec) = 0 then
+  if FindFirst(path + '*.*', faAnyFile, SRec) = 0 then
     repeat
       if (SRec.name = '.') or (SRec.name = '..') then
         Continue;
-      NewNode := aTreeView.Items.AddChild(aRoot, SRec.name);
-      NewNode.ImageIndex := GetFileImageIndex(SRec.name);
-      NewNode.SelectedIndex := GetFileImageIndex(SRec.name, true);
-      if MakeBold then
-        SetNodeBoldState(NewNode, true);
-      if Recurse and ((SRec.Attr and
-{$IF CompilerVersion >= 23}System.{$IFEND}SysUtils.faDirectory) <> 0)
-      then
+      if ((SRec.Attr and (faHidden)) = 0) then
+      begin
+        NewNode := aTreeView.Items.AddChild(aRoot, SRec.name);
+        NewNode.ImageIndex := GetFileImageIndex(SRec.name);
+        NewNode.SelectedIndex := GetFileImageIndex(SRec.name, true);
+        if MakeBold then
+          SetNodeBoldState(NewNode, true);
+      end;
+      if Recurse and ((SRec.Attr and faDirectory) <> 0) then
         Tree_FilePathToTreeNode(aTreeView, NewNode,
           path + SRec.name + '\', true);
     until FindNext(SRec) <> 0;
