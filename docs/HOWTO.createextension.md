@@ -79,9 +79,4 @@ end
 
 ###More Examples
 
-You can easily see the source of all the Sandcat Browser extensions:
-
-1. Go to the Packs\Extensions folder, which is located in the root of the Sandcat Browser folder.
-2. Copy the .scx files to a new folder somewhere on your system.
-Change their extension to .zip and unzip it.
-3. The same can be done with other files (.pak) in the Extensions directory.
+* [Syhunt Community Extensions](https://github.com/syhunt/community)

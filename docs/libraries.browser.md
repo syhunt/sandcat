@@ -46,6 +46,8 @@
 
 * **browser.setactivepage** ( pagename ): Sets the active page by its name (eg, browser, source, log, etc).
 
+* **browser.setinitmode** ( modename , luacode ): Sets a Lua code to be executed when the Sandcat executable is launched with the mode:modename parameter. This allows a Sandcat extension to customize the browser user interface during startup.
+
 * **browser.setsearcheng** ( name, queryurl, iconurl): Sets a new search engine
 
 * **browser.showreqbuilder** (): Loads the Request Builder bar

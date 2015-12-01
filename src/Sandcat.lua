@@ -165,7 +165,7 @@ end
 
 -- Displays a text as a new tab
 function Sandcat:ShowText(tabtitle,text,escape)
- local escape = escape or true
+ local escape = escape or false
  if escape == true then
    text = slx.html.escape(text)
  end
