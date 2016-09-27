@@ -253,6 +253,12 @@ begin
   Result := 1;
 end;
 
+function lua_method_runcmd(L: PLua_State): Integer; cdecl;
+begin
+  SendJSONCmdStr(lua_tostring(L, 1), lua_tostring(L, 2));
+  Result := 1;
+end;
+
 constructor TSandcatTaskProcess.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -265,6 +271,7 @@ begin
   fLuaWrap.RegisterLuaMethod('printsuccess', @lua_method_printsuccess);
   fLuaWrap.RegisterLuaMethod('outputmsg', @lua_method_outputmsg);
   fLuaWrap.RegisterLuaMethod('runtabcmd', @lua_method_runtabcmd);
+  fLuaWrap.RegisterLuaMethod('runcmd', @lua_method_runcmd);
   // for io redirect from Underscript
   fLuaWrap.RegisterLuaMethod('sandcat_writeln', @lua_task_writeln);
   fLuaWrap.RegisterLuaMethod('sandcat_write', @lua_task_write);
