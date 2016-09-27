@@ -21,9 +21,9 @@ Sandcat.filename = 'Resources.pak'
 -- For startup speed reasons it will not try to read any compressed 
 -- packs
 function Sandcat:Init()
- -- Sets a global for acessing the Selenite library
- -- Described in docs\libraries.selenite.md
- slx = require "Selenite"
+ -- Sets a global for acessing the Catarinka library
+ -- Described in docs\libraries.catarinka.md
+ ctk = require "Catarinka"
  
  -- Sets UI zones for quick manipulation by extensions
  -- Described in docs\objects.uizones.md
@@ -90,19 +90,19 @@ function Sandcat:GetPreview()
  M.Handlers = {}
  M.Types = {}
  M.Extensions = {}
- M.About = slx.string.list:new()
+ M.About = ctk.string.list:new()
 
  function M:RegisterHandler(id,func,extlist,typelist)
   if id ~= '' then
    self.Handlers[id]=func
    self.About:add('<tr role="option"><td>'..id..'</td><td>'..extlist..'</td></tr>')
    self.About:sort()
-   local slp = slx.string.loop:new()
+   local slp = ctk.string.loop:new()
    -- Associates extensions with handler
    local s = ''
    slp.commatext = extlist
    while slp:parsing() do
-     s = slx.string.trim(slp.current)
+     s = ctk.string.trim(slp.current)
      if s ~= '' then
       self.Extensions[s]=id
      end
@@ -111,7 +111,7 @@ function Sandcat:GetPreview()
     if typelist ~= nil then
        slp:load(typelist)
        while slp:parsing() do
-        s = slx.string.trim(slp.current)
+        s = ctk.string.trim(slp.current)
         if s ~= '' then
          self.Types[s]=id
         end
@@ -123,7 +123,7 @@ function Sandcat:GetPreview()
  
  function M:ShowHandlers()
   local html = Sandcat:getfile('dialog_preview_handlers.html')
-  html = slx.string.replace(html,'%handlerlist%',self.About.text)
+  html = ctk.string.replace(html,'%handlerlist%',self.About.text)
   app.showdialogx(html)
  end
  
@@ -153,7 +153,7 @@ end
 -- statusbar after closing
 function Sandcat:ShowErrorLog()
  local html = Sandcat:getfile('dialog_error.html')
- html = slx.string.replace(html,'%errorlist%',browser.info.errorlog)
+ html = ctk.string.replace(html,'%errorlist%',browser.info.errorlog)
  app.showdialogx(html)
  browser.statbar:eval('HideNotification()')
 end
@@ -167,9 +167,9 @@ end
 function Sandcat:ShowText(tabtitle,text,escape)
  local escape = escape or false
  if escape == true then
-   text = slx.html.escape(text)
+   text = ctk.html.escape(text)
  end
- local html = slx.string.list:new()
+ local html = ctk.string.list:new()
  html:add('<plaintext.editor readonly="true">')
  html:add(text)
  html:add('</plaintext>')

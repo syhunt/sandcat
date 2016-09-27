@@ -277,7 +277,7 @@ begin
     cid := SCO_EXTENSION_ENABLED_PREFIX + '.' + ID;
     if licensescript <> emptystr then
       link := format(cLicLink, [htmlescape(licensescript)]);
-    // link:='<a href="#" onclick="slx.file.exec([['+progdir+'\'+licfile+']])"><img filename="'+extractfilename(progdir+'\'+licfile)+'" style="behavior:file-icon;" alt="License"></a>';
+    // link:='<a href="#" onclick="ctk.file.exec([['+progdir+'\'+licfile+']])"><img filename="'+extractfilename(progdir+'\'+licfile)+'" style="behavior:file-icon;" alt="License"></a>';
     GetPakFilenameVersion(filename, version);
     settings.preferences.registerdefault(cid, true);
     htmlicon := format('<img .lvfileicon filename="%s">', [filename]);

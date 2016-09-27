@@ -11,7 +11,7 @@ M.cfg_expfilter = 'Preferences files (*.scpref)|*.scpref'
 function M:LoadFromFile(file)
  file = file or app.openfile(self.cfg_expfilter,self.cfg_expextension)
  if file ~= '' then
-  prefs.load(slx.file.getcontents(file))
+  prefs.load(ctk.file.getcontents(file))
   prefs.update()
  end
 end
@@ -19,7 +19,7 @@ end
 function M:SaveToFile(destfile)
  destfile = destfile or app.savefile(self.cfg_expfilter,self.cfg_expextension)
  if destfile ~= '' then
-  local sl = slx.string.list:new()
+  local sl = ctk.string.list:new()
   sl.text = prefs.getall()
   sl:savetofile(destfile)
   sl:release()
@@ -59,8 +59,8 @@ function M:EditCustomFile(t)
  t.iscustomfile = true
  if t.jsonfile ~= '' then
   local browsercfg = prefs.getall() -- Browser Preferences backup
-  if slx.file.exists(t.jsonfile) then
-   prefs.load(slx.file.getcontents(t.jsonfile))
+  if ctk.file.exists(t.jsonfile) then
+   prefs.load(ctk.file.getcontents(t.jsonfile))
   else
    prefs.load('')
   end
@@ -88,9 +88,9 @@ function M:EditCustom(t)
  self.backup = prefs.getall() -- Browser Preferences backup
  self.confirmed = false
  html = browser.var_replace(html) -- must be first
- html = slx.string.replace(html,'%extensions%',browser.info.extensions)
+ html = ctk.string.replace(html,'%extensions%',browser.info.extensions)
  script = self:GetImportScript(t.options,t.options_disabled)
- html = slx.string.replace(html,'importsettings();',script)
+ html = ctk.string.replace(html,'importsettings();',script)
  app.showdialogx(html,t.id)
  if t.iscustomfile == false then
   if self.backup ~= prefs.getall() then
@@ -107,8 +107,8 @@ function M:EditCustom(t)
 end
 
 function M:GetOptionsImport(list,options,options_disabled)
- local slp = slx.string.loop:new()
- local disabled = slx.string.list:new()
+ local slp = ctk.string.loop:new()
+ local disabled = ctk.string.list:new()
  if options_disabled ~= nil then
   disabled.text = options_disabled
  end
@@ -116,7 +116,7 @@ function M:GetOptionsImport(list,options,options_disabled)
  while slp:parsing() do
   local s = slp.current
   local en = 'true'
-  s = slx.string.trim(s)
+  s = ctk.string.trim(s)
   if disabled:indexof(s) ~= -1 then
    en = 'false'
   end
@@ -130,7 +130,7 @@ end
 
 function M:GetOptionValue(cid)
  local s = ''
- local j = slx.json.object:new()
+ local j = ctk.json.object:new()
  j.cid = cid
  j.value = prefs.get(cid)
  s = j:getjson_unquoted()
@@ -140,7 +140,7 @@ end
 
 function M:GetImportScript(options,options_disabled)
  local s = ''
- local sl = slx.string.list:new()
+ local sl = ctk.string.list:new()
  self:GetOptionsImport(sl,options,options_disabled)
  s = sl.text
  sl:release()

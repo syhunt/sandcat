@@ -29,7 +29,7 @@ end
 function PageMenu:SaveCacheAs()
  local destfile = app.savefile('Sandcat Cache files (*.scc)|*.scc','scc')
  if destfile ~= '' then
-  slx.dir.packtotar(browser.info.cachedir,destfile)
+  ctk.dir.packtotar(browser.info.cachedir,destfile)
  end
 end
 
@@ -40,7 +40,7 @@ function PageMenu:OpenLiveHeaders()
    tab:cache_import(f)
    lv = tab:cache_extractfile('\\Requests\\Headers')
    tab:loadheaders(lv)
-   slx.file.delete(lv)
+   ctk.file.delete(lv)
  end
 end
 
@@ -48,7 +48,7 @@ function PageMenu:SaveLiveHeadersAs()
  local destfile = app.savefile(self.livefilter,'sclive')
  if destfile ~= '' then
   tab:saveheaders(destfile)
-  local lv = slx.file.getcontents(destfile)
+  local lv = ctk.file.getcontents(destfile)
   if lv ~= '' then 
    tab:cache_storestring('\\Requests\\Headers',lv)
    tab:cache_export(destfile) -- overwrites initial export
@@ -72,9 +72,9 @@ end
 
 function PageMenu:SaveCachedAs_Ask(filename)
  debug.print('Saving cached resource from: '..filename)
- if slx.file.exists(filename) then
-  local name = slx.url.getfilename(self.saveurl)
-  local ext = slx.url.getfileext(self.saveurl,false)
+ if ctk.file.exists(filename) then
+  local name = ctk.url.getfilename(self.saveurl)
+  local ext = ctk.url.getfileext(self.saveurl,false)
   if name == '' then
    name = 'Untitled.html'
    ext = 'html'
@@ -82,9 +82,9 @@ function PageMenu:SaveCachedAs_Ask(filename)
   local sug = app.dir..name
   local destfile = app.savefile('All files (*.*)|*.*',ext,sug)
    if destfile ~= '' then
-     slx.file.copy(filename,destfile)
+     ctk.file.copy(filename,destfile)
    end
-  slx.file.delete(filename)
+  ctk.file.delete(filename)
  else
   self:SavePageAs() -- try online version
  end
@@ -118,13 +118,13 @@ function PageMenu:TakeScreenshot()
  if tab:hasloadedurl(true) then
   local sf = tab.screenshot
   if sf ~= '' then
-   local sug = app.dir..slx.file.getname(sf)
+   local sug = app.dir..ctk.file.getname(sf)
    local destfile = app.savefile('PNG files (*.png)|*.png','png',sug)
    if destfile ~= '' then
-    slx.file.copy(sf,destfile)
+    ctk.file.copy(sf,destfile)
    end
   end
-  slx.file.delete(sf)
+  ctk.file.delete(sf)
  end
 end
 
@@ -136,12 +136,12 @@ end
 
 function PageMenu:DeleteURLLogItem(itemid,logname)
  local logfile = browser.info.configdir..logname..'.sclist'
- local slp = slx.string.loop:new()
+ local slp = ctk.string.loop:new()
  local found = false
- if slx.file.exists(logfile) then
+ if ctk.file.exists(logfile) then
   slp:loadfromfile(logfile)
   while slp:parsing() do
-   if slx.string.match(slp.current,'<item*id="'..itemid..'"*>') then
+   if ctk.string.match(slp.current,'<item*id="'..itemid..'"*>') then
     slp:curdelete()
     found = true
    end
@@ -160,7 +160,7 @@ function PageMenu:ViewURLLogFile(newtab,histname)
  local histfile = browser.info.configdir..histname..'.sclist'
  local tabicon = '@ICON_BLANK'
  local menu = ''
- local sl = slx.string.list:new()
+ local sl = ctk.string.list:new()
  if newtab == nil then
   newtab = true
  end
@@ -182,9 +182,9 @@ function PageMenu:ViewURLLogFile(newtab,histname)
   <li onclick="PageMenu:DeleteURLLogItem('%i','Bookmarks')">Delete</li>
   ]]
  end
- if slx.file.exists(histfile) then
-  local p = slx.html.parser:new()
-  p:load(slx.file.getcontents(histfile))
+ if ctk.file.exists(histfile) then
+  local p = ctk.html.parser:new()
+  p:load(ctk.file.getcontents(histfile))
   while p:parsing() do
    if p.tagname == 'item' then
     local url = p:getattrib('url')
@@ -195,14 +195,14 @@ function PageMenu:ViewURLLogFile(newtab,histname)
     sl:add('<td>'..name..'</td>')
     sl:add('<td>'..url..'</td>')
     sl:add('<td.visited>'..visited..'</td>')
-    sl:add('<menu.context id="menu'..id..'">'..slx.string.replace(menu,'%i',id)..'</menu>')
+    sl:add('<menu.context id="menu'..id..'">'..ctk.string.replace(menu,'%i',id)..'</menu>')
     sl:add('</tr>')
    end
   end
   p:release()
  end
- html = slx.string.replace(html,'%style%',style)
- html = slx.string.replace(html,'%history%',sl.text)
+ html = ctk.string.replace(html,'%style%',style)
+ html = ctk.string.replace(html,'%history%',sl.text)
  sl:release()
  if newtab then
   local j = {}

@@ -1,10 +1,10 @@
 function tab:hasloadedurl(warnuser)
  local valid = false
- if slx.string.beginswith(self.url,'http') then
+ if ctk.string.beginswith(self.url,'http') then
   valid = true
- elseif slx.string.beginswith(self.url,'file') then
+ elseif ctk.string.beginswith(self.url,'file') then
   valid = true
- elseif slx.string.beginswith(self.url,'chrome') then
+ elseif ctk.string.beginswith(self.url,'chrome') then
   valid = true
  end
  

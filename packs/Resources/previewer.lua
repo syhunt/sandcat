@@ -39,13 +39,13 @@ function Previewer:HandleCode(f,format)
  if source ~= '' then
   if string.len(source) < 1024*50 then
    if format == 'js' then
-    source = slx.html.beautifyjs(source)
+    source = ctk.html.beautifyjs(source)
    elseif format == 'css' then
-    source = slx.html.beautifycss(source)
+    source = ctk.html.beautifycss(source)
    end
    --html = rbutils.coderay_highlight(source,format)
    html = browser.highlightsrc(source,format)
-   html = slx.string.replace(html,'<pre>','<pre style="background-color:white;border:0;">')
+   html = ctk.string.replace(html,'<pre>','<pre style="background-color:white;border:0;">')
    f.previewhtml = html
   else
    f.previewhtml = self:NoHighlight(source)
@@ -85,14 +85,14 @@ function Previewer:HandleJSON(f)
 end
 
 function Previewer:HandleFlash(f)
- local resp=app.ask_yn('Render "'..slx.url.crack(f.url).filename..'"?','Previewer')
+ local resp=app.ask_yn('Render "'..ctk.url.crack(f.url).filename..'"?','Previewer')
  if resp == true then
   browser.showurl(f.url)
  end
 end
 
 function Previewer:HandleImage(f)
- f.previewhtml = '<pre style="background-color:white;padding:5px;border:0;"><img src="'..slx.html.escape(f.url)..'"></pre>'
+ f.previewhtml = '<pre style="background-color:white;padding:5px;border:0;"><img src="'..ctk.html.escape(f.url)..'"></pre>'
 end
 
 function Previewer:HandleArchive(f)
@@ -101,7 +101,7 @@ end
 
 function Previewer:NoHighlight(s)
  debug.print('Previewing with no highlighter...');
- local html = slx.html.escape(s)
+ local html = ctk.html.escape(s)
  html = '<pre style="background-color:white;border:0;">'..html..'</pre>'
  return html
 end

@@ -14,8 +14,8 @@ end
 function M:spliturl()
  local text = reqbuilder.edit.gettext()
  if text ~= '' then
-  text = slx.string.replace(text,'?','?'..string.char(10))
-  text = slx.string.replace(text,'&',string.char(10)..'&')
+  text = ctk.string.replace(text,'?','?'..string.char(10))
+  text = ctk.string.replace(text,'&',string.char(10)..'&')
   reqbuilder.edit.settext(text)
  end
 end
