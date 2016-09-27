@@ -205,6 +205,7 @@ type
   private
   public
     function DlgReplace(const s: string): string;
+    procedure AppMinimize(Sender: TObject);
     procedure SaveResource(const URL: string; const fromcloud: boolean = false);
     procedure SaveURLAs(const URL: string);
     procedure ShowAlert(const msg: string; const escape_html: boolean = true);
@@ -1500,6 +1501,11 @@ end;
 // TSandcatDialogs                                                         //
 // ------------------------------------------------------------------------//
 
+procedure TSandcatDialogs.AppMinimize(Sender: TObject);
+begin
+  Application.Restore;
+end;
+
 procedure TSandcatDialogs.ShowCustomDialog(const HTML: string;
   const id: string = '');
 const
@@ -1520,7 +1526,10 @@ begin
   end;
   page := replacestr(page, cContent, HTML);
   j.sObject.s['html'] := page;
+  // Prevent minimize while the dialog is shown (fix for minor Sciter bug)
+  Application.OnMinimize := AppMinimize;
   Tabstrip.Engine.Eval('SandcatUIX.ShowDialog(' + j.TextUnquoted + ');');
+  Application.OnMinimize := nil;
   j.Free;
 end;
 
