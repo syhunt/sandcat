@@ -1155,9 +1155,9 @@ begin
   Align := AlClient;
   Color := clWindow;
   fMsg := TCatMsg.Create;
-  fMsg.OnCopyDataMessage := CopyDataMessage;
+  fMsg.OnDataMessage := CopyDataMessage;
   fMsgV8 := TCatMsg.Create;
-  fMsgV8.OnCopyDataMessage := BrowserMessage;
+  fMsgV8.OnDataMessage := BrowserMessage;
   fState := TTabState.Create;
   fDefaultIcon := '@ICON_EMPTY';
   fIsClosing := false;

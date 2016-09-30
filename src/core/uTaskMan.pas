@@ -985,7 +985,7 @@ begin
   inherited Create;
   self.fTID := tid;
   fMsg := TCatMsg.Create;
-  fMsg.OnCopyDataMessage := CopyDataMessage;
+  fMsg.OnDataMessage := CopyDataMessage;
   Debug('task created (handle ' + inttostr(fMsg.msgHandle) + ')');
   fEnabled := true;
   fStopped := false;

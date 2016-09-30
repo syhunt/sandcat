@@ -2,6 +2,7 @@ local about = {}
 
 function about:addcredits()
   browser.addlibinfo('Catarinka libraries','','Syhunt and others','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_Catarinka.txt]])')
+  browser.addlibinfo('Cromis','1.6.1','Iztok Kacin','browser.newtab([[http://www.opensource.org/licenses/bsd-license.php]])')
   if browser.info.ceflibrary == 'dcef' then
     browser.addlibinfo('DCEF library','3','Henri Gourvest')
   end
