@@ -69,7 +69,7 @@ implementation
 
 uses uMain, pLua, CatStrings, CatFiles, CatTime, uUIComponents, uConst,
   CatTasks, CatZIP, CatHTTP, CatChromium, CatChromiumLib, uSettings, TypInfo,
-  uZones, uTab, uMisc, LAPI_Task, LAPI_Tab, CatConsole, uTaskMan;
+  uZones, uTab, uMisc, LAPI_Task, LAPI_Tab, CatConsole, CatPrefs, uTaskMan;
 
 type
   TReqOptionType = (ropt_headers, ropt_postdata, ropt_showheaders,
@@ -551,15 +551,13 @@ begin
 end;
 
 function lua_sandcatsettings_registerdefault(L: plua_State): integer; cdecl;
+var
+  custom:TCatPrefsCustomOption;
 begin
-  // s:=plua_tovariant(L,2);
   // debug('registering default: '+lua_tostring(L,1)+' value:'+s,'Settings');
-  if lua_isnone(L, 3) then
+  custom.HideInOptionList := true;
     Settings.Preferences.RegisterDefault(lua_tostring(L, 1),
-      plua_tovariant(L, 2), false)
-  else
-    Settings.Preferences.RegisterDefault(lua_tostring(L, 1),
-      plua_tovariant(L, 2), lua_toboolean(L, 3));
+      plua_tovariant(L, 2), custom);
   result := 1;
 end;
 

@@ -1,4 +1,4 @@
---  Copyright (c) 2011-2015, Syhunt Informatica
+--  Copyright (c) 2011-2017, Syhunt Informatica
 --  License: 3-clause BSD license
 --  See https://github.com/felipedaragon/sandcat/ for details.
 
@@ -36,8 +36,8 @@ end
 
 function M:Edit()
  local t = {}
- t.pak = Sandcat.filename
- t.filename = 'dialog_prefs.html'
+ t.html = browser.getpackfile(Sandcat.filename,'dialog_prefs.html')
+ t.html = ctk.string.replace(t.html,'%extensions%',browser.info.extensions)
  t.id = 'prefs'
  t.options = browser.info.options
  self:EditCustom(t)
@@ -52,7 +52,7 @@ function M:EditConfirm()
 end
 
 -- Expects a table as parameter containing the following keys:
--- pak,filename,id,options,jsonfile
+-- html,id,options,jsonfile
 function M:EditCustomFile(t)
  local ok = false
  self.confirmed = false
@@ -77,18 +77,17 @@ function M:EditCustomFile(t)
 end
 
 -- Expects a table as parameter containing the following keys:
--- pak,filename,id,options
+-- html,id,options
 -- optional: iscustomfile, options_disabled
 -- Returns true if the OK button has been pressed, false if the dialog
 -- has been closed or Cancel has been pressed
 function M:EditCustom(t)
- local html = browser.getpackfile(t.pak,t.filename)
+ local html = t.html or '' --browser.getpackfile(t.pak,t.filename)
  local script = ''
  t.iscustomfile = t.iscustomfile or false
  self.backup = prefs.getall() -- Browser Preferences backup
  self.confirmed = false
  html = browser.var_replace(html) -- must be first
- html = ctk.string.replace(html,'%extensions%',browser.info.extensions)
  script = self:GetImportScript(t.options,t.options_disabled)
  html = ctk.string.replace(html,'importsettings();',script)
  app.showdialogx(html,t.id)
