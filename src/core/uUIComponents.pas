@@ -29,6 +29,7 @@ type
 
 type
   TSandSLParser = TStringLoop;
+  TSandCSVParser = TCSVLoop;
   TSandSynEdit = TCatSynEdit;
   TSandCache = TCatStorage;
   TSandObjCache = TObjectCache;

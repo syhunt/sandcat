@@ -1373,31 +1373,31 @@ end;
 procedure TTabResourceList.RedefineColumns(const def, clickfunc,
   dblclickfunc: string);
 var
-  slp: TSandSLParser;
+  csv: TSandCSVParser;
 begin
   fCustomized := true;
   fClickFunc := clickfunc;
   fDblClickFunc := dblclickfunc;
   fLv.Columns.Clear;
   fLv.SortType := stNone;
-  slp := TSandSLParser.Create;
-  slp.LoadFromString(def);
-  while slp.Found do
+  csv := TSandCSVParser.Create;
+  csv.LoadFromString(def);
+  while csv.Found do
   begin
-    if slp.current <> emptystr then
+    if csv.current <> emptystr then
     begin
       with fLv.Columns.Add do
       begin
-        Caption := slp['c'];
-        if slp['a'] = '1' then
+        Caption := csv['c'];
+        if csv['a'] = '1' then
           AutoSize := true
         else
           AutoSize := false;
-        Width := strtointsafe(slp['w'], 0);
+        Width := strtointsafe(csv['w'], 0);
       end;
     end;
   end;
-  slp.Free;
+  csv.Free;
 end;
 
 procedure TTabResourceList.MenuCopyClick(Sender: TObject);

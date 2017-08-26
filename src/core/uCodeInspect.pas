@@ -123,7 +123,7 @@ end;
 procedure TSyCodeInspector.LoadItems(const s, activetab: string;
   const silent: Boolean = false);
 var
-  slp: TSandSLParser;
+  csv: TSandCSVParser;
   itemtype: string;
   function risktoimageindex(it, r: string): Integer;
   begin
@@ -158,25 +158,24 @@ begin
     fMsgsPanel.Visible := true;
   fItemList := s;
   fMainLv.Items.Clear;
-  slp := TSandSLParser.Create;
-  slp.isCSV := true;
-  slp.LoadFromString(fItemList);
-  while slp.Found do
+  csv := TSandCSVParser.Create;
+  csv.LoadFromString(fItemList);
+  while csv.Found do
   begin
-    itemtype := slp.GetValue('t');
+    itemtype := csv.Values['t'];
     if canadditem(activetab, itemtype) then
     begin
       with fMainLv.Items.Add do
       begin
-        Caption := slp.GetValue('l');
-        imageindex := risktoimageindex(itemtype, slp.GetValue('r'));
+        Caption := csv.Values['l'];
+        imageindex := risktoimageindex(itemtype, csv.Values['r']);
         if IsInteger(Caption) then
           Caption := inttostr(strtoint(Caption) + 1);
-        subitems.Add('[' + itemtype + '] ' + slp.GetValue('c'));
+        subitems.Add('[' + itemtype + '] ' + csv.Values['c']);
       end;
     end;
   end;
-  slp.Free;
+  csv.Free;
 end;
 
 procedure TSyCodeInspector.SetImageList(const il: TImageList);
