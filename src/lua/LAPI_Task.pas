@@ -322,7 +322,7 @@ begin
     j.WriteString(tid, 'initscript', UserScript.Lua_Task_Init);
   j.WriteString(tid, 'script', base64encode(script));
   j.WriteString(tid, 'params', base64encode(UserParams.text));
-  j.SaveJSON;
+  j.SaveToFile;
   j.free;
   Result := RunTask(paramstr(0) + ' ' + cBgTaskPrefix + tid, false, SW_HIDE);
 end;
@@ -338,7 +338,7 @@ begin
     exit;
   j := TSandJINI.Create;
   j.Filename := f;
-  j.LoadJSON;
+  j.LoadFromFile;
   deletefile(f);
   TaskID := tid;
   fLuaWrap.value['tid'] := tid;
