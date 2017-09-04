@@ -537,7 +537,7 @@ begin
       result := tab.StatusBarText;
     statuscode:
       if tab.Chrome <> nil then
-        result := strtointsafe(tab.Chrome.Headers.statuscode);
+        result := strtointdef(tab.Chrome.Headers.statuscode, 0);
     Title:
       result := tab.Title;
     url:

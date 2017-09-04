@@ -1393,7 +1393,7 @@ begin
           AutoSize := true
         else
           AutoSize := false;
-        Width := strtointsafe(csv['w'], 0);
+        Width := strtointdef(csv['w'], 0);
       end;
     end;
   end;

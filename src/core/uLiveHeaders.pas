@@ -144,7 +144,7 @@ begin
   m := fMainLv.Items.Count;
   for i := m - 1 downto 0 do
   begin
-    fMainLv.Items[i].ImageIndex := strtointsafe(fMainLv.Items[i].SubItems[6]);
+    fMainLv.Items[i].ImageIndex := strtointdef(fMainLv.Items[i].SubItems[6], 0);
   end;
 end;
 
@@ -414,7 +414,7 @@ begin
         request.URL := fMainLv.Items[i].SubItems[0];
         request.Method := fMainLv.Items[i].Caption;
         request.PostData := fMainLv.Items[i].SubItems[1];
-        request.StatusCode := strtointsafe(fMainLv.Items[i].SubItems[2]);
+        request.StatusCode := strtointdef(fMainLv.Items[i].SubItems[2], 0);
         request.MimeType := fMainLv.Items[i].SubItems[3];
         request.Details := fMainLv.Items[i].SubItems[5];
         request.Filename := fMainLv.Items[i].SubItems[7];

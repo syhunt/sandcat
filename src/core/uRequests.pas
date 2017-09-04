@@ -124,7 +124,7 @@ var
       // checks if host and port were provided and reconstruct from them
       if (request.host <> emptystr) and (request.SentHead <> emptystr) then
       begin
-        request.URL := generateurl(request.host, strtointsafe(request.port));
+        request.URL := generateurl(request.host, strtointdef(request.port, 0));
         request.URL := request.URL + ExtractHTTPRequestPath(request.SentHead);
       end;
     end;
@@ -256,7 +256,7 @@ begin
   r.details := reqtype;
   r.host := pkt.Values['host'];
   r.port := pkt.Values['port'];
-  r.Length := strtointsafe(pkt.Values['crsp']);
+  r.Length := strtointdef(pkt.Values['crsp'], 0);
   r.SentHead := pkt.Values['rqsh'];
   r.RcvdHead := pkt.Values['head'];
   r.response := pkt.Values['rspn'];
