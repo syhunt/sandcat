@@ -48,6 +48,7 @@ type
       const hascustomtb: boolean = false; const inbg: boolean = false)
       : TSandcatTab;
     function NewTab_Custom(t: TCustomTabSettings): TSandcatTab;
+    function NewTab_Search(const term:string): TSandcatTab;
     procedure CloseAllTabs(const Silent: boolean = false;
       But: TSandcatTab = nil);
     procedure CloseTab(const tabname: string = '');
@@ -505,6 +506,11 @@ begin
 
   result := tab;
   Debug('newtab.end');
+end;
+
+function TSandcatTabManager.NewTab_Search(const term:string): TSandcatTab;
+begin
+  result := newtab(vSearchEngine_QueryURL + term);
 end;
 
 procedure TSandcatTabManager.NewWindow(const url: string = '');

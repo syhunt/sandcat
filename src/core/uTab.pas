@@ -150,7 +150,7 @@ type
     procedure LoadExtensionPage(const html: string);
     procedure LoadExtensionToolbar(const html: string);
     procedure LoadSourceFile(const filename: string);
-    procedure DoSearch(const term: string; const newtab: boolean = false);
+    procedure DoSearch(const term: string);
     procedure RunLuaOnLog(const msg, lua: string);
     procedure RunJavaScript(const script: string); overload;
     procedure RunJavaScript(const script: TCatCustomJavaScript); overload;
@@ -401,13 +401,9 @@ begin
 end;
 
 // Performs a web search using the selected search engine in the navigation bar
-procedure TSandcatTab.DoSearch(const term: string;
-  const newtab: boolean = false);
+procedure TSandcatTab.DoSearch(const term: string);
 begin
-  if newtab then
-    tabmanager.newtab(vSearchEngine_QueryURL + term)
-  else
-    GoToURL(vSearchEngine_QueryURL + term);
+  GoToURL(vSearchEngine_QueryURL + term);
 end;
 
 // Handling of WM_COPYDATA messages
@@ -477,7 +473,7 @@ begin
     CRM_SEARCHWITHENGINE:
       DoSearch(str);
     CRM_SEARCHWITHENGINE_INNEWTAB:
-      DoSearch(str, true);
+      tabmanager.newtab_search(str);
     CRM_SAVECACHEDRESOURCE:
       sanddlg.SaveResource(str, false);
     CRM_SAVECLOUDRESOURCE:
