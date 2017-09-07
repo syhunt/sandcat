@@ -30,7 +30,8 @@ implementation
 
 uses
   uMain, uTaskMan, uTab, plua, CatFiles, uMisc, CatStrings, uUIComponents,
-  CatChromium, uSettings, uConst, uZones, uLiveHeaders, pLuaTable, LAPI_CEF;
+  CatChromium, CatChromiumLib, uSettings, uConst, uZones, uLiveHeaders,
+  pLuaTable, LAPI_CEF;
 
 function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
 var
@@ -81,17 +82,13 @@ begin
 end;
 
 function method_runjavascript(L: PLua_State): integer; cdecl;
-var
-  script: TCatCustomJavaScript;
 begin
-  script.reporterrors := true;
-  if lua_isnone(L, 5) = false then
-    script.reporterrors := lua_toboolean(L, 5);
-  script.Code := lua_tostring(L, 2);
-  script.URL := lua_tostring(L, 3);
-  script.StartLine := lua_tointeger(L, 4);
-  if tabmanager.ActiveTab <> nil then
-    tabmanager.ActiveTab.runjavascript(script);
+  if tabmanager.ActiveTab <> nil then begin
+    if lua_istable(L, 2) then // user provided a Lua table
+      tabmanager.ActiveTab.runjavascript(BuildJSCallFromLuaTable(L))
+    else
+      tabmanager.ActiveTab.runjavascript(lua_tostring(L, 2),lua_tostring(L, 3),lua_tointeger(L, 4));
+  end;
   result := 1;
 end;
 

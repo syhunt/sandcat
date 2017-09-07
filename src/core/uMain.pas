@@ -2,7 +2,7 @@ unit uMain;
 
 {
   Syhunt Sandcat Browser
-  Copyright (c) 2011-2015, Syhunt Informatica
+  Copyright (c) 2011-2017, Syhunt Informatica
 
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.

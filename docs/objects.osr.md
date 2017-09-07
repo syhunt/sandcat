@@ -26,9 +26,11 @@ cef:loadurl('http://www.syhunt.com/sandcat/')
 
 * **loadurl** ( url ): Goes to the supplied url
 
-* **reload** (ignorecache) : Reloads the page. If the first parameter is supplied and is true, the cache will be ignored
+* **reload** ( ignorecache ): Reloads the page. If the first parameter is supplied and is true, the cache will be ignored
 
-* **runjs** ( jscode [,url, startline, reporterrors] ): Executes a JavaScript code in the loaded page. The last three parameters are optional
+* **runjs** ( jscode [,url, startline] ): Executes a JavaScript code in the loaded page. The last two parameters are optional
+
+* **runjs** ( luatable ): Performs a custom JavaScript call in the loaded page. Accepts the same keys as the tab:runjs() method.
 
 * **sendrequest** ( luatable ): Sends a custom HTTP request. See Request for details. Accepts the same keys as the tab:loadrequest() method.
 

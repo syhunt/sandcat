@@ -48,7 +48,13 @@ details - a short description for the request
 
 * **tab:reload** ( ignorecache ): Reloads the page. If the first parameter is supplied and is true, the cache will be ignored.
 
-* **tab:runjs** ( jscode [,url, startline, reporterrors]): Executes a JavaScript code in the loaded page. The last three parameters are optional.
+* **tab:runjs** ( jscode [,url, startline]): Executes a JavaScript code in the loaded page. The last two parameters are optional.
+
+* **tab:runjs** ( luatable ): Performs a custom JavaScript call in the loaded page. The following keys can be provided:
+ * code (required): the JavaScript code
+ * url: the JS URL
+ * startln: the start line number (default is 0)
+ * silent: If supplied, and is true, JS execution errors are not reported. Default false.
 
 * **tab:runluaonlog** (msg,luacode): Sets a Lua script to be executed after a certain message is received through the JS console.log() method. This method should be used with caution.
 

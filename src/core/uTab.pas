@@ -152,8 +152,9 @@ type
     procedure LoadSourceFile(const filename: string);
     procedure DoSearch(const term: string);
     procedure RunLuaOnLog(const msg, lua: string);
-    procedure RunJavaScript(const script: string); overload;
-    procedure RunJavaScript(const script: TCatCustomJavaScript); overload;
+    procedure RunJavaScript(const script: string;
+      const aURL:string = '';const StartLine:integer = 0); overload;
+    procedure RunJavaScript(const script: TCatCustomJSCall); overload;
     procedure SendRequest(const method, URL, postdata: string;
       const load: boolean = false);
     procedure SendRequestCustom(req: TCatChromiumRequest;
@@ -381,19 +382,20 @@ end;
 
 // Executes a piece of JavaScript code (usually called by the user via some
 // extension)
-procedure TSandcatTab.RunJavaScript(const script: string);
+procedure TSandcatTab.RunJavaScript(const script: string;
+      const aURL:string = '';const StartLine:integer = 0);
 var
-  s: TCatCustomJavaScript;
+  s: TCatCustomJSCall;
 begin
   s.Code := script;
-  s.URL := emptystr;
-  s.StartLine := 0;
-  s.ReportErrors := false;
+  s.URL := aURL;
+  s.StartLine := StartLine;
+  s.Silent := false;
   RunJavaScript(s);
 end;
 
 // Executes a piece of JavaScript code
-procedure TSandcatTab.RunJavaScript(const script: TCatCustomJavaScript);
+procedure TSandcatTab.RunJavaScript(const script: TCatCustomJSCall);
 begin
   fUserJSExecuted := true;
   InitChrome; // Initializes chrome, if not initialized before

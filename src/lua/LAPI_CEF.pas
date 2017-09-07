@@ -51,6 +51,7 @@ type
   end;
 
 procedure RegisterCEF(L: PLua_State);
+function BuildJSCallFromLuaTable(L: PLua_State): TCatCustomJSCall;
 function BuildRequestFromJSON(json: string): TCatChromiumRequest;
 function BuildRequestFromLuaTable(L: PLua_State): TCatChromiumRequest;
 function BuildRequestDetailsFromJSON(const json: string;
@@ -80,6 +81,18 @@ const
   REQUESTKEY_USERNAME = 'username';
   REQUESTKEY_PASSWORD = 'password';
   REQUESTKEY_CALLBACK = 'callback';
+
+function BuildJSCallFromLuaTable(L: PLua_State): TCatCustomJSCall;
+var
+  t: TLuaTable;
+begin
+  t := TLuaTable.Create(L, true);
+  Result.Code := t.ReadString('code');
+  Result.URL := t.ReadString('url');
+  Result.StartLine := t.ReadInteger('startln',0);
+  Result.Silent := t.ReadBool('silent',false);
+  t.Free;
+end;
 
 function BuildRequestFromLuaTable(L: PLua_State): TCatChromiumRequest;
 var
@@ -250,14 +263,12 @@ end;
 function method_runjavascript(L: PLua_State): integer; cdecl;
 var
   ht: TSandOSR;
-  reporterrors: boolean;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
-  reporterrors := true;
-  if lua_isnone(L, 5) = false then
-    reporterrors := lua_toboolean(L, 5);
-  ht.obj.RunJavaScript(lua_tostring(L, 2), lua_tostring(L, 3),
-    lua_tointeger(L, 4), reporterrors);
+  if lua_istable(L, 2) then // user provided a Lua table
+    ht.obj.RunJavaScript(BuildJSCallFromLuaTable(L))
+  else
+    ht.obj.RunJavaScript(lua_tostring(L, 2),lua_tostring(L, 3),lua_tointeger(L, 4));
   Result := 1;
 end;
 
