@@ -14,6 +14,9 @@ uses
   Lua, uUIComponents;
 
 type
+ TUserScriptLanguage = (usCSS, usJS, usLua, usTIS);
+
+type
   TSandcatExtensions = class
   private
     fCanRunLua: boolean;

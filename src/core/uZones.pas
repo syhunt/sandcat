@@ -3,7 +3,7 @@ unit uZones;
 {
   Sandcat User Interface Zones
 
-  Copyright (c) 2011-2015, Syhunt Informatica
+  Copyright (c) 2011-2017, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 
@@ -108,15 +108,23 @@ type
 type
   TSandcatSidebar = class(TCustomControl)
   private
+    fCanExecLua: boolean;
+    fLoadTreeItemFunc: string;
     fNote: TNoteBook;
     fTV: TTreeView;
+    procedure LoadTreeItem(const path: string);
     procedure SideBarTreeChange(Sender: TObject; Node: TTreeNode);
     procedure SideBarTreeDblClick(Sender: TObject);
   public
     procedure Clear;
-    procedure LoadDir(const dir: string);
+    procedure LoadAffectedScripts(const paths: string);
+    procedure LoadDir(const dir: string; const makebold: boolean = true);
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    // properties
+    property CanExecLua: boolean read fCanExecLua write fCanExecLua;
+    property LoadTreeItemFunc: string read fLoadTreeItemFunc
+      write fLoadTreeItemFunc;
     property Tree: TTreeView read fTV;
   end;
 
@@ -189,7 +197,7 @@ type
     procedure SetStripVisible(const b: boolean);
   public
     procedure AddPage(const name: string);
-    procedure AdjustPageStrip(const SideTree: TTreeView);
+    procedure AdjustPageStrip(const SideBar: TSandcatSidebar);
     procedure EvalTIS(const s: string);
     procedure ShowPage(const name: string; const visible: boolean);
     procedure SelectPage(const name: string);
@@ -256,7 +264,6 @@ type
     procedure InsertHTML(const Engine, index, Selector, HTML: string);
     procedure InsertHTMLFile(const Engine, index, Selector,
       HTMLFilename: string);
-    procedure LoadTreeItem(const path: string);
     procedure LoadUI;
     procedure ShowRequest(const Requests: TSandcatRequests;
       const filename: string);
@@ -264,7 +271,7 @@ type
     procedure StdOut(ASender: TObject; const msg: WideString);
     procedure StdErr(ASender: TObject; const msg: WideString);
     procedure Tree_FilePathToTreeNode(aTreeView: TTreeView; aRoot: TTreeNode;
-      path: string; Recurse: boolean; MakeBold: boolean = true);
+      path: string; Recurse: boolean; makebold: boolean = true);
     procedure Tree_SetAffectedImages(tv: TTreeView; paths: string);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
@@ -501,7 +508,7 @@ begin
 end;
 
 procedure TSandcatUIX.Tree_FilePathToTreeNode(aTreeView: TTreeView;
-  aRoot: TTreeNode; path: string; Recurse: boolean; MakeBold: boolean = true);
+  aRoot: TTreeNode; path: string; Recurse: boolean; makebold: boolean = true);
 var
   NewNode: TTreeNode;
   SRec: TSearchRec;
@@ -515,7 +522,7 @@ begin
         NewNode := aTreeView.Items.AddChild(aRoot, SRec.name);
         NewNode.ImageIndex := GetFileImageIndex(SRec.name);
         NewNode.SelectedIndex := GetFileImageIndex(SRec.name, true);
-        if MakeBold then
+        if makebold then
           SetNodeBoldState(NewNode, true);
       end;
       if Recurse and ((SRec.Attr and faDirectory) <> 0) then
@@ -623,12 +630,6 @@ const
 begin
   AddTIS(format(cScript, [htmlescape(Selector), htmlescape(HTMLFilename)]
     ), Engine);
-end;
-
-procedure TSandcatUIX.LoadTreeItem(const path: string);
-begin
-  Extensions.LuaWrap.value['_temppath'] := path;
-  Extensions.RunLuaCmd('sidebar.loadtreeitem(_temppath)');
 end;
 
 procedure TSandcatUIX.CreateElement(const Engine, Table, Selector: string);
@@ -955,6 +956,8 @@ begin
   inherited Create(AOwner);
   Width := 300;
   visible := false;
+  fLoadTreeItemFunc := 'sidebar.loadtreeitem'; // tab must use tab.tree_loaditem
+  fCanExecLua := true;
   fNote := TNoteBook.Create(Self);
   fNote.Parent := Self;
   fNote.Align := alClient;
@@ -964,6 +967,7 @@ begin
   fTV.Align := alClient;
   fTV.Images := sandbrowser.LiveImages;
   fTV.ReadOnly := true;
+  fTV.HideSelection := false;
   fTV.ShowLines := false;
   fTV.OnChange := SideBarTreeChange;
   fTV.OnDblClick := SideBarTreeDblClick;
@@ -971,11 +975,13 @@ end;
 
 destructor TSandcatSidebar.Destroy;
 begin
+  fTV.OnChange := nil;
   fTV.Free;
   fNote.Free;
   inherited Destroy;
 end;
 
+// Clears the side tree
 procedure TSandcatSidebar.Clear;
 begin
   fTV.OnChange := nil;
@@ -983,21 +989,44 @@ begin
   fTV.OnChange := SideBarTreeChange;
 end;
 
-procedure TSandcatSidebar.LoadDir(const dir: string);
+// Can be called by extensions to load a directory tree as the side tree items
+procedure TSandcatSidebar.LoadDir(const dir: string;
+  const makebold: boolean = true);
 begin
-  uix.Tree_FilePathToTreeNode(fTV, nil, dir, true);
+  uix.Tree_FilePathToTreeNode(fTV, nil, dir, true, makebold);
 end;
 
+// Updates site tree item images, highlighting scripts that have some issue
+// Used by Sandcat extensions
+procedure TSandcatSidebar.LoadAffectedScripts(const paths: string);
+begin
+  uix.Tree_SetAffectedImages(fTV, paths);
+end;
+
+// Called when an item from the side tree has been clicked
+procedure TSandcatSidebar.LoadTreeItem(const path: string);
+begin
+  if fCanExecLua = false then
+    exit;
+  Extensions.LuaWrap.value['_temppath'] := path;
+  Extensions.RunLuaCmd(fLoadTreeItemFunc + '(_temppath)');
+end;
+
+// Handles side tree item doubleclicks
 procedure TSandcatSidebar.SideBarTreeDblClick(Sender: TObject);
 begin
   if (fTV.Selected <> nil) then
-    uix.LoadTreeItem(GetFullPath(fTV.Selected));
+    LoadTreeItem(GetFullPath(fTV.Selected));
 end;
 
+// Handles side tree item selection changes
 procedure TSandcatSidebar.SideBarTreeChange(Sender: TObject; Node: TTreeNode);
 begin
-  if fTV.Selected <> nil then
-    uix.LoadTreeItem(GetFullPath(fTV.Selected));
+  if (fTV.Selected = nil) then
+    exit;
+  LoadTreeItem(GetFullPath(fTV.Selected));
+  SetNodeBoldState(fTV.Selected, false);
+  Application.ProcessMessages;
 end;
 
 // ------------------------------------------------------------------------//
@@ -1241,12 +1270,12 @@ end;
 // TSandcatPageBar                                                         //
 // ------------------------------------------------------------------------//
 
-procedure TSandcatPageBar.AdjustPageStrip(const SideTree: TTreeView);
+procedure TSandcatPageBar.AdjustPageStrip(const SideBar: TSandcatSidebar);
 begin
   e := fEngine.Root.Select('#tabstrip');
   if e <> nil then
-    e.StyleAttr['margin-left'] := iif(SideTree.visible, inttostr(SideTree.Width)
-      + 'px', '0px');
+    e.StyleAttr['margin-left'] := iif(SideBar.visible, inttostr(SideBar.Width) +
+      'px', '0px');
 end;
 
 // default true
@@ -1503,7 +1532,7 @@ end;
 
 procedure TSandcatDialogs.AppMinimize(Sender: TObject);
 begin
-  Application.Restore;
+  application.Restore;
 end;
 
 procedure TSandcatDialogs.ShowCustomDialog(const HTML: string;
@@ -1527,9 +1556,9 @@ begin
   page := replacestr(page, cContent, HTML);
   j.sObject.s['html'] := page;
   // Prevent minimize while the dialog is shown (fix for minor Sciter bug)
-  Application.OnMinimize := AppMinimize;
+  application.OnMinimize := AppMinimize;
   Tabstrip.Engine.Eval('SandcatUIX.ShowDialog(' + j.TextUnquoted + ');');
-  Application.OnMinimize := nil;
+  application.OnMinimize := nil;
   j.Free;
 end;
 

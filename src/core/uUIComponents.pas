@@ -12,7 +12,7 @@ interface
 uses
   Windows, SysUtils, Registry,
   LuaWrapper,
-  CatStorage, CatStringLoop, CatSynEdit, CatJSON, CatJINI,
+  CatStorage, CatStringLoop, CatSynEdit, CatJSON, CatJINI, CatMemo,
 {$IFDEF USEAXSCITER}
   CatSciterAx,
 {$ELSE}
@@ -23,6 +23,7 @@ uses
 type
   TSandJSON = TCatJSON;
   TSandJINI = TJIniList;
+  TSandLogMemo = TCatLogMemo;
 
 type
   TSandLua = TLua;

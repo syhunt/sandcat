@@ -1,7 +1,7 @@
 unit uTab;
 {
   Sandcat Browser Tab component
-  Copyright (c) 2011-2015, Syhunt Informatica
+  Copyright (c) 2011-2017, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 }
@@ -11,16 +11,16 @@ interface
 {$I Catarinka.inc}
 
 uses
-{$IF CompilerVersion >= 23} // XE2 or higher
+{$IFDEF DXE2_OR_UP}
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Menus, System.TypInfo,
 {$ELSE}
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, Menus, TypInfo,
-{$IFEND}
+{$ENDIF}
   CatUI, uUIComponents, CatConsole, CatChromium, CatChromiumLib, uRequests,
-  SynUnicode, uLiveHeaders, uCodeInspect, CatMsg;
+  SynUnicode, uLiveHeaders, uCodeInspect, uTabRes, uExtensions, uZones, CatMsg;
 
 type // Used for restoring the state of a tab when switching tabs
   TTabState = class
@@ -43,31 +43,6 @@ type // Used for restoring the state of a tab when switching tabs
     procedure SaveState;
     constructor Create;
     destructor Destroy; override;
-  end;
-
-type
-  TTabResourceList = class(TCustomControl)
-  private
-    fLv: TListView;
-    fAscending: boolean;
-    fClickFunc: string;
-    fCustomized: boolean;
-    fDblClickFunc: string;
-    fPopupMenu: TPopupMenu;
-    fLastSortedColumn: integer;
-    procedure ListViewDblClick(Sender: TObject);
-    procedure ListViewClick(Sender: TObject);
-    procedure ListviewColumnClick(Sender: TObject; Column: TListColumn);
-    procedure MenuCopyClick(Sender: TObject);
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    procedure AddPageResource(const URL: string; ImgIdx: integer);
-    procedure AddPageResourceCustom(const JSON: string);
-    procedure RedefineColumns(const def, clickfunc, dblclickfunc: string);
-    // properties
-    property Lv: TListView read fLv;
-    property Ascending: boolean read fAscending;
   end;
 
 type
@@ -98,7 +73,7 @@ type
     fLuaOnLog: TSandJSON;
     fLiveHeaders: TLiveHeaders;
     fLoading: boolean;
-    fLog: TMemo;
+    fLog: TSandLogMemo;
     fLogBrowserRequests: boolean;
     fMainPanel: TPanel;
     fMsg: TCatMsg;
@@ -108,7 +83,7 @@ type
     fRequests: TSandcatRequests;
     fResources: TTabResourceList;
     fRetrieveFavIcon: boolean;
-    fSideTree: TTreeView;
+    fSideBar: TSandcatSidebar;
     fSyncWithTask: boolean;
     fSourceInspect: TSyCodeInspector;
     fSourceManual: string;
@@ -150,16 +125,14 @@ type
       const isLoading, canGoBack, canGoForward: boolean);
     procedure CrmLoadError(Sender: TObject; const errorCode: integer;
       const errorText, failedUrl: string);
+    procedure Debug(const s: string);
     procedure LogCustomScriptError(const JSON: string);
     procedure RunJSONCmd(const JSON: string);
-    procedure RunUserScript(var script: string; const lang: integer;
+    procedure RunUserScript(var script: string; const lang: TUserScriptLanguage;
       const runonce: boolean = false);
     procedure RunUserScripts(const event: integer);
     procedure SetLoading(const b: boolean);
     procedure SetStatusBarText(const s: string);
-    procedure SideTree_LoadItem(const path: string);
-    procedure SideTreeChange(Sender: TObject; Node: TTreeNode);
-    procedure SideTreeDblClick(Sender: TObject);
     procedure UpdateSourceCode;
     procedure UpdateV8Handle;
   public
@@ -177,13 +150,10 @@ type
     procedure LoadExtensionPage(const html: string);
     procedure LoadExtensionToolbar(const html: string);
     procedure LoadSourceFile(const filename: string);
-    procedure LogWriteLn(const s: string);
-    procedure LogWrite(const s: string);
     procedure DoSearch(const term: string; const newtab: boolean = false);
     procedure RunLuaOnLog(const msg, lua: string);
     procedure RunJavaScript(const script: string); overload;
-    procedure RunJavaScript(const script: string; const scripturl: string;
-      const startline: integer; const reporterrors: boolean = false); overload;
+    procedure RunJavaScript(const script: TCatCustomJavaScript); overload;
     procedure SendRequest(const method, URL, postdata: string;
       const load: boolean = false);
     procedure SendRequestCustom(req: TCatChromiumRequest;
@@ -192,10 +162,6 @@ type
     procedure SetIcon(const URL: string; const force: boolean = false);
     procedure SetTitle(const title: string);
     procedure ShowSideTree(const visible: boolean);
-    procedure SideTree_Clear;
-    procedure SideTree_LoadDir(const dir: string;
-      const makebold: boolean = true);
-    procedure SideTree_LoadAffectedScripts(const paths: string);
     procedure ViewDevTools;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -212,7 +178,7 @@ type
     property LastConsoleLogMessage: string read fLastConsoleLogMessage;
     property LiveHeaders: TLiveHeaders read fLiveHeaders;
     property Loading: boolean read fLoading write SetLoading;
-    property Log: TMemo read fLog;
+    property Log: TSandLogMemo read fLog;
     property LogBrowserRequests: boolean read fLogBrowserRequests
       write fLogBrowserRequests;
     property OnMessage: TSandcatTabOnMessage read fOnMessage write fOnMessage;
@@ -220,6 +186,7 @@ type
     property Number: integer read fNumber write fNumber;
     property Requests: TSandcatRequests read fRequests;
     property Resources: TTabResourceList read fResources;
+    property SideBar: TSandcatSidebar read fSideBar;
     property SitePrefsFile: string read GetSitePrefsFile;
     property SourceInspect: TSyCodeInspector read fSourceInspect;
     property state: TTabState read fState;
@@ -264,15 +231,15 @@ const // messages from the V8 extension or Sandcat tasks
 implementation
 
 uses
-  uMain, uConst, uZones, uMisc, uTaskMan, uSettings, uTabV8, CatStrings,
-  CatHTTP, CatUtils, LAPI_Task, LAPI_Browser, LAPI_CEF, CatFiles;
+  uMain, uConst, uMisc, uTaskMan, uSettings, uTabV8, CatStrings, CatHTTP,
+  CatUtils, CatFiles, LAPI_Task, LAPI_Browser, LAPI_CEF;
 
 var
   SandcatBrowserTab: TSandcatTab;
 
-procedure Debug(const s: string; const component: string = 'Tab');
+procedure TSandcatTab.Debug(const s: string);
 begin
-  uMain.Debug(s, component);
+  uMain.Debug(s, 'Tab');
 end;
 
 // Returns the filename of a site preferences file
@@ -296,61 +263,13 @@ begin
     (extractfileext(filename));
 end;
 
-// Clears the side tree
-procedure TSandcatTab.SideTree_Clear;
-begin
-  fSideTree.OnChange := nil;
-  fSideTree.Items.Clear;
-  fSideTree.OnChange := SideTreeChange;
-end;
-
-// Handles side tree item selection changes
-procedure TSandcatTab.SideTreeChange(Sender: TObject; Node: TTreeNode);
-begin
-  if (fSideTree.Selected = nil) then
-    exit;
-  SetNodeBoldState(fSideTree.Selected, false);
-  SideTree_LoadItem(GetFullPath(fSideTree.Selected));
-end;
-
-// Handles side tree item doubleclicks
-procedure TSandcatTab.SideTreeDblClick(Sender: TObject);
-begin
-  if (fSideTree.Selected = nil) then
-    exit;
-  SideTree_LoadItem(GetFullPath(fSideTree.Selected));
-end;
-
-// Updates site tree item images, highlighting scripts that have some issue
-// Used by Sandcat extensions
-procedure TSandcatTab.SideTree_LoadAffectedScripts(const paths: string);
-begin
-  UIX.Tree_SetAffectedImages(fSideTree, paths);
-end;
-
-// Can be called by extensions to load a directory tree as the side tree items
-procedure TSandcatTab.SideTree_LoadDir(const dir: string;
-  const makebold: boolean = true);
-begin
-  UIX.Tree_FilePathToTreeNode(fSideTree, nil, dir, true, makebold);
-end;
-
-// Called when an item from the side tree has been clicked
-procedure TSandcatTab.SideTree_LoadItem(const path: string);
-begin
-  if fIsClosing then
-    exit;
-  Extensions.LuaWrap.value['_temppath'] := path;
-  Extensions.RunLuaCmd('tab.tree_loaditem(_temppath)');
-end;
-
 // Displays the side tree (used by Sandcat extensions)
 procedure TSandcatTab.ShowSideTree(const visible: boolean);
 begin
-  fSideTree.visible := visible;
-  pagebar.AdjustPageStrip(fSideTree);
+  fSideBar.visible := visible;
+  pagebar.AdjustPageStrip(fSideBar);
   fTreeSplitter.visible := visible;
-  fTreeSplitter.Left := fSideTree.Left + 1;
+  fTreeSplitter.Left := fSideBar.Left + 1;
 end;
 
 { // Handles file drops in the code editor
@@ -409,7 +328,7 @@ begin
     fSubTabs.ActivePage := fState.CustomDefaultPage;
   Navbar.IsBookmarked := fState.IsBookmarked;
   pagebar.SelectPage(fState.ActivePageName);
-  pagebar.AdjustPageStrip(fSideTree);
+  pagebar.AdjustPageStrip(fSideBar);
 end;
 
 // Sets the active page by the page name
@@ -463,18 +382,22 @@ end;
 // Executes a piece of JavaScript code (usually called by the user via some
 // extension)
 procedure TSandcatTab.RunJavaScript(const script: string);
+var
+  s: TCatCustomJavaScript;
 begin
-  RunJavaScript(script, emptystr, 0, false);
+  s.Code := script;
+  s.URL := emptystr;
+  s.StartLine := 0;
+  s.ReportErrors := false;
+  RunJavaScript(s);
 end;
 
 // Executes a piece of JavaScript code
-procedure TSandcatTab.RunJavaScript(const script: string;
-  const scripturl: string; const startline: integer;
-  const reporterrors: boolean = false);
+procedure TSandcatTab.RunJavaScript(const script: TCatCustomJavaScript);
 begin
   fUserJSExecuted := true;
   InitChrome; // Initializes chrome, if not initialized before
-  fChrome.RunJavaScript(script, scripturl, startline, reporterrors);
+  fChrome.RunJavaScript(script);
 end;
 
 // Performs a web search using the selected search engine in the navigation bar
@@ -485,18 +408,6 @@ begin
     tabmanager.newtab(vSearchEngine_QueryURL + term)
   else
     GoToURL(vSearchEngine_QueryURL + term);
-end;
-
-// Adds a line to the log memo in the log page
-procedure TSandcatTab.LogWriteLn(const s: string);
-begin
-  fLog.lines.Text := fLog.lines.Text + s + crlf;
-end;
-
-// Writes a string to the log memo in the log page
-procedure TSandcatTab.LogWrite(const s: string);
-begin
-  fLog.lines.Text := fLog.lines.Text + s;
 end;
 
 // Handling of WM_COPYDATA messages
@@ -525,9 +436,9 @@ begin
     SCBM_LUA_RUN:
       Extensions.RunLuaCmd(str);
     SCBM_LOGWRITELN:
-      LogWriteLn(str);
+      fLog.WriteLn(str);
     SCBM_LOGWRITE:
-      LogWrite(str);
+      fLog.Write(str);
     SCBM_LOGADD:
       fLog.lines.Add(str);
     SCBM_LOGCUSTOMSCRIPTERROR:
@@ -688,18 +599,16 @@ begin
 end;
 
 // Updates the source code in the source page
+// Uses the default source page update mechanism if fSourceManual is empty
+// Otherwise, manually sets the source code from fSourceManual
 procedure TSandcatTab.UpdateSourceCode;
 begin
   if fCanUpdateSource = false then
     exit;
-  if fSourceManual = emptystr then // default source page update mechanism
-    fChrome.getSource
+  if fSourceManual = emptystr then
+    fChrome.getSource()
   else
-  begin
-    // manually setting the source code in the source page
-    fSourceInspect.setsource(fSourceManual);
-    fSourceManual := emptystr;
-  end;
+    fSourceInspect.setsourcevar(fSourceManual, true);
 end;
 
 // Sets a new tab title
@@ -819,7 +728,7 @@ end;
 function TSandcatTab.GetURL: string;
 begin
   if fChrome <> nil then
-    Result := Chrome.GetURL
+    Result := fChrome.GetURL
   else
     Result := emptystr;
 end;
@@ -956,10 +865,8 @@ begin
     // fChrome.OnJsdialog:=crmJsdialog;
     // fChrome.OnProcessMessageReceived:=crmProcessMessageReceived;
     LoadSettings;
-    UpdateV8Handle;
-  end
-  else // already created, resend the v8 handle
-    UpdateV8Handle;
+  end;
+  UpdateV8Handle; // send or resend the v8 handle
 end;
 
 // Called before freeing a tab, if there is any active download, asks the user
@@ -981,6 +888,7 @@ begin
   if Result = true then
   begin
     fIsClosing := true;
+    fSideBar.CanExecLua := false;
     fRequests.tabwillclose;
     if fChrome <> nil then
       fChrome.InterceptRequests := false;
@@ -1009,7 +917,7 @@ begin
       if fCustomToolbar <> nil then
         fCustomToolbar.Eval(str);
     cmd_setaffecteditems:
-      SideTree_LoadAffectedScripts(str);
+      SideBar.LoadAffectedScripts(str);
     cmd_seticon:
       SetIcon(str);
     cmd_setstatus:
@@ -1021,15 +929,15 @@ begin
 end;
 
 // Runs a user script (JavaScript or Lua)
-procedure TSandcatTab.RunUserScript(var script: string; const lang: integer;
-  const runonce: boolean = false);
+procedure TSandcatTab.RunUserScript(var script: string;
+  const lang: TUserScriptLanguage; const runonce: boolean = false);
 begin
   if script = emptystr then
     exit;
   case lang of
-    1:
+    usJS:
       RunJavaScript(script);
-    2:
+    usLua:
       Extensions.RunLuaCmd(script);
   end;
   if runonce = true then
@@ -1037,19 +945,15 @@ begin
 end;
 
 // Runs user scripts (if any) for a specific tab event
-// TODO: This needs to be re-implemented
 procedure TSandcatTab.RunUserScripts(const event: integer);
-const
-  cJS = 1;
-  cLua = 2;
 begin
   case event of
     SCBT_LOADEND:
       begin
-        RunUserScript(userscript.JS_Tab_LoadEnd, cJS);
-        RunUserScript(UserTabScript.JS_LoadEnd, cJS);
-        RunUserScript(UserTabScript.JS_LoadEnd_RunOnce, cJS, true);
-        RunUserScript(UserTabScript.Lua_LoadEnd_RunOnce, cLua, true);
+        RunUserScript(UserScript.JS_Tab_LoadEnd, usJS);
+        RunUserScript(UserTabScript.JS_LoadEnd, usJS);
+        RunUserScript(UserTabScript.JS_LoadEnd_RunOnce, usJS, true);
+        RunUserScript(UserTabScript.Lua_LoadEnd_RunOnce, usLua, true);
       end;
   end;
 end;
@@ -1057,31 +961,23 @@ end;
 // If a page is loaded, opens the Developer Tools for the tab
 procedure TSandcatTab.ViewDevTools;
 begin
-  if fChrome <> nil then
-  begin
+  if fChrome = nil then
+    exit;
 {$IFNDEF USEWACEF}
-    // DCEF will display the DevTools as part of the browser tab instead of a
-    // new window, so switch to it
-    contentarea.SetActivePage('browser');
+  // DCEF will display the DevTools as part of the browser tab instead of a
+  // new window, so switch to it
+  contentarea.SetActivePage('browser');
 {$ENDIF}
-    fChrome.ViewDevTools;
-  end;
+  fChrome.ViewDevTools;
 end;
 
 // Creates a side tree that can be used by extensions (invisible by default)
 procedure TSandcatTab.CreateSideTree;
 begin
-  fSideTree := TTreeView.Create(self);
-  fSideTree.Parent := self;
-  fSideTree.Align := AlLeft;
-  fSideTree.Images := SandBrowser.LiveImages;
-  fSideTree.ReadOnly := true;
-  fSideTree.HideSelection := false;
-  fSideTree.ShowLines := false;
-  fSideTree.Width := 300;
-  fSideTree.visible := false;
-  fSideTree.OnChange := SideTreeChange;
-  fSideTree.OnDblClick := SideTreeDblClick;
+  fSideBar := TSandcatSidebar.Create(self);
+  fSideBar.Parent := self;
+  fSideBar.Align := AlLeft;
+  fSideBar.LoadTreeItemFunc := 'tab.tree_loaditem';
   fTreeSplitter := TSplitter.Create(self);
   fTreeSplitter.Parent := self;
   fTreeSplitter.Width := 1;
@@ -1118,7 +1014,7 @@ begin
   fSourceInspect.SetImageList(SandBrowser.LiveImages);
   ConfigSynEdit(fSourceInspect.source);
   // Creates the log page
-  fLog := TMemo.Create(fBrowserPanel);
+  fLog := TSandLogMemo.Create(fBrowserPanel);
   fLog.Parent := TPage(fSubTabs.Pages.Objects[fSubTabs.Pages.IndexOf('log')]);
   fLog.Align := AlClient;
   fLog.ReadOnly := true;
@@ -1192,8 +1088,7 @@ begin
   OnMessage := nil;
   fCache.Free;
   fRequests.Free;
-  fSideTree.OnChange := nil;
-  fSideTree.Free;
+  fSideBar.Free;
   fTreeSplitter.Free;
   if fChrome <> nil then
     fChrome.Free;
@@ -1269,188 +1164,5 @@ destructor TTabState.Destroy;
 begin
   inherited Destroy;
 end;
-
-// ------------------------------------------------------------------------//
-// TTabResourceList                                                        //
-// ------------------------------------------------------------------------//
-
-// Sorts the resources page listview columns
-function Resources_SortByColumn(Item1, Item2: TListItem; Data: integer)
-  : integer; stdcall;
-begin
-  if Data = 0 then
-    Result := AnsiCompareText(Item1.Caption, Item2.Caption)
-  else
-    Result := AnsiCompareText(Item1.SubItems[Data - 1],
-      Item2.SubItems[Data - 1]);
-  if not tabmanager.activetab.Resources.Ascending then
-    Result := -Result;
-end;
-
-// Sorts items by the clicked resources page column
-procedure TTabResourceList.ListviewColumnClick(Sender: TObject;
-  Column: TListColumn);
-begin
-  if Column.index = fLastSortedColumn then
-    fAscending := not fAscending
-  else
-    fLastSortedColumn := Column.index;
-  TListView(Sender).CustomSort(@Resources_SortByColumn, Column.index);
-end;
-
-// Called when a list item is double clicked in the resources page, displays the
-// resource (usually from the cache)
-procedure TTabResourceList.ListViewDblClick(Sender: TObject);
-begin
-  if (fLv.Selected = nil) then
-    exit;
-  if fCustomized = false then
-    UIX.ShowResource(fLv.Selected.SubItems[0]) // regular display of URL
-  else
-  begin
-    if fDblClickFunc <> emptystr then
-    begin
-      Extensions.LuaWrap.value['_temppath'] := fLv.Selected.SubItems
-        [fLv.Selected.SubItems.Count - 1]; // gets parameter from last subitem
-      Extensions.RunLuaCmd(fDblClickFunc + '(_temppath)');
-    end;
-  end;
-end;
-
-// Called when a list item is clicked in the resources page
-procedure TTabResourceList.ListViewClick(Sender: TObject);
-begin
-  if (fLv.Selected = nil) then
-    exit;
-  if fClickFunc <> emptystr then
-  begin
-    Extensions.LuaWrap.value['_temppath'] := fLv.Selected.SubItems
-      [fLv.Selected.SubItems.Count - 1]; // gets parameter from last subitem
-    Extensions.RunLuaCmd(fClickFunc + '(_temppath)');
-  end;
-end;
-
-// Adds a resource URL (like a .js or .css) to the resource list
-procedure TTabResourceList.AddPageResource(const URL: string; ImgIdx: integer);
-begin
-  if fCustomized then
-    exit; // no longer update URL resources if this is a custom user resources tab
-  with fLv.Items.Add do
-  begin
-    Caption := extracturlfilename(URL);
-    SubItems.Add(URL);
-    imageindex := ImgIdx;
-  end;
-end;
-
-// Experimental: allows an extension to add custom resource items
-procedure TTabResourceList.AddPageResourceCustom(const JSON: string);
-var
-  j: TSandJSON;
-  i, c: integer;
-  itemstr: string;
-begin
-  j := TSandJSON.Create(JSON);
-  c := j.GetValue('subitemcount', 0);
-  Debug('add custom page resource with subitemcount:' + IntToStr(c));
-  with fLv.Items.Add do
-  begin
-    Caption := j['caption'];
-    imageindex := j.GetValue('imageindex', -1);
-    if c <> 0 then
-    begin
-      for i := 1 to c do
-      begin
-        itemstr := j['subitem' + IntToStr(i)];
-        SubItems.Add(itemstr);
-      end;
-    end;
-  end;
-  j.Free;
-end;
-
-// Experimental: allows an extension to redefine the resource listview columns
-procedure TTabResourceList.RedefineColumns(const def, clickfunc,
-  dblclickfunc: string);
-var
-  csv: TSandCSVParser;
-begin
-  fCustomized := true;
-  fClickFunc := clickfunc;
-  fDblClickFunc := dblclickfunc;
-  fLv.Columns.Clear;
-  fLv.SortType := stNone;
-  csv := TSandCSVParser.Create;
-  csv.LoadFromString(def);
-  while csv.Found do
-  begin
-    if csv.current <> emptystr then
-    begin
-      with fLv.Columns.Add do
-      begin
-        Caption := csv['c'];
-        if csv['a'] = '1' then
-          AutoSize := true
-        else
-          AutoSize := false;
-        Width := strtointdef(csv['w'], 0);
-      end;
-    end;
-  end;
-  csv.Free;
-end;
-
-procedure TTabResourceList.MenuCopyClick(Sender: TObject);
-begin
-  if (fLv.Selected <> nil) then
-    GetLVItemAsString(fLv, fLv.Selected, true);
-end;
-
-constructor TTabResourceList.Create(AOwner: TComponent);
-var
-  mi: TMenuItem;
-begin
-  inherited Create(AOwner);
-  fCustomized := false;
-  fLv := TListView.Create(self);
-  fLv.Parent := self;
-  fLv.Align := AlClient;
-  fLv.SmallImages := SandBrowser.LiveImages;
-  fLv.ReadOnly := true;
-  fLv.DoubleBuffered := true;
-  fLv.ViewStyle := vsReport;
-  fLv.RowSelect := true;
-  fLv.HideSelection := false;
-  fLv.OnDblClick := ListViewDblClick;
-  fLv.OnClick := ListViewClick;
-  fLv.OnColumnClick := ListviewColumnClick;
-  fLv.SortType := stBoth;
-  with fLv.Columns.Add do
-  begin
-    Caption := 'Name';
-    Width := 200;
-  end;
-  with fLv.Columns.Add do
-  begin
-    Caption := 'URL';
-    AutoSize := true;
-  end;
-
-  fPopupMenu := TPopupMenu.Create(self);
-  mi := TMenuItem.Create(fPopupMenu);
-  mi.Caption := '&Copy';
-  mi.OnClick := MenuCopyClick;
-  fPopupMenu.Items.Add(mi);
-  fLv.PopupMenu := fPopupMenu;
-end;
-
-destructor TTabResourceList.Destroy;
-begin
-  fPopupMenu.Free;
-  fLv.Free;
-  inherited Destroy;
-end;
-
-// ------------------------------------------------------------------------//
 
 end.

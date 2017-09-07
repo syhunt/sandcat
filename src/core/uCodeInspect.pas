@@ -51,6 +51,7 @@ type
     procedure LoadTabs(const csv: string; const aliaslist: string = '');
     procedure SetImageList(const il: TImageList);
     procedure SetSource(const s: string);
+    procedure SetSourceVar(var s:string; clearvar:boolean=false);
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
@@ -84,6 +85,13 @@ end;
 procedure TSyCodeInspector.SetSource(const s: string);
 begin
   fSource.text := s;
+end;
+
+procedure TSyCodeInspector.SetSourceVar(var s:string; clearvar:boolean=false);
+begin
+  SetSource(s);
+  if clearvar then
+    s := emptystr;
 end;
 
 procedure TSyCodeInspector.TabStrip1Change(Sender: TObject; NewTab: Integer;

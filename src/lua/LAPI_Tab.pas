@@ -82,14 +82,16 @@ end;
 
 function method_runjavascript(L: PLua_State): integer; cdecl;
 var
-  reporterrors: Boolean;
+  script: TCatCustomJavaScript;
 begin
-  reporterrors := true;
+  script.reporterrors := true;
   if lua_isnone(L, 5) = false then
-    reporterrors := lua_toboolean(L, 5);
+    script.reporterrors := lua_toboolean(L, 5);
+  script.Code := lua_tostring(L, 2);
+  script.URL := lua_tostring(L, 3);
+  script.StartLine := lua_tointeger(L, 4);
   if tabmanager.ActiveTab <> nil then
-    tabmanager.ActiveTab.runjavascript(lua_tostring(L, 2), lua_tostring(L, 3),
-      lua_tointeger(L, 4), reporterrors);
+    tabmanager.ActiveTab.runjavascript(script);
   result := 1;
 end;
 
@@ -414,7 +416,7 @@ end;
 
 function method_tree_clear(L: PLua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.SideTree_Clear;
+  tabmanager.ActiveTab.SideBar.Clear;
   result := 1;
 end;
 
@@ -425,9 +427,9 @@ begin
   makebold := false;
   if lua_isnone(L, 3) = false then
     makebold := lua_toboolean(L, 3);
-  tabmanager.ActiveTab.SideTree_LoadDir(lua_tostring(L, 2), makebold);
+  tabmanager.ActiveTab.SideBar.LoadDir(lua_tostring(L, 2), makebold);
   if lua_tostring(L, 4) <> emptystr then
-    tabmanager.ActiveTab.SideTree_LoadAffectedScripts(lua_tostring(L, 4));
+    tabmanager.ActiveTab.SideBar.LoadAffectedScripts(lua_tostring(L, 4));
   result := 1;
 end;
 

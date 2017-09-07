@@ -174,7 +174,8 @@ begin
         ForceForegroundWindow(SandBrowser.handle);
         application.Restore;
         application.ProcessMessages;
-        TabManager.NewTab(s);
+        if TabManager <> nil then
+          TabManager.NewTab(s);
       end;
   end;
   message.result := 1;
