@@ -64,6 +64,7 @@ var
   EnableConsoleInteraction: boolean = true;
   HeadersVisible: boolean = false;
   ProgDir, PluginsDir: string;
+  URLLoad:string;
 
   // Copy data messages to the main form
 const
@@ -93,6 +94,7 @@ function ExitBeforeInitializing: boolean;
 begin
   result := false;
   ProgDir := extractfilepath(paramstr(0));
+  URLLoad := paramstr(1);
   if fileexists(ProgDir + 'Config\Portable.json') then
     IsSandcatPortable := true;
   PluginsDir := GetSandcatDir(SCDIR_PLUGINS);
@@ -105,11 +107,11 @@ begin
   if not CatCEFLoadLib then begin
     result := true; // This is a CEF renderer process
   end else // Not a CEF renderer, check if this is a Sandcat task process
-    if beginswith(paramstr(1), cBgTaskPrefix) then
+    if beginswith(URLLoad, cBgTaskPrefix) then
     begin
       result := true; // This is a Sandcat task process
       SandTask := TSandcatTaskProcess.Create(nil);
-      SandTask.Run(after(paramstr(1), cBgTaskPrefix));
+      SandTask.Run(after(URLLoad, cBgTaskPrefix));
       SandTask.Free;
     end
     else
@@ -191,12 +193,12 @@ begin
   Downloads := TSandcatDownloadManager.Create(self);
   UIX := TSandcatUIX.Create(self);
   Highlighters := TCatHighlighters.Create(self);
-  Extensions.Load(paramstr(1));
-  UIX.LoadUI;
+  Extensions.Load(URLLoad);
+  UIX.LoadUI(URLLoad);
   Extensions.AfterLoad;
   ChDir(ProgDir);
   // SetUserCSS(GetPakResourceAsString('browser.css')); // CSS test
-  TabManager.LoadWelcomePage(paramstr(1));
+  TabManager.LoadWelcomePage(URLLoad);
   StdSysMenu(self);
   Debug('sb.startuptimer.end');
 end;

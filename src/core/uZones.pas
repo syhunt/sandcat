@@ -27,6 +27,7 @@ type
   TSandcatNavigationBar = class(TCustomControl)
   private
     e: ISandUIElement;
+    fCover: TPanel;
     fDefaultHeight: integer;
     fLoading: boolean;
     fBookmarked: boolean;
@@ -55,6 +56,7 @@ type
     // properties
     property ConsoleVisible: boolean read fConsoleVisible
       write SetConsoleVisible;
+    property Cover : TPanel read fCover;
     property DefaultHeight: integer read fDefaultHeight;
     property Engine: TSandUIEngine read fEngine;
     property HeadersVisible: boolean read fHeadersVisible
@@ -264,7 +266,7 @@ type
     procedure InsertHTML(const Engine, index, Selector, HTML: string);
     procedure InsertHTMLFile(const Engine, index, Selector,
       HTMLFilename: string);
-    procedure LoadUI;
+    procedure LoadUI(const param:string);
     procedure ShowRequest(const Requests: TSandcatRequests;
       const filename: string);
     procedure ShowResource(const URL: string);
@@ -654,8 +656,10 @@ begin
   Script.Free;
 end;
 
-procedure TSandcatUIX.LoadUI;
+procedure TSandcatUIX.LoadUI(const param:string);
 begin
+  if beginswith(param, cModeParam) = false then
+    Navbar.Cover.Visible := false;
   BottomBar.Load;
   Tabstrip.Load;
   PageBar.Load;
@@ -889,14 +893,18 @@ begin
   fNote.Align := alClient;
   fNote.height := fDefaultHeight;
   fEngine := TSandUIEngine.Create(MainPanel);
-  fEngine.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('Default')]);;
+  fEngine.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('Default')]);
   fEngine.Align := alClient;
   fEngine.OnonStdOut := uix.StdOut;
   fEngine.OnonStdErr := uix.StdErr;
+  fCover := TPanel.Create(Self);
+  fCover.Parent := Self;
+  fCover.Align := AlClient;
 end;
 
 destructor TSandcatNavigationBar.Destroy;
 begin
+  fCover.Free;
   fEngine.Free;
   fNote.Free;
   inherited Destroy;

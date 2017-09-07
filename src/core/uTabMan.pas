@@ -124,9 +124,10 @@ begin
   begin
     // Opens URL if passed via command-line parameter
     // Special parameters mode: and newwin: are handled differently
-    if beginswith(url, cModeParam) then
-      Extensions.RunInitMode(after(url, ':'))
-    else if beginswith(url, cNewWinParam) then
+    if beginswith(url, cModeParam) then begin
+      Extensions.RunInitMode(after(url, ':'));
+      navbar.Cover.Visible := false;
+    end else if beginswith(url, cNewWinParam) then
       NewTab(cURL_HOME)
     else
       NewTab(url);
