@@ -894,7 +894,8 @@ begin
 end;
 
 type
-  TJSONCmds = (cmd_resaddcustomitem, cmd_runtbtis, cmd_setaffecteditems,
+  TJSONCmds = (cmd_loadsitemirror,
+    cmd_resaddcustomitem, cmd_runtbtis, cmd_setaffecteditems,
     cmd_seticon, cmd_setstatus, cmd_syncwithtask);
 
   // Runs simple commands in the form of a JSON object (used by Sandcat tasks
@@ -909,6 +910,8 @@ begin
   str := j['s'];
   Debug('received JSON cmd:' + cmd + ' with content:' + str);
   case TJSONCmds(GetEnumValue(TypeInfo(TJSONCmds), 'cmd_' + cmd)) of
+    cmd_loadsitemirror:
+      SideBar.LoadDir_SiteMirror(str);
     cmd_resaddcustomitem:
       fResources.AddPageResourceCustom(str);
     cmd_runtbtis:

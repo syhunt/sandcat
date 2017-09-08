@@ -418,15 +418,11 @@ begin
 end;
 
 function method_tree_loaddir(L: PLua_State): integer; cdecl;
-var
-  makebold: Boolean;
 begin
-  makebold := false;
-  if lua_isnone(L, 3) = false then
-    makebold := lua_toboolean(L, 3);
-  tabmanager.ActiveTab.SideBar.LoadDir(lua_tostring(L, 2), makebold);
-  if lua_tostring(L, 4) <> emptystr then
-    tabmanager.ActiveTab.SideBar.LoadAffectedScripts(lua_tostring(L, 4));
+  if lua_istable(L, 2) then
+   tabmanager.ActiveTab.SideBar.LoadDir(uix.BuildDirTreeOptionsFromLuaTable(L))
+  else
+   tabmanager.ActiveTab.SideBar.LoadDir(lua_tostring(L, 2));
   result := 1;
 end;
 

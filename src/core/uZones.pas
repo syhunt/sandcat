@@ -21,7 +21,7 @@ uses
   StdCtrls, CommCtrl, ImgList, pngimage, TypInfo, ComCtrls,
 {$IFEND}
   SynUnicode, CatChromium, CatChromiumOSR, CatConsole, uReqBuilder, uRequests,
-  uUIComponents, uTaskMon;
+  uUIComponents, uTaskMon, Lua, pLuaTable;
 
 type
   TSandcatNavigationBar = class(TCustomControl)
@@ -108,6 +108,15 @@ type
   end;
 
 type
+  TDirTreeOptions = record
+    Dir: string;
+    Hex: boolean;
+    Recurse: boolean;
+    MakeBold: boolean;
+    AffectedScripts: string;
+  end;
+
+type
   TSandcatSidebar = class(TCustomControl)
   private
     fCanExecLua: boolean;
@@ -120,7 +129,9 @@ type
   public
     procedure Clear;
     procedure LoadAffectedScripts(const paths: string);
-    procedure LoadDir(const dir: string; const makebold: boolean = true);
+    procedure LoadDir(const dir: string); overload;
+    procedure LoadDir(const opt: TDirTreeOptions); overload;
+    procedure LoadDir_SiteMirror(const dir: string);
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // properties
@@ -257,6 +268,7 @@ type
   public
     TIS: TSandcatTISUserScript;
     Pages: TSandcatHTMLPages;
+    function BuildDirTreeOptionsFromLuaTable(L: plua_State):TDirTreeOptions;
     function ImageListAdd(const Pak, ImageFile: string): integer;
     procedure AddHTML(const Engine, Selector, HTML: string;
       const index: string = 'undefined');
@@ -273,7 +285,7 @@ type
     procedure StdOut(ASender: TObject; const msg: WideString);
     procedure StdErr(ASender: TObject; const msg: WideString);
     procedure Tree_FilePathToTreeNode(aTreeView: TTreeView; aRoot: TTreeNode;
-      path: string; Recurse: boolean; makebold: boolean = true);
+      path: string; const opt: TDirTreeOptions);
     procedure Tree_SetAffectedImages(tv: TTreeView; paths: string);
     constructor Create(AOwner: TWinControl);
     destructor Destroy; override;
@@ -379,6 +391,19 @@ begin
   end;
 end;
 
+function TSandcatUIX.BuildDirTreeOptionsFromLuaTable(L: plua_State):TDirTreeOptions;
+var
+  t: TLuaTable;
+begin
+  t := TLuaTable.Create(L, true);
+  Result.recurse := t.ReadBool('recurse',true);
+  Result.makebold := t.ReadBool('makebold',false);
+  Result.AffectedScripts := t.ReadString('affscripts');
+  Result.Hex := t.ReadBool('hex',false);
+  Result.Dir := t.ReadString('dir');
+  t.Free;
+end;
+
 function TSandcatUIX.ImageListAdd(const Pak, ImageFile: string): integer;
 var
   p: TPngImage;
@@ -438,6 +463,8 @@ begin
         result := ICONIDX_FOLDER_OPEN
       else
         result := ICONIDX_FOLDER_CLOSED;
+      if beginswith(filename, '?') then
+        result := -1; // no icon
     end;
   end;
   ext2 := lowercase(after(ext, '.'));
@@ -510,10 +537,11 @@ begin
 end;
 
 procedure TSandcatUIX.Tree_FilePathToTreeNode(aTreeView: TTreeView;
-  aRoot: TTreeNode; path: string; Recurse: boolean; makebold: boolean = true);
+  aRoot: TTreeNode; path: string; const opt: TDirTreeOptions);
 var
   NewNode: TTreeNode;
   SRec: TSearchRec;
+  sname:string;
 begin
   if FindFirst(path + '*.*', faAnyFile, SRec) = 0 then
     repeat
@@ -521,15 +549,18 @@ begin
         Continue;
       if ((SRec.Attr and (faHidden)) = 0) then
       begin
-        NewNode := aTreeView.Items.AddChild(aRoot, SRec.name);
-        NewNode.ImageIndex := GetFileImageIndex(SRec.name);
-        NewNode.SelectedIndex := GetFileImageIndex(SRec.name, true);
-        if makebold then
+        sname := SRec.name;
+        if opt.Hex = true then
+          sname := HexToStr(sname);
+        NewNode := aTreeView.Items.AddChild(aRoot, sname);
+        NewNode.ImageIndex := GetFileImageIndex(sname);
+        NewNode.SelectedIndex := GetFileImageIndex(sname, true);
+        if opt.makebold then
           SetNodeBoldState(NewNode, true);
       end;
-      if Recurse and ((SRec.Attr and faDirectory) <> 0) then
+      if opt.Recurse and ((SRec.Attr and faDirectory) <> 0) then
         Tree_FilePathToTreeNode(aTreeView, NewNode,
-          path + SRec.name + '\', true);
+          path + SRec.name + '\', opt);
     until FindNext(SRec) <> 0;
 end;
 
@@ -969,9 +1000,11 @@ begin
   fNote := TNoteBook.Create(Self);
   fNote.Parent := Self;
   fNote.Align := alClient;
-  fNote.Pages.add('treeview');
+  //fNote.Pages.add('treeview');
   fTV := TTreeView.Create(Self);
-  fTV.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('treeview')]);
+  //fTV.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('treeview')]);
+  fTV.Parent := self;
+  fTV.BringToFront;
   fTV.Align := alClient;
   fTV.Images := sandbrowser.LiveImages;
   fTV.ReadOnly := true;
@@ -998,10 +1031,32 @@ begin
 end;
 
 // Can be called by extensions to load a directory tree as the side tree items
-procedure TSandcatSidebar.LoadDir(const dir: string;
-  const makebold: boolean = true);
+procedure TSandcatSidebar.LoadDir(const dir: string);
+var
+  opt: TDirTreeOptions;
 begin
-  uix.Tree_FilePathToTreeNode(fTV, nil, dir, true, makebold);
+  opt.Recurse := true;
+  opt.dir := dir;
+  LoadDir(opt);
+end;
+
+procedure TSandcatSidebar.LoadDir_SiteMirror(const dir: string);
+var
+  opt: TDirTreeOptions;
+begin
+  fTV.Items.Clear;
+  opt.Recurse := true;
+  opt.dir := dir;
+  opt.Hex := true;
+  LoadDir(opt);
+end;
+
+// Can be called by extensions to load a directory tree as the side tree items
+procedure TSandcatSidebar.LoadDir(const opt: TDirTreeOptions);
+begin
+  uix.Tree_FilePathToTreeNode(fTV, nil, opt.dir, opt);
+  if opt.AffectedScripts <> emptystr then
+    LoadAffectedScripts(opt.AffectedScripts);
 end;
 
 // Updates site tree item images, highlighting scripts that have some issue
@@ -1032,9 +1087,8 @@ procedure TSandcatSidebar.SideBarTreeChange(Sender: TObject; Node: TTreeNode);
 begin
   if (fTV.Selected = nil) then
     exit;
-  LoadTreeItem(GetFullPath(fTV.Selected));
   SetNodeBoldState(fTV.Selected, false);
-  Application.ProcessMessages;
+  LoadTreeItem(GetFullPath(fTV.Selected));
 end;
 
 // ------------------------------------------------------------------------//
