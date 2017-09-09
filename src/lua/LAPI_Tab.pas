@@ -83,26 +83,26 @@ end;
 
 function method_runjavascript(L: PLua_State): integer; cdecl;
 begin
-  if tabmanager.ActiveTab <> nil then begin
+  if tabmanager.ActiveTab <> nil then
+  begin
     if lua_istable(L, 2) then // user provided a Lua table
       tabmanager.ActiveTab.runjavascript(BuildJSCallFromLuaTable(L))
     else
-      tabmanager.ActiveTab.runjavascript(lua_tostring(L, 2),lua_tostring(L, 3),lua_tointeger(L, 4));
+      tabmanager.ActiveTab.runjavascript(lua_tostring(L, 2), lua_tostring(L, 3),
+        lua_tointeger(L, 4));
   end;
   result := 1;
 end;
 
 function method_goback(L: PLua_State): integer; cdecl;
 begin
-  if tabmanager.ActiveTab.Chrome <> nil then
-    tabmanager.ActiveTab.Chrome.GoBack;
+  tabmanager.ActiveTab.Browser.c.GoBack;
   result := 1;
 end;
 
 function method_goforward(L: PLua_State): integer; cdecl;
 begin
-  if tabmanager.ActiveTab.Chrome <> nil then
-    tabmanager.ActiveTab.Chrome.GoForward;
+  tabmanager.ActiveTab.Browser.c.GoForward;
   result := 1;
 end;
 
@@ -113,8 +113,7 @@ begin
   igncache := false;
   if lua_isnone(L, 2) = false then
     igncache := lua_toboolean(L, 2);
-  if tabmanager.ActiveTab.Chrome <> nil then
-    tabmanager.ActiveTab.Chrome.Reload(igncache);
+  tabmanager.ActiveTab.Browser.c.Reload(igncache);
   result := 1;
 end;
 
@@ -338,23 +337,20 @@ end;
 
 function method_viewsourceexternal(L: PLua_State): integer; cdecl;
 begin
-  if tabmanager.ActiveTab.Chrome <> nil then
-    tabmanager.ActiveTab.Chrome.ViewSourceExternalEditor;
+  tabmanager.ActiveTab.Browser.c.ViewSourceExternalEditor;
   result := 1;
 end;
 
 function method_stopload(L: PLua_State): integer; cdecl;
 begin
-  if tabmanager.ActiveTab.Chrome <> nil then
-    tabmanager.ActiveTab.Chrome.Stop;
+  tabmanager.ActiveTab.Browser.c.Stop;
   result := 1;
 end;
 
 function method_showauthdialog(L: PLua_State): integer; cdecl;
 begin
-  if tabmanager.ActiveTab.Chrome <> nil then
-    tabmanager.ActiveTab.Chrome.ShowAuthDialog(lua_tostring(L, 2),
-      lua_tostring(L, 3));
+  tabmanager.ActiveTab.Browser.c.ShowAuthDialog(lua_tostring(L, 2),
+    lua_tostring(L, 3));
   result := 1;
 end;
 
@@ -420,9 +416,9 @@ end;
 function method_tree_loaddir(L: PLua_State): integer; cdecl;
 begin
   if lua_istable(L, 2) then
-   tabmanager.ActiveTab.SideBar.LoadDir(uix.BuildDirTreeOptionsFromLuaTable(L))
+    tabmanager.ActiveTab.SideBar.LoadDir(uix.BuildDirTreeOptionsFromLuaTable(L))
   else
-   tabmanager.ActiveTab.SideBar.LoadDir(lua_tostring(L, 2));
+    tabmanager.ActiveTab.SideBar.LoadDir(lua_tostring(L, 2));
   result := 1;
 end;
 
@@ -501,8 +497,8 @@ begin
     capturebrowser:
       result := tab.logbrowserrequests;
     captureurls:
-      if tab.Chrome <> nil then
-        result := tab.Chrome.LogURLs;
+      if tab.Browser.Available then
+        result := tab.Browser.c.LogURLs;
     headersfilter:
       result := tab.liveheaders.FilterEdit.Text;
     lastjslogmsg:
@@ -512,16 +508,16 @@ begin
     name:
       result := tab.UID;
     rcvdheaders:
-      if tab.Chrome <> nil then
-        result := tab.Chrome.Headers.rcvdhead;
+      if tab.Browser.Available then
+        result := tab.Browser.c.Headers.rcvdhead;
     reslist:
-      if tab.Chrome <> nil then
-        result := tab.Chrome.ResourceList.Text;
+      if tab.Browser.Available then
+        result := tab.Browser.c.ResourceList.Text;
     screenshot:
       result := tab.GetScreenshot;
     sentheaders:
-      if tab.Chrome <> nil then
-        result := tab.Chrome.Headers.senthead;
+      if tab.Browser.Available then
+        result := tab.Browser.c.Headers.senthead;
     siteprefsfilename:
       result := tab.SitePrefsFile;
     Source:
@@ -531,18 +527,18 @@ begin
     status:
       result := tab.StatusBarText;
     statuscode:
-      if tab.Chrome <> nil then
-        result := strtointdef(tab.Chrome.Headers.statuscode, 0);
+      if tab.Browser.Available then
+        result := strtointdef(tab.Browser.c.Headers.statuscode, 0);
     Title:
       result := tab.Title;
     url:
       result := tab.GetURL;
     urllist:
-      if tab.Chrome <> nil then
-        result := tab.Chrome.URLLog.Text;
+      if tab.Browser.Available then
+        result := tab.Browser.c.URLLog.Text;
     zoomlevel:
-      if tab.Chrome <> nil then
-        result := tab.Chrome.zoomlevel;
+      if tab.Browser.Available then
+        result := tab.Browser.c.zoomlevel;
   else
     result := inherited GetPropValue(propName);
   end;
@@ -557,8 +553,7 @@ begin
   tab := tabmanager.ActiveTab;
   case TProps(GetEnumValue(TypeInfo(TProps), lowercase(propName))) of
     downloadfiles:
-      if tab.Chrome <> nil then
-        tab.Chrome.EnableDownloads := AValue;
+      tab.Browser.c.EnableDownloads := AValue;
     icon:
       tab.SetIcon(String(AValue), true);
     loadend:
@@ -570,8 +565,7 @@ begin
     capturebrowser:
       tab.logbrowserrequests := AValue;
     captureurls:
-      if tab.Chrome <> nil then
-        tab.Chrome.LogURLs := AValue;
+      tab.Browser.c.LogURLs := AValue;
     headersfilter:
       tab.liveheaders.FilterEdit.Text := String(AValue);
     logtext:
@@ -590,8 +584,7 @@ begin
     updatesource:
       tab.CanUpdateSource := AValue;
     zoomlevel:
-      if tab.Chrome <> nil then
-        tab.Chrome.zoomlevel := AValue;
+      tab.Browser.c.zoomlevel := AValue;
   else
     result := inherited SetPropValue(propName, AValue);
   end;
@@ -629,7 +622,8 @@ begin
   RegisterMethod(L, 'sendrequest', method_sendrequest, classTable);
   RegisterMethod(L, 'resources_add', method_resources_additem, classTable);
   RegisterMethod(L, 'resources_clear', method_resources_clear, classTable);
-  RegisterMethod(L, 'resources_customize', method_resources_loadcustom, classTable);
+  RegisterMethod(L, 'resources_customize', method_resources_loadcustom,
+    classTable);
   RegisterMethod(L, 'runluaonlog', method_runluaonlog, classTable);
   RegisterMethod(L, 'runjs', method_runjavascript, classTable);
   RegisterMethod(L, 'runsrccmd', method_runsourcecommand, classTable);

@@ -75,13 +75,13 @@ begin
   PNG := TPNGImage.Create;
   Bitmap := TBitmap.Create;
   try
-    Bitmap.Width := tab.Chrome.crm.Width;
-    Bitmap.Height := tab.Chrome.crm.Height;
+    Bitmap.Width := tab.browser.c.Width;
+    Bitmap.Height := tab.browser.c.Height;
     Bitmap.PixelFormat := pf24bit;
     Bitmap.Canvas.CopyRect(Rect(0, 0, Bitmap.Width, Bitmap.Height),
-      tab.BrowserPanel.Canvas, Rect(tab.Chrome.crm.Left, tab.Chrome.crm.Top,
-      tab.Chrome.crm.Left + tab.Chrome.crm.Width - 1,
-      tab.Chrome.crm.Top + tab.Chrome.crm.Height - 1));
+      tab.BrowserPanel.Canvas, Rect(tab.browser.c.Left, tab.browser.c.Top,
+      tab.Browser.c.Left + tab.Browser.c.Width - 1,
+      tab.Browser.c.Top + tab.Browser.c.Height - 1));
     PNG.Assign(Bitmap); // Convert data into png
     PNG.SaveToFile(filename);
   finally

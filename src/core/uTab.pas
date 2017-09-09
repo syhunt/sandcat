@@ -4,6 +4,11 @@ unit uTab;
   Copyright (c) 2011-2017, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
+
+  Important Notes:
+    Chromium is on "standby" through TCatChromiumStandBy. By directly accessing
+    the Browser.c property the Chromium browser gets created and ready to use.
+
 }
 
 interface
@@ -19,8 +24,9 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, Menus, TypInfo,
 {$ENDIF}
-  CatUI, uUIComponents, CatConsole, CatChromium, CatChromiumLib, uRequests,
-  SynUnicode, uLiveHeaders, uCodeInspect, uTabRes, uExtensions, uZones, CatMsg;
+  CatUI, uUIComponents, CatConsole, CatChromium, CatChromiumLib, CatChromiumSB,
+  uRequests, SynUnicode, uLiveHeaders, uCodeInspect, uTabRes, uExtensions,
+  uZones, CatMsg;
 
 type // Used for restoring the state of a tab when switching tabs
   TTabState = class
@@ -60,10 +66,10 @@ type
 type
   TSandcatTab = class(TCustomControl)
   private
+    fBrowser: TCatChromiumStandBy;
     fBrowserPanel: TCanvasPanel;
     fCache: TSandCache;
     fCanUpdateSource: boolean;
-    fChrome: TCatChromium;
     fCustomTab: TSandUIEngine;
     fCustomToolbar: TSandUIEngine;
     fDefaultIcon: string;
@@ -93,7 +99,6 @@ type
     fTreeSplitter: TSplitter;
     fUID: string; // unique tab ID
     fUseLuaOnLog: boolean;
-    fUserJSExecuted: boolean;
     fUserData: TSandJSON;
     fUserTag: string;
     function GetIcon: string;
@@ -104,7 +109,6 @@ type
     procedure CopyDataMessage(const msg: integer; const str: string);
     // procedure CodeEditDropFiles(Sender: TObject; X, Y: integer;
     // AFiles: TUnicodeStrings);
-    procedure InitChrome;
     procedure CreateLiveHeaders;
     procedure CreateMainPanel;
     procedure CreateSideTree;
@@ -126,6 +130,7 @@ type
     procedure CrmLoadError(Sender: TObject; const errorCode: integer;
       const errorText, failedUrl: string);
     procedure Debug(const s: string);
+    procedure InitChrome(const crm: TCatChromium);
     procedure LogCustomScriptError(const JSON: string);
     procedure RunJSONCmd(const JSON: string);
     procedure RunUserScript(var script: string; const lang: TUserScriptLanguage;
@@ -152,8 +157,8 @@ type
     procedure LoadSourceFile(const filename: string);
     procedure DoSearch(const term: string);
     procedure RunLuaOnLog(const msg, lua: string);
-    procedure RunJavaScript(const script: string;
-      const aURL:string = '';const StartLine:integer = 0); overload;
+    procedure RunJavaScript(const script: string; const aURL: string = '';
+      const StartLine: integer = 0); overload;
     procedure RunJavaScript(const script: TCatCustomJSCall); overload;
     procedure SendRequest(const method, URL, postdata: string;
       const load: boolean = false);
@@ -167,11 +172,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // properties
+    property Browser: TCatChromiumStandBy read fBrowser;
     property BrowserPanel: TCanvasPanel read fBrowserPanel;
     property Cache: TSandCache read fCache;
     property CanUpdateSource: boolean read fCanUpdateSource
       write fCanUpdateSource;
-    property Chrome: TCatChromium read fChrome;
     property CustomTab: TSandUIEngine read fCustomTab;
     property CustomToolbar: TSandUIEngine read fCustomToolbar;
     property Icon: string read GetIcon;
@@ -350,8 +355,8 @@ end;
 // Returns the title of the tab or page.
 function TSandcatTab.GetTitle: string;
 begin
-  if fChrome <> nil then
-    Result := fChrome.title;
+  if fBrowser.Available then
+    Result := fBrowser.c.title;
   if Result = emptystr then
   begin
     // Title is empty, uses the current URL as page title
@@ -375,31 +380,27 @@ end;
 // Evaluates some JavaScript (not fully implemented)
 function TSandcatTab.EvalJavaScript(const script: string): variant;
 begin
-  fUserJSExecuted := true;
-  InitChrome; // Initializes chrome, if not initialized before
-  Result := fChrome.EvalJavaScript(script);
+  Result := fBrowser.c.EvalJavaScript(script);
 end;
 
 // Executes a piece of JavaScript code (usually called by the user via some
 // extension)
 procedure TSandcatTab.RunJavaScript(const script: string;
-      const aURL:string = '';const StartLine:integer = 0);
+  const aURL: string = ''; const StartLine: integer = 0);
 var
   s: TCatCustomJSCall;
 begin
   s.Code := script;
   s.URL := aURL;
   s.StartLine := StartLine;
-  s.Silent := false;
+  s.silent := false;
   RunJavaScript(s);
 end;
 
 // Executes a piece of JavaScript code
 procedure TSandcatTab.RunJavaScript(const script: TCatCustomJSCall);
 begin
-  fUserJSExecuted := true;
-  InitChrome; // Initializes chrome, if not initialized before
-  fChrome.RunJavaScript(script);
+  fBrowser.c.RunJavaScript(script);
 end;
 
 // Performs a web search using the selected search engine in the navigation bar
@@ -489,7 +490,7 @@ end;
 // the tab process
 procedure TSandcatTab.UpdateV8Handle;
 begin
-  fChrome.SetV8MsgHandle(fMsgV8.msgHandle);
+  fBrowser.c.SetV8MsgHandle(fMsgV8.msgHandle);
 end;
 
 // Called when a page starts loading, updates the navigation bar
@@ -604,7 +605,7 @@ begin
   if fCanUpdateSource = false then
     exit;
   if fSourceManual = emptystr then
-    fChrome.getSource()
+    fBrowser.c.getSource()
   else
     fSourceInspect.setsourcevar(fSourceManual, true);
 end;
@@ -702,7 +703,7 @@ var
   URL: string;
 begin
   Result := fDefaultIcon;
-  if (fChrome <> nil) then
+  if (fBrowser.Available) then
   begin
     URL := GetURL;
     if beginswith(URL, 'http') and (fRetrieveFavIcon = true) then
@@ -725,8 +726,8 @@ end;
 // Returns the current URL
 function TSandcatTab.GetURL: string;
 begin
-  if fChrome <> nil then
-    Result := fChrome.GetURL
+  if fBrowser.Available then
+    Result := fBrowser.c.GetURL
   else
     Result := emptystr;
 end;
@@ -734,20 +735,21 @@ end;
 // Loads the Chromium settings from the Sandcat configuration file
 procedure TSandcatTab.LoadSettings;
 begin
-  if fChrome <> nil then
-    fChrome.LoadSettings(Settings.preferences.current,
+  Debug('Loading tab Chromium settings...');
+  if fBrowser.Available then // ToDo: check if  fBrowser.Available needed here
+    fBrowser.c.LoadSettings(Settings.preferences.current,
       Settings.preferences.Default);
 end;
 
 // Makes the source page highlighter adapt to the URL filename extension
 procedure TSandcatTab.AdjustHighlighter(const URL: string = '');
 var
-  ext, aurl: string;
+  ext, aURL: string;
 begin
-  aurl := URL;
-  if aurl = emptystr then // no URL supplied, uses the current URL
-    aurl := GetURL;
-  ext := lowercase(extracturlfileext(aurl));
+  aURL := URL;
+  if aURL = emptystr then // no URL supplied, uses the current URL
+    aURL := GetURL;
+  ext := lowercase(extracturlfileext(aURL));
   fSourceInspect.source.highlighter := Highlighters.GetByFileExtension(ext);
 end;
 
@@ -757,7 +759,6 @@ procedure TSandcatTab.BeforeLoad(const URL: string);
 begin
   if URL = emptystr then
     exit;
-  fUserJSExecuted := false;
   fRetrieveFavIcon := true;
   fSourceManual := emptystr;
   fSourceInspect.source.highlighter := Highlighters.WebHtml;
@@ -770,7 +771,7 @@ begin
     if Assigned(OnMessage) then
       OnMessage(self, SCBT_GOTOURL, []);
   end;
-  Chrome.visible := true;
+  Browser.c.visible := true;
   AdjustHighlighter(URL);
 end;
 
@@ -778,23 +779,21 @@ end;
 procedure TSandcatTab.SendRequest(const method, URL, postdata: string;
   const load: boolean = false);
 begin
-  InitChrome;
   if load then
     BeforeLoad(URL);
-  fChrome.SendRequest(buildrequest(method, URL, postdata), load);
+  Browser.c.SendRequest(buildrequest(method, URL, postdata), load);
 end;
 
 // Sends (and optionally loads) a custom HTTP request
 procedure TSandcatTab.SendRequestCustom(req: TCatChromiumRequest;
   load: boolean = false);
 begin
-  InitChrome;
   // If no URL is provided, uses current tab url as the request URL
   if req.URL = emptystr then
     req.URL := GetURL;
   if load then
     BeforeLoad(req.URL);
-  fChrome.SendRequest(req, load);
+  fBrowser.c.SendRequest(req, load);
 end;
 
 // Loads a URL. If a source parameter is supplied, loads the page from the
@@ -804,13 +803,12 @@ begin
   Debug('gotourl:' + URL);
   if (URL <> emptystr) and (URL <> cURL_HOME) then
   begin
-    InitChrome;
     BeforeLoad(URL);
     if source = emptystr then
-      fChrome.load(URL) // default load mechanism
+      fBrowser.c.load(URL) // default load mechanism
     else
     begin
-      fChrome.LoadFromString(source, URL);
+      fBrowser.c.LoadFromString(source, URL);
       fSourceManual := source;
     end;
   end;
@@ -821,49 +819,45 @@ function TSandcatTab.GetScreenshot: string;
 const
   hidesbscript = 'document.documentElement.style.overflow = ''%s'';';
 begin
-  if Chrome.IsFrameNil then
+  if fBrowser.c.IsFrameNil then
     exit;
   OnMessage(self, SCBT_GETSCREENSHOT, []);
   SetActivePage('browser');
-  fChrome.RunJavaScript(Format(hidesbscript, ['hidden'])); // hide the scrollbar
+  fBrowser.c.RunJavaScript(Format(hidesbscript, ['hidden']));
+  // hide the scrollbar
   catdelay(250);
   Result := CaptureChromeBitmap(self);
-  fChrome.RunJavaScript(Format(hidesbscript, ['scroll'])); // restore the SB
+  fBrowser.c.RunJavaScript(Format(hidesbscript, ['scroll'])); // restore the SB
 end;
 
-// Creates the Chromium component (if not already created)
-procedure TSandcatTab.InitChrome;
+// Called when the Chromium component is created
+procedure TSandcatTab.InitChrome(const crm: TCatChromium);
 begin
-  if fChrome = nil then
-  begin
-    fChrome := TCatChromium.Create(self);
-    fChrome.Parent := fBrowserPanel;
-    fChrome.visible := false;
-    fChrome.Align := AlClient;
-    // OnAfterSetSource:
-    // Called by the Sandcat Chromium component after the source code has been
-    // accessed. This is using a callback for getting the source. There is no
-    // other way to do this using the current CEF3 release AFAIK
-    fChrome.OnAfterSetSource := fSourceInspect.setsource;
-    fChrome.OnBrowserMessage := BrowserMessage;
-    fChrome.OnTitleChange := CrmTitleChange;
-    fChrome.OnLoadEnd := CrmLoadEnd;
-    fChrome.OnLoadError := CrmLoadError;
-    fChrome.OnLoadStart := CrmLoadStart;
-    fChrome.OnAddressChange := CrmAddressChange;
-    fChrome.OnStatusMessage := CrmStatusMessage;
-    fChrome.OnLoadingStateChange := CrmLoadingStateChange;
-    fChrome.OnBeforePopup := CrmBeforePopup;
-    fChrome.OnBeforeDownload := CrmBeforeDownload;
-    fChrome.OnDownloadUpdated := CrmDownloadUpdated;
-    fChrome.OnConsoleMessage := CrmConsoleMessage;
-    // currently not needed:
-    // fChrome.OnBeforeContextMenu:=crmBeforeContextMenu;
-    // fChrome.OnGetAuthCredentials:=crmAuthCredentials;
-    // fChrome.OnJsdialog:=crmJsdialog;
-    // fChrome.OnProcessMessageReceived:=crmProcessMessageReceived;
-    LoadSettings;
-  end;
+  debug('Chromium initilized.');
+  crm.visible := false;
+  // OnAfterSetSource:
+  // Called by the Sandcat Chromium component after the source code has been
+  // accessed. This is using a callback for getting the source. There is no
+  // other way to do this using the current CEF3 release AFAIK
+  crm.OnAfterSetSource := fSourceInspect.setsource;
+  crm.OnBrowserMessage := BrowserMessage;
+  crm.OnTitleChange := CrmTitleChange;
+  crm.OnLoadEnd := CrmLoadEnd;
+  crm.OnLoadError := CrmLoadError;
+  crm.OnLoadStart := CrmLoadStart;
+  crm.OnAddressChange := CrmAddressChange;
+  crm.OnStatusMessage := CrmStatusMessage;
+  crm.OnLoadingStateChange := CrmLoadingStateChange;
+  crm.OnBeforePopup := CrmBeforePopup;
+  crm.OnBeforeDownload := CrmBeforeDownload;
+  crm.OnDownloadUpdated := CrmDownloadUpdated;
+  crm.OnConsoleMessage := CrmConsoleMessage;
+  // currently not needed:
+  // fChrome.OnBeforeContextMenu:=crmBeforeContextMenu;
+  // fChrome.OnGetAuthCredentials:=crmAuthCredentials;
+  // fChrome.OnJsdialog:=crmJsdialog;
+  // fChrome.OnProcessMessageReceived:=crmProcessMessageReceived;
+  LoadSettings;
   UpdateV8Handle; // send or resend the v8 handle
 end;
 
@@ -888,15 +882,14 @@ begin
     fIsClosing := true;
     fSideBar.CanExecLua := false;
     fRequests.tabwillclose;
-    if fChrome <> nil then
-      fChrome.InterceptRequests := false;
+    if fBrowser.Available then
+      fBrowser.c.InterceptRequests := false;
   end;
 end;
 
 type
-  TJSONCmds = (cmd_settreeurls,
-    cmd_resaddcustomitem, cmd_runtbtis, cmd_setaffecteditems,
-    cmd_seticon, cmd_setstatus, cmd_syncwithtask);
+  TJSONCmds = (cmd_settreeurls, cmd_resaddcustomitem, cmd_runtbtis,
+    cmd_setaffecteditems, cmd_seticon, cmd_setstatus, cmd_syncwithtask);
 
   // Runs simple commands in the form of a JSON object (used by Sandcat tasks
   // that run in an isolated process)
@@ -962,14 +955,14 @@ end;
 // If a page is loaded, opens the Developer Tools for the tab
 procedure TSandcatTab.ViewDevTools;
 begin
-  if fChrome = nil then
+  if fBrowser.Available = false then
     exit;
 {$IFNDEF USEWACEF}
   // DCEF will display the DevTools as part of the browser tab instead of a
   // new window, so switch to it
   contentarea.SetActivePage('browser');
 {$ENDIF}
-  fChrome.ViewDevTools;
+  fBrowser.c.ViewDevTools;
 end;
 
 // Creates a side tree that can be used by extensions (invisible by default)
@@ -988,6 +981,11 @@ end;
 
 // Creates the main panel
 procedure TSandcatTab.CreateMainPanel;
+  function GetPage(aPageName: string): TPage;
+  begin
+    Result := TPage(fSubTabs.Pages.Objects[fSubTabs.Pages.IndexOf(aPageName)]);
+  end;
+
 begin
   fMainPanel := TPanel.Create(self);
   fMainPanel.Parent := self;
@@ -1004,27 +1002,28 @@ begin
   fSubTabs.ActivePage := 'browser'; // default page
   // Creates the browser page
   fBrowserPanel := TCanvasPanel.Create(fMainPanel);
-  fBrowserPanel.Parent :=
-    TPage(fSubTabs.Pages.Objects[fSubTabs.Pages.IndexOf('browser')]);
+  fBrowserPanel.Parent := GetPage('browser');
   ConfigPanel(fBrowserPanel, AlClient);
+  fBrowser := TCatChromiumStandBy.Create(fBrowserPanel);
+  fBrowser.Parent := fBrowserPanel;
+  fBrowser.Align := AlClient;
+  fBrowser.OnInitialize := InitChrome;
   // Creates the source page
   fSourceInspect := TSyCodeInspector.Create(nil);
-  fSourceInspect.Parent :=
-    TPage(fSubTabs.Pages.Objects[fSubTabs.Pages.IndexOf('source')]);
+  fSourceInspect.Parent := GetPage('source');
   fSourceInspect.Align := AlClient;
   fSourceInspect.SetImageList(SandBrowser.LiveImages);
   ConfigSynEdit(fSourceInspect.source);
   // Creates the log page
   fLog := TSandLogMemo.Create(fBrowserPanel);
-  fLog.Parent := TPage(fSubTabs.Pages.Objects[fSubTabs.Pages.IndexOf('log')]);
+  fLog.Parent := GetPage('log');
   fLog.Align := AlClient;
   fLog.ReadOnly := true;
   fLog.Color := clBtnFace;
   fLog.ScrollBars := ssBoth;
   // Creates the resources page
   fResources := TTabResourceList.Create(fBrowserPanel);
-  fResources.Parent :=
-    TPage(fSubTabs.Pages.Objects[fSubTabs.Pages.IndexOf('resources')]);
+  fResources.Parent := GetPage('resources');
   fResources.Align := AlClient;
 end;
 
@@ -1059,7 +1058,6 @@ begin
   fDefaultIcon := '@ICON_EMPTY';
   fIsClosing := false;
   fLoading := false;
-  fUserJSExecuted := false;
   fUseLuaOnLog := false;
   fLogBrowserRequests := true;
   fRetrieveFavIcon := true;
@@ -1091,9 +1089,8 @@ begin
   fRequests.Free;
   fSideBar.Free;
   fTreeSplitter.Free;
-  if fChrome <> nil then
-    fChrome.Free;
-  Debug('destroy.chrome.end:' + UID);
+  fBrowser.Free;
+  Debug('destroy.chrome.end');
   fDownloadsList.Free;
   fLog.Free;
   fSourceInspect.Free;
@@ -1142,10 +1139,7 @@ begin
   if URL <> emptystr then
     Navbar.URL := URL
   else
-  begin
-    Navbar.FocusURL;
-    Navbar.URL := CurrentURL;
-  end;
+    Navbar.FocusAndSetURL(CurrentURL);
   Navbar.ProtoIcon := ProtoIcon;
   StatBar.Text := StatusBarText;
 end;

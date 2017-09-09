@@ -20,8 +20,8 @@ uses
   Windows, Classes, Forms, SysUtils, Controls, ExtCtrls, Dialogs, Graphics,
   StdCtrls, CommCtrl, ImgList, pngimage, TypInfo, ComCtrls,
 {$IFEND}
-  SynUnicode, CatChromium, CatChromiumOSR, CatConsole, uReqBuilder, uRequests,
-  uUIComponents, uTaskMon, Lua, pLuaTable;
+  SynUnicode, CatChromium, CatChromiumOSR, CatChromiumSB, CatConsole,
+  uReqBuilder, uRequests, uUIComponents, uTaskMon, Lua, pLuaTable;
 
 type
   TSandcatNavigationBar = class(TCustomControl)
@@ -47,6 +47,7 @@ type
     procedure AnimateTasksIcon(const b: boolean);
     procedure EvalTIS(const s: string);
     procedure FocusURL;
+    procedure FocusAndSetURL(const aURL:string);
     procedure Load;
     procedure LoadingStateChange(const isLoading, canGoBack,
       canGoForward: boolean);
@@ -180,7 +181,7 @@ type
 type
   TSandcatBottomBar = class(TCustomControl)
   private
-    fCrm: TCatChromium;
+    fBrowser: TCatChromiumStandBy;
     fEngine: TSandUIEngine;
     fNote: TNoteBook;
     fReqBuilder: TSandRequestPanel;
@@ -760,6 +761,12 @@ end;
 procedure TSandcatNavigationBar.FocusURL;
 begin
   fEngine.Eval('view.focus = $(#url);');
+end;
+
+procedure TSandcatNavigationBar.FocusAndSetURL(const aURL:string);
+begin
+  FocusURL;
+  URL := aURL;
 end;
 
 function TSandcatNavigationBar.GetSearchText: string;
@@ -1444,16 +1451,10 @@ procedure TSandcatBottomBar.ShowURL(const URL: string;
   const source: string = '');
 begin
   LoadBottomBarRight('browser');
-  if fCrm = nil then
-  begin // Creates Chromium
-    fCrm := TCatChromium.Create(StatBar);
-    fCrm.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('Browser')]);
-    fCrm.Align := alClient;
-  end;
   if source = emptystr then
-    fCrm.Load(URL)
+    fBrowser.c.Load(URL)
   else
-    fCrm.LoadFromString(URL, source);
+    fBrowser.c.LoadFromString(URL, source);
 end;
 
 procedure TSandcatBottomBar.ViewBottomBar(const b: boolean = true);
@@ -1479,8 +1480,8 @@ end;
 
 procedure TSandcatBottomBar.LoadSettings(settings, DefaultSettings: TSandJSON);
 begin
-  if fCrm <> nil then
-    fCrm.LoadSettings(settings, DefaultSettings);
+  if fBrowser.Available then
+    fBrowser.c.LoadSettings(settings, DefaultSettings);
 end;
 
 procedure TSandcatBottomBar.Load;
@@ -1525,10 +1526,15 @@ begin
   fTaskMsgs.Parent :=
     TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('taskmon')]);
   fTaskMsgs.Align := alClient;
+
+  fBrowser := TCatChromiumStandBy.Create(StatBar);
+  fBrowser.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('Browser')]);
+  fBrowser.Align := alClient;
 end;
 
 destructor TSandcatBottomBar.Destroy;
 begin
+  fBrowser.Free;
   fTaskMsgs.Free;
   fReqBuilder.Free;
   fNote.Free;
