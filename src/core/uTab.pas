@@ -894,7 +894,7 @@ begin
 end;
 
 type
-  TJSONCmds = (cmd_loadsitemirror,
+  TJSONCmds = (cmd_settreeurls,
     cmd_resaddcustomitem, cmd_runtbtis, cmd_setaffecteditems,
     cmd_seticon, cmd_setstatus, cmd_syncwithtask);
 
@@ -910,8 +910,6 @@ begin
   str := j['s'];
   Debug('received JSON cmd:' + cmd + ' with content:' + str);
   case TJSONCmds(GetEnumValue(TypeInfo(TJSONCmds), 'cmd_' + cmd)) of
-    cmd_loadsitemirror:
-      SideBar.LoadDir_SiteMirror(str);
     cmd_resaddcustomitem:
       fResources.AddPageResourceCustom(str);
     cmd_runtbtis:
@@ -919,6 +917,8 @@ begin
         fCustomToolbar.Eval(str);
     cmd_setaffecteditems:
       SideBar.LoadAffectedScripts(str);
+    cmd_settreeurls:
+      SideBar.SetURLList(str);
     cmd_seticon:
       SetIcon(str);
     cmd_setstatus:
