@@ -1,0 +1,74 @@
+<html>
+<head>
+<include src="Resources.pak#head_plus.html"/>
+<include src="Resources.pak#head.html"/>
+  <style>
+  body {
+    margin: 0;
+    padding: 0
+  }
+  input[type="text"] {height:17px;width:*;}
+  select.tag-list > option { width:*;}
+  #hexview { font-family:"Lucida Console"; }
+  #warn {
+   padding:5px;
+   background-color:#f6e9e9;
+   width:100%;
+   display:none;
+   margin-bottom:5px;
+  }
+</style>
+<link rel="stylesheet" type="text/css" href="Common.pak#widget.editor.css">
+</head>
+<body>
+<script type="text/tiscript">
+   $(#trybtn).onClick = function() { Sandcat.RunLuaQ("Sandcat.responsemenu:fetchliveversion()"); }
+</script>
+<input id="url" type="text" value="" style="width:*;display:none" readonly="true">
+
+<div id="warn">
+<table style="width:*;">
+<tr>
+<td width="90%">No response text found for this item.</td>
+<td style="width:10%;"><input type="button" id="trybtn" value="Try Online Version"></td>
+</tr>
+</table>
+</div>
+<table style="width:*;height:*;" cellspacing=-1px><tr>
+<td id="tdreqhead" style="width:50%;">
+<widget class="editor" id="reqheadeditor">
+ <widget .toolbar .headreqtoolbar>
+  <widget .tb-button onclick="Sandcat.responsemenu:sendrequest()" title="Send/Replay Request"><img src="Resources.pak#16\icon_run.png" /></widget>
+  <widget .tb-button onclick="Sandcat.responsemenu:reloadrequest()" title="Reload Request"><img src="Resources.pak#16\icon_repeat.png" /></widget>
+  <widget .tb-button onclick="Sandcat.responsemenu:editrequest('http')" title="Load in Request Builder"><img src="Resources.pak#16\icon_injection.png" /></widget>
+  <hr/>
+  <widget .tb-button onclick="Sandcat.responsemenu:openrequest()" title="Open Request..."><img src="Resources.pak#16\icon_open.png" /></widget>
+  <widget .tb-button onclick="Sandcat.responsemenu:saverequest()" title="Save Request As..."><img src="Resources.pak#16\icon_save.png" /></widget>
+  <hr/>
+  <widget .tb-button command=richtext:cut   title="Cut"><img style="foreground-image: @ICON_CUT" /></widget>
+  <widget .tb-button command=richtext:copy  title="Copy"><img style="foreground-image: @ICON_COPY" /></widget>
+  <widget .tb-button command=richtext:paste title="Paste"><img style="foreground-image: @ICON_PASTE" /></widget>
+  <hr/>
+  <widget .tb-button command=richtext:undo  title="Undo"><img style="foreground-image: @ICON_UNDO" /></widget>
+  <widget .tb-button command=richtext:redo  title="Redo"><img style="foreground-image: @ICON_REDO" /></widget>
+  <hr/>
+  <widget .tb-button onclick="browser.newtab(tab:response_get().url)" title="Open URL in New Tab"><img src="Resources.pak#16\icon_opennewtab.png" /></widget>
+ </widget>
+ <richtext id="rt_reqhead" toolbar="widget.headreqtoolbar" style="height:*;"></richtext>
+</widget>
+</td>
+<td id="tdresppreview" style="width:50%;">
+<widget class="editor">
+ <widget .toolbar .previewtoolbar xstyle="horizontal-align:right;">
+  <widget .tb-button onclick="PageMenu:SaveCachedAs(tab:response_get().url)" title="Save From Cache As..."><img style="foreground-image: url(Resources.pak#16\icon_savecached.png);" /></widget>
+  <widget .tb-button onclick="browser.saveresource(tab:response_get().url,true)" title="Save From Web As..."><img style="foreground-image: url(Resources.pak#16\icon_dloadpage.png);" /></widget>
+  <widget .tb-button onclick="Sandcat.responsemenu:renderresponse()" title="Render Response"><img src="Resources.pak#16\icon_load.png" /></widget>
+ </widget>
+ <richtext id="rt_preview" toolbar="widget.previewtoolbar" readonly="true" style="width:*;height:*;"></richtext>
+</widget>
+</td>
+</tr></table>
+</div>
+<div style="display:none;"><img id="status_icon" style="vertical-align: middle;">&nbsp;&nbsp;<code id="status"></code></div>
+</body>
+</html>

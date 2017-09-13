@@ -6,8 +6,8 @@ unit uTab;
   See https://github.com/felipedaragon/sandcat/ for details.
 
   Important Notes:
-    Chromium is on "standby" through TCatChromiumStandBy. By directly accessing
-    the Browser.c property the Chromium browser gets created and ready to use.
+  Chromium is on "standby" through TCatChromiumStandBy. By directly accessing
+  the Browser.c property the Chromium browser gets created and ready to use.
 
 }
 
@@ -25,15 +25,14 @@ uses
   ExtCtrls, StdCtrls, ComCtrls, Menus, TypInfo,
 {$ENDIF}
   CatUI, uUIComponents, CatConsole, CatChromium, CatChromiumLib, CatChromiumSB,
-  uRequests, SynUnicode, uLiveHeaders, uCodeInspect, uTabRes, uExtensions,
-  uZones, CatMsg;
+  uRequests, SynUnicode, uLiveHeaders, uCodeInspect, uTabResources,
+  uTabResponse, uExtensions, uZones, CatMsg, CatPanels;
 
 type // Used for restoring the state of a tab when switching tabs
   TTabState = class
   private
   public
     ActivePage: string;
-    ActivePageName: string;
     CustomDefaultPage: string;
     HasConsole: boolean;
     HasCustomToolbar: boolean;
@@ -88,6 +87,7 @@ type
     fOnMessage: TSandcatTabOnMessage;
     fRequests: TSandcatRequests;
     fResources: TTabResourceList;
+    fResponse: TTabResponseView;
     fRetrieveFavIcon: boolean;
     fSideBar: TSandcatSidebar;
     fSyncWithTask: boolean;
@@ -150,6 +150,7 @@ type
     procedure AdjustHighlighter(const URL: string = '');
     procedure BeforeLoad(const URL: string);
     procedure GoToURL(const URL: string; const source: string = '');
+    procedure LoadCachedURL(const URL: string);
     procedure LoadSettings;
     procedure LoadState;
     procedure LoadExtensionPage(const html: string);
@@ -167,6 +168,7 @@ type
     procedure SetActivePage(const name: string);
     procedure SetIcon(const URL: string; const force: boolean = false);
     procedure SetTitle(const title: string);
+    procedure ShowRequest(const filename: string);
     procedure ShowSideTree(const visible: boolean);
     procedure ViewDevTools;
     constructor Create(AOwner: TComponent); override;
@@ -192,6 +194,7 @@ type
     property Number: integer read fNumber write fNumber;
     property Requests: TSandcatRequests read fRequests;
     property Resources: TTabResourceList read fResources;
+    property Response: TTabResponseView read fResponse;
     property SideBar: TSandcatSidebar read fSideBar;
     property SitePrefsFile: string read GetSitePrefsFile;
     property SourceInspect: TSyCodeInspector read fSourceInspect;
@@ -203,6 +206,11 @@ type
     property UserData: TSandJSON read fUserData;
     property UserTag: string read fUserTag write fUserTag;
   end;
+
+const
+  // the default page 'browser' must be the last one in this array
+  cTabSubPageNames: array [1 .. 6] of string = ('source', 'log', 'extension',
+    'resources', 'response', 'browser');
 
 const // tab events to be sent to the tab manager
   SCBT_NEWTITLE = 1;
@@ -260,6 +268,13 @@ begin
   Result := UID = tabmanager.ActiveTabID;
 end;
 
+// Loads a URL from the browser cache
+procedure TSandcatTab.LoadCachedURL(const URL: string);
+begin
+  SetActivePage('response');
+  fResponse.LoadCachedURL(URL);
+end;
+
 // Loads a source code from a file in the source page
 procedure TSandcatTab.LoadSourceFile(const filename: string);
 begin
@@ -267,6 +282,15 @@ begin
   // Adopts highlighter based on the filename extension
   fSourceInspect.source.highlighter := Highlighters.GetByFileExtension
     (extractfileext(filename));
+end;
+
+procedure TSandcatTab.ShowRequest(const filename: string);
+var
+  r: TSandcatRequestDetails;
+begin
+  SetActivePage('response');
+  if fRequests.requestexists(filename) then
+    fResponse.LoadFromRequest(fRequests.GetRequest(filename));
 end;
 
 // Displays the side tree (used by Sandcat extensions)
@@ -329,19 +353,25 @@ begin
   fState.LoadState(UID, GetURL);
   fSubTabs.ActivePage := fState.ActivePage;
   SetLoading(fLoading); // Reloads the state of stop/reload button
-  contentarea.SetActivePage(fState.ActivePageName);
+  // debug('seting active page:'+fState.ActivePageName);
+  tabmanager.activetab.SetActivePage(fState.ActivePage);
+  // debug('active page set');
   if fState.IsCustom then
     fSubTabs.ActivePage := fState.CustomDefaultPage;
   Navbar.IsBookmarked := fState.IsBookmarked;
-  pagebar.SelectPage(fState.ActivePageName);
+  pagebar.SelectPage(fState.ActivePage);
   pagebar.AdjustPageStrip(fSideBar);
 end;
 
 // Sets the active page by the page name
 procedure TSandcatTab.SetActivePage(const name: string);
+var
+  nl: string;
 begin
-  fState.ActivePage := name;
-  fSubTabs.ActivePage := name;
+  nl := lowercase(name);
+  fState.ActivePage := nl;
+  fSubTabs.ActivePage := nl;
+  pagebar.SelectPage(nl);
 end;
 
 // Called when a page starts laoding or finishes loading
@@ -833,7 +863,7 @@ end;
 // Called when the Chromium component is created
 procedure TSandcatTab.InitChrome(const crm: TCatChromium);
 begin
-  debug('Chromium initilized.');
+  Debug('Chromium initilized.');
   crm.visible := false;
   // OnAfterSetSource:
   // Called by the Sandcat Chromium component after the source code has been
@@ -960,7 +990,7 @@ begin
 {$IFNDEF USEWACEF}
   // DCEF will display the DevTools as part of the browser tab instead of a
   // new window, so switch to it
-  contentarea.SetActivePage('browser');
+  SetActivePage('browser');
 {$ENDIF}
   fBrowser.c.ViewDevTools;
 end;
@@ -981,6 +1011,8 @@ end;
 
 // Creates the main panel
 procedure TSandcatTab.CreateMainPanel;
+var
+  i: integer;
   function GetPage(aPageName: string): TPage;
   begin
     Result := TPage(fSubTabs.Pages.Objects[fSubTabs.Pages.IndexOf(aPageName)]);
@@ -994,12 +1026,8 @@ begin
   fSubTabs.Parent := fMainPanel;
   fSubTabs.Color := clWindow;
   fSubTabs.Align := AlClient;
-  fSubTabs.Pages.Add('source');
-  fSubTabs.Pages.Add('browser');
-  fSubTabs.Pages.Add('log');
-  fSubTabs.Pages.Add('extension');
-  fSubTabs.Pages.Add('resources');
-  fSubTabs.ActivePage := 'browser'; // default page
+  for i := Low(cTabSubPageNames) to High(cTabSubPageNames) do
+    fSubTabs.Pages.Add(cTabSubPageNames[i]);
   // Creates the browser page
   fBrowserPanel := TCanvasPanel.Create(fMainPanel);
   fBrowserPanel.Parent := GetPage('browser');
@@ -1025,6 +1053,10 @@ begin
   fResources := TTabResourceList.Create(fBrowserPanel);
   fResources.Parent := GetPage('resources');
   fResources.Align := AlClient;
+  // Creates the response page
+  fResponse := TTabResponseView.Create(fBrowserPanel);
+  fResponse.Parent := GetPage('response');
+  fResponse.Align := AlClient;
 end;
 
 // Creates the live headers panel and associated components
@@ -1095,6 +1127,7 @@ begin
   fLog.Free;
   fSourceInspect.Free;
   fLiveHeaders.Free;
+  fResponse.Free;
   fResources.Free;
   fBrowserPanel.Free;
   fSubTabs.Free;
@@ -1118,8 +1151,7 @@ begin
   ShowTabsStrip := true;
   HasConsole := false;
   HasCustomToolbar := false;
-  ActivePage := 'default';
-  ActivePageName := 'browser';
+  ActivePage := 'browser';
   ProtoIcon := '@ICON_BLANK';
   URL := emptystr;
   StatusBarText := emptystr;

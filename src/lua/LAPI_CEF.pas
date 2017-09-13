@@ -10,16 +10,14 @@ unit LAPI_CEF;
 interface
 
 uses
-  Classes, SysUtils, Lua, pLua, LuaObject, CatChromiumOSR,
+  Classes, SysUtils, Lua, pLua, LuaObject, CatChromiumOSRX,
   Dialogs, CatChromiumLib, uLiveHeaders;
 
 type
   { TSandOSR }
   TSandOSR = class(TLuaObject)
   private
-    fiscachedurl: boolean;
-    fgetsourceastext: boolean;
-    fcachedsource: string;
+    fGetSourceAsText: boolean;
     procedure AddressChange(Sender: TObject; const URL: string);
     procedure BeforeDownload(Sender: TObject; const id: integer;
       const suggestedName: string);
@@ -38,10 +36,9 @@ type
       const load: boolean = false);
     procedure SendRequestCustom(req: TCatChromiumRequest;
       load: boolean = false);
-    procedure SourceAvailable(const s: string);
-    function GetURL: string;
+    procedure SourceAvailable(const s, headers: string);
   public
-    obj: TCatChromiumOSR;
+    obj: TCatChromiumOSRX;
     constructor Create(LuaState: PLua_State; AParent: TLuaObject = nil);
       overload; override;
     function GetPropValue(propName: String): Variant; override;
@@ -65,9 +62,6 @@ uses uMain, uConst, uUIComponents, uSettings, pLuaTable, CatCEFCache, CatFiles,
   CatHTTP, CatStrings;
 
 const
-  cURL_Cache = 'chrome://view-http-cache/';
-
-const
   REQUESTKEY_METHOD = 'method';
   REQUESTKEY_URL = 'url';
   REQUESTKEY_POSTDATA = 'postdata';
@@ -89,8 +83,8 @@ begin
   t := TLuaTable.Create(L, true);
   Result.Code := t.ReadString('code');
   Result.URL := t.ReadString('url');
-  Result.StartLine := t.ReadInteger('startln',0);
-  Result.Silent := t.ReadBool('silent',false);
+  Result.StartLine := t.ReadInteger('startln', 0);
+  Result.Silent := t.ReadBool('silent', false);
   t.Free;
 end;
 
@@ -99,14 +93,14 @@ var
   t: TLuaTable;
 begin
   t := TLuaTable.Create(L, true);
-  Result.method := t.readstring(REQUESTKEY_METHOD);
-  Result.URL := t.readstring(REQUESTKEY_URL);
-  Result.postdata := t.readstring(REQUESTKEY_POSTDATA);
-  Result.headers := t.readstring(REQUESTKEY_HEADERS);
-  Result.ignorecache := t.readbool(REQUESTKEY_IGNORECACHE, true);
-  Result.usecookies := t.readbool(REQUESTKEY_USECOOKIES, true);
-  Result.usecachedcredentials := t.readbool(REQUESTKEY_USEAUTH, true);
-  Result.details := t.readstring(REQUESTKEY_DETAILS);
+  Result.method := t.ReadString(REQUESTKEY_METHOD);
+  Result.URL := t.ReadString(REQUESTKEY_URL);
+  Result.postdata := t.ReadString(REQUESTKEY_POSTDATA);
+  Result.headers := t.ReadString(REQUESTKEY_HEADERS);
+  Result.ignorecache := t.ReadBool(REQUESTKEY_IGNORECACHE, true);
+  Result.usecookies := t.ReadBool(REQUESTKEY_USECOOKIES, true);
+  Result.usecachedcredentials := t.ReadBool(REQUESTKEY_USEAUTH, true);
+  Result.details := t.ReadString(REQUESTKEY_DETAILS);
   t.Free;
 end;
 
@@ -196,8 +190,7 @@ begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
   if outfilename = emptystr then
     outfilename := get_temp_preview_filename(ht.obj.GetURL);
-  if ht.fiscachedurl = true then
-    ChromeCacheExtract(ht.fcachedsource, outfilename);
+  ht.obj.SaveToFile(outfilename);
   lua_pushstring(L, outfilename);
   Result := 1;
 end;
@@ -207,7 +200,7 @@ var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
-  ht.fiscachedurl := false;
+  ht.obj.reset;
   ht.obj.load(lua_tostring(L, 2));
   Result := 1;
 end;
@@ -217,9 +210,7 @@ var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
-  ht.fgetsourceastext := true;
-  ht.fiscachedurl := true;
-  ht.obj.load(cURL_Cache + lua_tostring(L, 2));
+  ht.obj.loadfromcache(lua_tostring(L, 2));
   Result := 1;
 end;
 
@@ -228,7 +219,7 @@ var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
-  ht.fiscachedurl := false;
+  ht.obj.reset;
   ht.obj.loadfromstring(lua_tostring(L, 2), lua_tostring(L, 3));
   Result := 1;
 end;
@@ -238,7 +229,7 @@ var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
-  ht.fiscachedurl := false;
+  ht.obj.Reset;
   if lua_istable(L, 2) then // user provided a Lua table
     ht.SendRequestCustom(BuildRequestFromLuaTable(L), true)
   else
@@ -268,7 +259,8 @@ begin
   if lua_istable(L, 2) then // user provided a Lua table
     ht.obj.RunJavaScript(BuildJSCallFromLuaTable(L))
   else
-    ht.obj.RunJavaScript(lua_tostring(L, 2),lua_tostring(L, 3),lua_tointeger(L, 4));
+    ht.obj.RunJavaScript(lua_tostring(L, 2), lua_tostring(L, 3),
+      lua_tointeger(L, 4));
   Result := 1;
 end;
 
@@ -336,13 +328,6 @@ end;
 procedure RegisterCEF(L: PLua_State);
 begin
   RegisterTLuaObject(L, ObjName, @Create, @register_methods);
-end;
-
-function TSandOSR.GetURL: string;
-begin
-  Result := obj.GetURL;
-  if fiscachedurl = true then
-    Result := after(obj.GetURL, cURL_Cache);
 end;
 
 // Called before starting a file download
@@ -416,17 +401,9 @@ begin
   obj.SendRequest(req, load);
 end;
 
-procedure TSandOSR.SourceAvailable(const s: string);
+procedure TSandOSR.SourceAvailable(const s, headers: string);
 begin
-  if fiscachedurl = false then
-    CallEvent('onsetsource', [s])
-  else
-  begin
-    // store the response for using if the savetofile method is called
-    fcachedsource := s;
-    CallEvent('onsetsource', [ChromeCacheToString(s),
-      GetChromeCacheResponseHeaders(s)]);
-  end;
+  CallEvent('onsetsource', [s, headers]);
 end;
 
 procedure TSandOSR.LoadError(Sender: TObject; const errorCode: integer;
@@ -452,6 +429,8 @@ begin
   end;
   if EventExists('onsetsource') then
   begin
+    if obj.iscachedurl then
+      fgetsourceastext := true;
     if fgetsourceastext then
       obj.GetSourceAsText
     else
@@ -492,10 +471,10 @@ end;
 constructor TSandOSR.Create(LuaState: PLua_State; AParent: TLuaObject);
 begin
   inherited Create(LuaState, AParent);
-  obj := TCatChromiumOSR.Create(nil);
+  fGetSourceAsText := false;
+  obj := TCatChromiumOSRX.Create(nil);
   obj.OnLoadEnd := LoadEnd;
-  obj.AdjustSourceDisplayMethod := false;
-  obj.OnAfterSetSource := SourceAvailable;
+  obj.OnAfterSetSourceSpecial := SourceAvailable;
   obj.OnBrowserMessage := BrowserMessage;
   obj.OnConsoleMessage := ConsoleMessage;
   obj.OnLoadError := LoadError;
@@ -503,9 +482,6 @@ begin
   obj.OnLoadingStateChange := LoadingStateChange;
   obj.OnBeforePopup := BeforePopup;
   obj.OnBeforeDownload := BeforeDownload;
-  obj.EnableDownloads := false;
-  fgetsourceastext := false;
-  fiscachedurl := false;
   obj.LoadSettings(settings.preferences.current, settings.preferences.Default);
 end;
 
@@ -522,7 +498,7 @@ begin
   else if CompareText(propName, 'reslist') = 0 then
     Result := obj.ResourceList.text
   else if CompareText(propName, 'url') = 0 then
-    Result := GetURL
+    Result := obj.GetURLSpecial
   else if CompareText(propName, 'urllist') = 0 then
     Result := obj.URLLog.text
   else

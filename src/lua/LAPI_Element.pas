@@ -50,11 +50,20 @@ type
 
 procedure RegisterSCBUIElement_Sandcat(L: PLua_State);
 procedure RegisterSCBUIEngine_Sandcat(L: PLua_State);
+function ElemValueToText(value: string): string;
 
 implementation
 
 uses
   uMain, plua, uUIComponents, uMisc, CatStrings, CatHTTP, uZones, uTab, uConst;
+
+function ElemValueToText(value: string): string;
+begin
+  result := htmlunescape(value);
+  result := replacestr(result, '<br/>', crlf);
+  result := striphtml(result);
+  result := trim(result);
+end;
 
 function GetSciterObject(L: PLua_State): TSandUIEngine;
 begin
@@ -196,7 +205,7 @@ begin
     ENGINE_BOTTOMBAR:
       BottomBar.LoadBottomBar(s);
     ENGINE_EXTENSIONPAGE:
-      contentarea.LoadPage(s);
+      contentarea.ToolsBar.LoadPage(s);
     ENGINE_CUSTOMTAB:
       tabmanager.ActiveTab.LoadExtensionPage(s);
   else
@@ -301,22 +310,13 @@ begin
 end;
 
 function TSCBUIElementObject.GetPropValue(propName: String): Variant;
-  function getvalueastext: string;
-  begin
-    result := GetElementValue(Selector);
-    result := htmlunescape(result);
-    result := replacestr(result, '<br/>', crlf);
-    result := striphtml(result);
-    result := trim(result);
-  end;
-
 begin
   if CompareText(propName, 'engine') = 0 then
     result := Engine
   else if CompareText(propName, 'selector') = 0 then
     result := Selector
   else if CompareText(propName, 'valueastext') = 0 then
-    result := getvalueastext
+    result := ElemValueToText(GetElementValue(Selector))
   else if CompareText(propName, 'value') = 0 then
     result := GetElementValue(Selector)
   else

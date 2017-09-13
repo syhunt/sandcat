@@ -42,6 +42,7 @@ function lua_loadpagex(L: plua_State): integer; cdecl;
 function lua_closepage(L: plua_State): integer; cdecl;
 function lua_getbrowseroption(L: plua_State): integer; cdecl;
 function lua_setbrowseroption(L: plua_State): integer; cdecl;
+function lua_saveresource(L: plua_State): integer; cdecl;
 function lua_showbottombar(L: plua_State): integer; cdecl;
 function lua_showurl(L: plua_State): integer; cdecl;
 function lua_showreqbuilderbar(L: plua_State): integer; cdecl;
@@ -211,7 +212,7 @@ end;
 
 function lua_closepage(L: plua_State): integer; cdecl;
 begin
-  contentarea.closepage(lua_tostring(L, 1));
+  contentarea.toolsbar.closepage(lua_tostring(L, 1));
   result := 1;
 end;
 
@@ -229,7 +230,7 @@ begin
     html := '<meta name="SandcatUIX" content="' + tablename + '">' +
       crlf + html;
   if subtabname <> emptystr then
-    contentarea.LoadPage(html, subtabname);
+    contentarea.toolsbar.LoadPage(html, subtabname);
   result := 1;
 end;
 
@@ -258,6 +259,12 @@ begin
     else
       extensions.RunLua(lua_tostring(L, 1));
   end;
+  result := 1;
+end;
+
+function lua_saveresource(L: plua_State): integer; cdecl;
+begin
+  sanddlg.SaveResource(lua_tostring(L, 1), lua_toboolean(L, 2));
   result := 1;
 end;
 
@@ -441,7 +448,8 @@ end;
 
 function lua_setactivepage(L: plua_State): integer; cdecl;
 begin
-  contentarea.SetActivePage(lua_tostring(L, 1));
+  if tabmanager.activetab<> nil then
+  tabmanager.activetab.SetActivePage(lua_tostring(L, 1));
   result := 1;
 end;
 

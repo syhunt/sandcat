@@ -18,7 +18,7 @@ uses
 {$ELSE}
   CatSciter, Sciter,
 {$ENDIF}
-  unitObjectCache;
+  unitObjectCache, uSynEditExtended;
 
 type
   TSandJSON = TCatJSON;
@@ -32,6 +32,7 @@ type
   TSandSLParser = TStringLoop;
   TSandCSVParser = TCSVLoop;
   TSandSynEdit = TCatSynEdit;
+  TSandSynEditExtended = TCatSynEditExtended;
   TSandCache = TCatStorage;
   TSandObjCache = TObjectCache;
 

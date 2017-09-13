@@ -226,9 +226,6 @@ begin
   MainPanel := TPanel.Create(self);
   MainPanel.parent := self;
   ConfigPanel(MainPanel, alClient);
-  SideBar := TSandcatSidebar.Create(self);
-  SideBar.parent := self;
-  SideBar.align := alLeft;
   ContentArea := TSandcatContentArea.Create(self);
   ContentArea.parent := MainPanel;
   ContentArea.align := alClient;

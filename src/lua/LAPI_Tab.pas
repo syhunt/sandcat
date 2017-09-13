@@ -29,9 +29,9 @@ function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
 implementation
 
 uses
-  uMain, uTaskMan, uTab, plua, CatFiles, uMisc, CatStrings, uUIComponents,
-  CatChromium, CatChromiumLib, uSettings, uConst, uZones, uLiveHeaders,
-  pLuaTable, LAPI_CEF;
+  uMain, uTaskMan, uTab, uTabResponse, plua, CatFiles, uMisc, CatStrings,
+  uUIComponents, CatChromium, CatChromiumLib, uSettings, uConst,
+  uZones, uLiveHeaders, pLuaTable, LAPI_CEF;
 
 function BuildCustomTabFromLuaTable(L: PLua_State): TCustomTabSettings;
 var
@@ -146,6 +146,34 @@ begin
   else
     tabmanager.ActiveTab.SendRequest(lua_tostring(L, 2), lua_tostring(L, 3),
       lua_tostring(L, 4), false);
+  result := 1;
+end;
+
+function method_response_get(L: PLua_State): integer; cdecl;
+var
+  r: TSandcatResponseTabDetails;
+begin
+  r := tabmanager.ActiveTab.Response.GetResponse;
+  lua_newtable(L); // equivalent to lua_createtable(L, 0, 7);
+  plua_SetFieldValue(L, 'method', r.Method);
+  plua_SetFieldValue(L, 'url', r.url);
+  plua_SetFieldValue(L, 'headers', r.Headers_Request);
+  plua_SetFieldValue(L, 'responseheaders', r.Headers_Response);
+  plua_SetFieldValue(L, 'response', r.Response);
+  plua_SetFieldValue(L, 'previewheaders', r.Preview_Request);
+  plua_SetFieldValue(L, 'previewresponse', r.Preview_Response);
+  result := 1;
+end;
+
+function method_response_load(L: PLua_State): integer; cdecl;
+begin
+  // ToDo
+  result := 1;
+end;
+
+function method_response_loadheaders(L: PLua_State): integer; cdecl;
+begin
+  tabmanager.ActiveTab.Response.SetHeaders(lua_tostring(L, 2));
   result := 1;
 end;
 
@@ -319,7 +347,7 @@ end;
 
 function method_showrequest(L: PLua_State): integer; cdecl;
 begin
-  uix.ShowRequest(tabmanager.ActiveTab.Requests, lua_tostring(L, 2));
+  tabmanager.ActiveTab.ShowRequest(lua_tostring(L, 2));
   result := 1;
 end;
 
@@ -623,6 +651,10 @@ begin
   RegisterMethod(L, 'resources_add', method_resources_additem, classTable);
   RegisterMethod(L, 'resources_clear', method_resources_clear, classTable);
   RegisterMethod(L, 'resources_customize', method_resources_loadcustom,
+    classTable);
+  RegisterMethod(L, 'response_get', method_response_get, classTable);
+  RegisterMethod(L, 'response_load', method_response_load, classTable);
+  RegisterMethod(L, 'response_loadheaders', method_response_loadheaders,
     classTable);
   RegisterMethod(L, 'runluaonlog', method_runluaonlog, classTable);
   RegisterMethod(L, 'runjs', method_runjavascript, classTable);

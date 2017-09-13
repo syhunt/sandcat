@@ -26,7 +26,7 @@ uses pLua, pLuaTable, LAPI_Browser, uSettings, uTaskMan, LAPI_Console, LAPI_App,
 
 procedure RegisterBrowser(L: plua_State);
 const
-  sandcatbrowser_table: array [1 .. 33] of luaL_reg = (
+  sandcatbrowser_table: array [1 .. 34] of luaL_reg = (
   (name: 'addjs'; func: lua_addjavascript),
   (name: 'addlibinfo'; func: lua_addlibraryinfo),
   (name: 'addlua'; func: lua_addluascript),
@@ -51,6 +51,7 @@ const
   (name: 'newtabx'; func: lua_tabs_addcustom),
   (name: 'newwindow'; func: lua_newwindow),
   (name: 'removetask'; func: lua_bgtaskremove),
+  (name: 'saveresource'; func: lua_saveresource),
   (name: 'setactivepage'; func: lua_setactivepage),
   (name: 'setinitmode'; func: lua_setinitmode),
   (name: 'setsearcheng'; func: lua_setsearchengine),

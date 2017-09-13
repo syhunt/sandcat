@@ -80,8 +80,8 @@ begin
     Bitmap.PixelFormat := pf24bit;
     Bitmap.Canvas.CopyRect(Rect(0, 0, Bitmap.Width, Bitmap.Height),
       tab.BrowserPanel.Canvas, Rect(tab.browser.c.Left, tab.browser.c.Top,
-      tab.Browser.c.Left + tab.Browser.c.Width - 1,
-      tab.Browser.c.Top + tab.Browser.c.Height - 1));
+      tab.browser.c.Left + tab.browser.c.Width - 1,
+      tab.browser.c.Top + tab.browser.c.Height - 1));
     PNG.Assign(Bitmap); // Convert data into png
     PNG.SaveToFile(filename);
   finally

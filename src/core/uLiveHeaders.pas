@@ -50,6 +50,7 @@ type
 type
   TLiveHeaders = class(TCustomControl)
   private
+    fFrontLv: TListView;
     fMainLv: TListView;
     fFilterLv: TListView;
     fFilterMode: boolean;
@@ -74,8 +75,10 @@ type
     procedure HeadersListViewClick(Sender: TObject);
     procedure HeadersListviewColumnClick(Sender: TObject; Column: TListColumn);
     procedure FilteredListviewColumnClick(Sender: TObject; Column: TListColumn);
-    procedure FilteredListViewClick(Sender: TObject);
     procedure MenuCopyClick(Sender: TObject);
+    procedure MenuOpenURLNewTabClick(Sender: TObject);
+    procedure MenuSaveFromCacheClick(Sender: TObject);
+    procedure MenuSaveFromWebClick(Sender: TObject);
   protected
   public
     Filter: TLiveHeadersFilter;
@@ -98,7 +101,8 @@ type
 
 implementation
 
-uses uMain, uConst, CatFiles, CatStrings, CatUI, CatHTTP, CatRegEx, uMisc;
+uses uMain, uZones, uConst, CatFiles, CatStrings, CatUI, CatHTTP, CatRegEx,
+  uMisc;
 
 function GetSearchParam(line, param: string; def_value: string = ''): string;
 begin
@@ -176,25 +180,16 @@ end;
 procedure TLiveHeaders.HeadersListViewChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 begin
-  //HeadersListViewClick(Sender);
+  // HeadersListViewClick(Sender);
 end;
 
 procedure TLiveHeaders.HeadersListViewClick(Sender: TObject);
 begin
-  if (fMainLv.Selected = nil) then
+  if (fFrontLv.Selected = nil) then
     exit;
   application.ProcessMessages;
-  uix.ShowRequest(tabmanager.ActiveTab.requests,
-    fMainLv.Selected.SubItems[fMainLv.Selected.SubItems.Count - 1]);
-end;
-
-procedure TLiveHeaders.FilteredListViewClick(Sender: TObject);
-begin
-  if (fFilterLv.Selected = nil) then
-    exit;
-  application.ProcessMessages;
-  uix.ShowRequest(tabmanager.ActiveTab.requests,
-    fFilterLv.Selected.SubItems[fFilterLv.Selected.SubItems.Count - 1]);
+  tabmanager.ActiveTab.ShowRequest(fFrontLv.Selected.SubItems
+    [fFrontLv.Selected.SubItems.Count - 1]);
 end;
 
 procedure TLiveHeaders.ClearBtnClick(Sender: TObject);
@@ -385,6 +380,7 @@ begin
   if s = emptystr then
   begin
     fMainLv.BringToFront;
+    fFrontLv := fMainLv;
     fFilterMode := false;
   end
   else
@@ -392,6 +388,7 @@ begin
     fFilterMode := true;
     fFilterLv.Clear;
     fFilterLv.BringToFront;
+    fFrontLv := fFilterLv;
     m := fMainLv.Items.Count;
     fFilterLv.Items.BeginUpdate;
     Filter.Text := s;
@@ -494,15 +491,27 @@ begin
 end;
 
 procedure TLiveHeaders.MenuCopyClick(Sender: TObject);
-var
-  lv: TListView;
 begin
-  if fFilterMode = false then
-    lv := fMainLv
-  else
-    lv := fFilterLv;
-  if (lv.Selected <> nil) then
-    GetLVItemAsString(lv, lv.Selected, true);
+  if (fFrontLv.Selected <> nil) then
+    GetLVItemAsString(fFrontLv, fFrontLv.Selected, true);
+end;
+
+procedure TLiveHeaders.MenuOpenURLNewTabClick(Sender: TObject);
+begin
+  if (fFrontLv.Selected <> nil) then
+    tabmanager.NewTab(fFrontLv.Selected.SubItems[0]);
+end;
+
+procedure TLiveHeaders.MenuSaveFromCacheClick(Sender: TObject);
+begin
+  if (fFrontLv.Selected <> nil) then
+    SandDlg.SaveResource(fFrontLv.Selected.SubItems[0]);
+end;
+
+procedure TLiveHeaders.MenuSaveFromWebClick(Sender: TObject);
+begin
+  if (fFrontLv.Selected <> nil) then
+    SandDlg.SaveURLAs(fFrontLv.Selected.SubItems[0]);
 end;
 
 constructor TLiveHeaders.Create(AOwner: TComponent);
@@ -555,10 +564,11 @@ begin
   fMainLv.OnChange := HeadersListViewChange;
   ConfigLV(fMainLv);
   fFilterLv := TListView.Create(self);
-  fFilterLv.OnClick := FilteredListViewClick;
+  fFilterLv.OnClick := HeadersListViewClick;
   fFilterLv.OnColumnClick := FilteredListviewColumnClick;
   ConfigLV(fFilterLv);
   fMainLv.BringToFront;
+  fFrontLv := fMainLv;
   fPaused := false;
   fFilterMode := false;
   fControlPanel := TPanel.Create(self);
@@ -606,10 +616,35 @@ begin
   fFilterTimer.OnTimer := Timer1Timer;
 
   fPopupMenu := TPopupMenu.Create(self);
+  // Copy menu item
   mi := TMenuItem.Create(fPopupMenu);
   mi.Caption := '&Copy';
   mi.OnClick := MenuCopyClick;
   fPopupMenu.Items.Add(mi);
+  // Separator
+  mi := TMenuItem.Create(fPopupMenu);
+  mi.Caption := '-';
+  fPopupMenu.Items.Add(mi);
+  // Open URL in New Tab
+  mi := TMenuItem.Create(fPopupMenu);
+  mi.Caption := '&Open URL in New Tab';
+  mi.OnClick := MenuOpenURLNewTabClick;
+  fPopupMenu.Items.Add(mi);
+  // Separator
+  mi := TMenuItem.Create(fPopupMenu);
+  mi.Caption := '-';
+  fPopupMenu.Items.Add(mi);
+  // Save From Cache As...
+  mi := TMenuItem.Create(fPopupMenu);
+  mi.Caption := '&Save From Cache As...';
+  mi.OnClick := MenuSaveFromCacheClick;
+  fPopupMenu.Items.Add(mi);
+  // Save From Web As...
+  mi := TMenuItem.Create(fPopupMenu);
+  mi.Caption := '&Save From Web As...';
+  mi.OnClick := MenuSaveFromWebClick;
+  fPopupMenu.Items.Add(mi);
+  // Render Response
   fMainLv.PopupMenu := fPopupMenu;
   fFilterLv.PopupMenu := fPopupMenu;
 end;

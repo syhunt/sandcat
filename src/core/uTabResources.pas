@@ -1,4 +1,4 @@
-unit uTabRes;
+unit uTabResources;
 
 {
   Sandcat Resource List
@@ -79,7 +79,7 @@ begin
   if (fLv.Selected = nil) then
     exit;
   if fCustomized = false then
-    UIX.ShowResource(fLv.Selected.SubItems[0]) // regular display of URL
+    tabmanager.ActiveTab.LoadCachedURL(fLv.Selected.SubItems[0]) // regular display of URL
   else
   begin
     if fDblClickFunc <> emptystr then

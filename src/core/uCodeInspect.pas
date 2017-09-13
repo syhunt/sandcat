@@ -63,17 +63,7 @@ type
 
 implementation
 
-uses uConst;
-
-function IsInteger(const s: string): Boolean;
-var
-  v, c: Integer;
-begin
-  Val(s, v, c);
-  if v=0 then begin // hide H2077 compiler warning
-  end;
-  result := c = 0;
-end;
+uses uConst, CatStrings;
 
 function TSyCodeInspector.GetActiveTab: string;
 begin

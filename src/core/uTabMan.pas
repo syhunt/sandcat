@@ -28,7 +28,7 @@ type
   end;
 
 type
-  TSandcatTabManager = class
+  TSandcatTabManager = class(TCustomControl)
   private
     fActiveTab: TSandcatTab;
     fActiveTabName: string;
@@ -168,7 +168,7 @@ begin
   tab := TSandcatTab(ASender);
   case msgid of
     SCBT_GETSCREENSHOT:
-      contentarea.SetActivePage('browser');
+      fActiveTab.SetActivePage('browser');
     SCBT_NEWTITLE:
       begin
         if fActiveTab.UID = tab.UID then
@@ -372,7 +372,9 @@ begin
     tabmanager.ViewHeaders(headersvisible, false)
   else
     tabmanager.ViewHeaders(false, false);
+  Debug('loading state...');
   fActiveTab.LoadState;
+  //Debug('set app title:'+fActiveTab.Title);
   SetAppTitle(fActiveTab.Title);
   if Navbar.url = emptystr then
     Navbar.focusurl;
@@ -409,8 +411,8 @@ begin
     if tab <> nil then
     begin
       GoToTab(tab.UID);
-      if t.LoadNew = true then
-        contentarea.LoadPage(t.HTML);
+      //if t.LoadNew = true then
+      //  toolsbar.LoadPage(t.HTML);
       cancreate := false;
     end;
   end;
@@ -471,7 +473,7 @@ begin
   fLiveNotebook.Pages.Add(uniqueid);
   fTabsNotebook.ActivePage := uniqueid;
   fLiveNotebook.ActivePage := uniqueid;
-  tab := TSandcatTab.Create(sandbrowser);
+  tab := TSandcatTab.Create(self);
   Debug('newtab.created');
   if hascustomtb then
     tab.State.HasCustomToolbar := true;
@@ -481,7 +483,7 @@ begin
   tab.Parent := TPage(fTabsNotebook.Pages.Objects[fTabsNotebook.PageIndex]);
   tab.UID := uniqueid;
   tab.Number := fTabCount;
-  contentarea.note.ActivePage := 'default';
+  //contentarea.note.ActivePage := 'default';
   if tasks.running then
     Navbar.AnimateTasksIcon(true);
   Navbar.UpdateSearchEngine;
@@ -543,7 +545,7 @@ end;
 
 constructor TSandcatTabManager.Create(AOwner: TWinControl);
 begin
-  inherited Create;
+  inherited Create(AOwner);
   fTabCount := 0;
   tabstrip := TSandcatTabstrip.Create(AOwner);
   tabstrip.Parent := AOwner;

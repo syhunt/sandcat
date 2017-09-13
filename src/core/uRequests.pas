@@ -24,13 +24,13 @@ type
     Cache: TSandCache;
     Headers: TLiveHeaders;
     procedure Clear;
-    function GetRequest(const xmlrequestfile: string): TSandcatRequestDetails;
-    function RequestExists(const xmlrequestfile: string): boolean;
+    function GetRequest(const jsonrequestfile: string): TSandcatRequestDetails;
+    function RequestExists(const jsonrequestfile: string): boolean;
     procedure LogRequest(request: TSandcatRequestDetails);
     procedure LogDynamicRequest(const json: string);
     procedure LogXMLHTTPRequest(const json: string);
     procedure TabWillClose;
-    procedure UpdateRequest(const xmlrequestfile: string;
+    procedure UpdateRequest(const jsonrequestfile: string;
       const response: string);
     constructor Create(AOwner: TWinControl; MsgHandle: HWND);
     destructor Destroy; override;
@@ -60,26 +60,28 @@ begin
   fIsClosing := true;
 end;
 
-function TSandcatRequests.RequestExists(const xmlrequestfile: string): boolean;
+function TSandcatRequests.RequestExists(const jsonrequestfile: string): boolean;
 begin
-  result := Cache.cachedFileExists(cReqFolder + xmlrequestfile);
+  result := Cache.cachedFileExists(cReqFolder + jsonrequestfile);
 end;
 
-function TSandcatRequests.GetRequest(const xmlrequestfile: string)
+function TSandcatRequests.GetRequest(const jsonrequestfile: string)
   : TSandcatRequestDetails;
 var
   j: TSandJINI;
   responsefile: string;
 begin
-  if RequestExists(xmlrequestfile) = false then
+  if RequestExists(jsonrequestfile) = false then
     exit;
   j := TSandJINI.Create;
-  j.text := Cache.gettextfile(cReqFolder + xmlrequestfile);
+  j.text := Cache.gettextfile(cReqFolder + jsonrequestfile);
   result.URL := aestostr(j.Values['URL'],GetDCPKey(CATKEY_REQUESTHEADERS));
   result.response := j.Values['Response'];
+  result.MimeType := j.Values['MimeType'];
+  result.StatusCode := StrToIntDef(j.Values['Status'],0);
   if j.Values['ResponseFilename'] <> emptystr then
   begin
-    responsefile := cReqFolder + xmlrequestfile + '.resp';
+    responsefile := cReqFolder + jsonrequestfile + '.resp';
     result.response := Cache.gettextfile(responsefile);
     result.Filename := responsefile;
   end;
@@ -93,20 +95,20 @@ begin
   j.Free;
 end;
 
-procedure TSandcatRequests.UpdateRequest(const xmlrequestfile: string;
+procedure TSandcatRequests.UpdateRequest(const jsonrequestfile: string;
   const response: string);
 var
   j: TSandJINI;
 begin
-  if RequestExists(xmlrequestfile) = false then
+  if RequestExists(jsonrequestfile) = false then
     exit;
   j := TSandJINI.Create;
-  j.text := Cache.gettextfile(cReqFolder + xmlrequestfile);
+  j.text := Cache.gettextfile(cReqFolder + jsonrequestfile);
   if response <> emptystr then
     j.Values['Response'] := response;
-  debug('Updating request ' + xmlrequestfile + ' ...');
+  debug('Updating request ' + jsonrequestfile + ' ...');
   // updates the request file in the cache
-  Cache.StoreString(cReqFolder + xmlrequestfile, j.text);
+  Cache.StoreString(cReqFolder + jsonrequestfile, j.text);
   j.Free;
 end;
 
@@ -149,7 +151,7 @@ begin
   Global_LoggedRequests := Global_LoggedRequests + 1;
   fLoggedRequests := fLoggedRequests + 1;
   logfile := TSandJINI.Create;
-  // Adds any missing info (eg, from a low level HTTP request)
+  // Reconstructs any missing info (usually from a low level HTTP request)
   reconstruct_missing_details;
   // Associates a request filename with the request
   request.Filename := inttostr(Global_LoggedRequests) + '.json';
@@ -175,8 +177,11 @@ begin
     logfile.Values['URL'] := strtoaes(request.URL,GetDCPKey(CATKEY_REQUESTHEADERS));
   if request.Method <> emptystr then
     logfile.Values['Method'] := request.Method;
+  logfile.Values['Status'] := IntToStr(request.StatusCode);
   if request.RcvdHead <> emptystr then
     logfile.Values['ResponseHeaders'] := request.RcvdHead;
+  if request.MimeType <> emptystr then
+    logfile.Values['MimeType'] := request.MimeType;
   if request.SentHead <> emptystr then
     logfile.Values['Headers'] := strtoaes(request.SentHead,GetDCPKey(CATKEY_REQUESTHEADERS));
   if request.IsLow then

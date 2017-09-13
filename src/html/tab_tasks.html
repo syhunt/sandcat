@@ -23,15 +23,15 @@ progress.prog { width:*;}
 div.tid:hover { border-color:gray; }
 div.tid:active { border:1px dotted block; }
 div.tid:selected { border:1px dotted block; }
-table.tbtid { }
+table.tbtid { width:*; }
 img.staticon { width:32px; height:32px; }
 td.stat { width:40px; }
-td.info { width:300px; }
+td.info { width:*; }
 code.caption { font-weight:bold; overflow:hidden; text-overflow:ellipsis; }
 code.stat { overflow:hidden; text-overflow:ellipsis; color:gray; }
-code.pid { padding-left: 30px; color:green; }
+code.pid { color:green; }
 li.stop {foreground-image: @ICON_STOP;}
-img.stop { foreground-image: url(Resources.pak#16\icon_close2.png); width:14px; height:14px; }
+img.stop { foreground-image: url(Resources.pak#16\icon_close2.png); width:14px; height:14px; margin-right:6px; }
 img.stop:hover { 	foreground-image-transformation: colorize(#0099FF); }
 img.menu { foreground-image: url(Resources.pak#16\icon_menu2.png); width:14px; height:14px; }
 img.menu:hover { 	foreground-image-transformation: colorize(#0099FF); }
@@ -39,7 +39,7 @@ li.suspend {foreground-image: url(Resources.pak#16\icon_pause.png);}
 li.remove {foreground-image: url(Resources.pak#16\icon_remove.png);}
 table.log {
  width:*;
- margin-left:10px;
+ /*margin-left:10px;*/
  height:80px;
  overflow-y:scroll; 
  overflow-x:hidden;
@@ -79,26 +79,24 @@ type Tasks
  function Add(j) {
   tasksdiv.insert(
   "<div .tid tid='"+j.tid+"' ondblclick='' style='context-menu: selector(#"+j.tid+"-menu);'>"
-  "<table .tbtid width='100%%'><tr>"
+  "<table .tbtid><tr>"
   "<td .stat><img .staticon tid='"+j.tid+"'></td>"
   "<td .info>"
   "<code .caption tid='"+j.tid+"'></code><br>"
   "<code .stat tid='"+j.tid+"'></code>"
-  "<div .dprog tid='"+j.tid+"'><progress .prog tid='"+j.tid+"' maxvalue='100' value='0'/></div>"
   "</td>"
-  "<td width='100%'>"
-  "<table .log tid='"+j.tid+"'>"
-  "</table>"
-  "</td>"
-  "<td width='100px'><code.pid tid='"+j.tid+"'></code></td>"
+  "<td width='16px'><img .stop tid='"+j.tid+"' onclick='browser.stoptask([["+j.tid+"]])'></td>"
   "<td width='32px'><div menu='"+j.tid+"-menu' style='behavior:popup-menu;'><img .menu>"
   "<menu.context id='"+j.tid+"-menu'>"
   ""+j.menu+""
   "</menu>"
   "</div>"
   "</td>"
-  "<td width='16px'><img .stop tid='"+j.tid+"' onclick='browser.stoptask([["+j.tid+"]])'></td>"
   "</tr></table>"
+  "<code.pid tid='"+j.tid+"'></code>"
+  "<div .dprog tid='"+j.tid+"'><progress .prog tid='"+j.tid+"' maxvalue='100' value='0'/></div><br>"
+  "<table .log tid='"+j.tid+"'>"
+  "</table>"
   "<menu.context id='"+j.tid+"-menu'>"
   ""+j.menu+""
   "</menu>"

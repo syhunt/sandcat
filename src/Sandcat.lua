@@ -1,7 +1,7 @@
 --[[
   Sandcat Startup script
 
-  Copyright (c) 2011-2015, Syhunt Informatica
+  Copyright (c) 2011-2017, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
   
@@ -46,9 +46,6 @@ function Sandcat:Init()
  tab.liveheaders = self:GetUIZone("tab.liveheaders")
  tab.engine = self:GetUIZone("tab.engine")
  tab.toolbar = self:GetUIZone("tab.toolbar")
- 
-  -- Allows extensions to add custom response preview handlers
-  self.Preview = self:GetPreview()
 end
 
 -- This method will be called after all Sandcat extensions have been
@@ -61,6 +58,7 @@ function Sandcat:AfterLoad()
  
  self:require('pagemenu')
  self.reqbuildermenu = self:require('reqbuildmenu')
+ self.responsemenu = self:require('responsemenu')
  self.Downloader = self:require('downloader')
  
  -- Extends the Preferences library
@@ -77,57 +75,6 @@ function Sandcat:AfterLoad()
  self.Commands = self:require('consolecmds')
  self.Commands:AddCommands()
  self:require('consoleex')
- 
- -- Registers response preview handlers
- self:require('previewer')
- Previewer:Register()
-end
-
--- Creates and returns a simple module for storing or registering new
--- response preview handlers
-function Sandcat:GetPreview()
- local M = {}
- M.Handlers = {}
- M.Types = {}
- M.Extensions = {}
- M.About = ctk.string.list:new()
-
- function M:RegisterHandler(id,func,extlist,typelist)
-  if id ~= '' then
-   self.Handlers[id]=func
-   self.About:add('<tr role="option"><td>'..id..'</td><td>'..extlist..'</td></tr>')
-   self.About:sort()
-   local slp = ctk.string.loop:new()
-   -- Associates extensions with handler
-   local s = ''
-   slp.commatext = extlist
-   while slp:parsing() do
-     s = ctk.string.trim(slp.current)
-     if s ~= '' then
-      self.Extensions[s]=id
-     end
-   end
-   -- Associates types with handler
-    if typelist ~= nil then
-       slp:load(typelist)
-       while slp:parsing() do
-        s = ctk.string.trim(slp.current)
-        if s ~= '' then
-         self.Types[s]=id
-        end
-       end
-    end
-   slp:release()
-  end
- end
- 
- function M:ShowHandlers()
-  local html = Sandcat:getfile('dialog_preview_handlers.html')
-  html = ctk.string.replace(html,'%handlerlist%',self.About.text)
-  app.showdialogx(html)
- end
- 
- return M
 end
 
 -- Creates and returns an UI zone object
