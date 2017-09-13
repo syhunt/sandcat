@@ -354,7 +354,7 @@ begin
   fSubTabs.ActivePage := fState.ActivePage;
   SetLoading(fLoading); // Reloads the state of stop/reload button
   // debug('seting active page:'+fState.ActivePageName);
-  tabmanager.activetab.SetActivePage(fState.ActivePage);
+  SetActivePage(fState.ActivePage);
   // debug('active page set');
   if fState.IsCustom then
     fSubTabs.ActivePage := fState.CustomDefaultPage;
@@ -374,7 +374,7 @@ begin
   pagebar.SelectPage(nl);
 end;
 
-// Called when a page starts laoding or finishes loading
+// Called when a page starts loading or finishes loading
 procedure TSandcatTab.SetLoading(const b: boolean);
 begin
   fLoading := b;
