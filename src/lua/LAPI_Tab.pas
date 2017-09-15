@@ -278,7 +278,7 @@ begin
   result := 1;
 end;
 
-function method_resources_loadcustom(L: PLua_State): integer; cdecl;
+function method_results_loadcustom(L: PLua_State): integer; cdecl;
 var
   t: TLuaTable;
   columns: string;
@@ -289,20 +289,32 @@ begin
   clickfunc := t.readstring('clickfunc', emptystr);
   dblclickfunc := t.readstring('dblclickfunc', emptystr);
   t.Free;
-  tabmanager.ActiveTab.Resources.RedefineColumns(columns, clickfunc,
+  tabmanager.ActiveTab.Results.RedefineColumns(columns, clickfunc,
     dblclickfunc);
   result := 1;
 end;
 
-function method_resources_clear(L: PLua_State): integer; cdecl;
+function method_results_loadx(L: PLua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.Resources.Lv.Items.Clear;
+  tabmanager.ActiveTab.Results.LoadHTML(lua_tostring(L, 2));
   result := 1;
 end;
 
-function method_resources_additem(L: PLua_State): integer; cdecl;
+function method_results_updatehtml(L: PLua_State): integer; cdecl;
 begin
-  tabmanager.ActiveTab.Resources.AddPageResourceCustom(lua_tostring(L, 2));
+  tabmanager.ActiveTab.Results.UpdateHTMLPage(lua_tostring(L, 2));
+  result := 1;
+end;
+
+function method_results_clear(L: PLua_State): integer; cdecl;
+begin
+  tabmanager.ActiveTab.Results.Lv.Items.Clear;
+  result := 1;
+end;
+
+function method_results_additem(L: PLua_State): integer; cdecl;
+begin
+  tabmanager.ActiveTab.Results.AddCustomItem(lua_tostring(L, 2));
   result := 1;
 end;
 
@@ -648,10 +660,12 @@ begin
   RegisterMethod(L, 'logrequest', method_logrequest, classTable);
   RegisterMethod(L, 'reload', method_reload, classTable);
   RegisterMethod(L, 'sendrequest', method_sendrequest, classTable);
-  RegisterMethod(L, 'resources_add', method_resources_additem, classTable);
-  RegisterMethod(L, 'resources_clear', method_resources_clear, classTable);
-  RegisterMethod(L, 'resources_customize', method_resources_loadcustom,
+  RegisterMethod(L, 'results_add', method_results_additem, classTable);
+  RegisterMethod(L, 'results_clear', method_results_clear, classTable);
+  RegisterMethod(L, 'results_customize', method_results_loadcustom,
     classTable);
+  RegisterMethod(L, 'results_loadx', method_results_loadx, classTable);
+  RegisterMethod(L, 'results_updatehtml', method_results_updatehtml, classTable);
   RegisterMethod(L, 'response_get', method_response_get, classTable);
   RegisterMethod(L, 'response_load', method_response_load, classTable);
   RegisterMethod(L, 'response_loadheaders', method_response_loadheaders,

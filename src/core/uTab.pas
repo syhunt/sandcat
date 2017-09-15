@@ -87,6 +87,7 @@ type
     fOnMessage: TSandcatTabOnMessage;
     fRequests: TSandcatRequests;
     fResources: TTabResourceList;
+    fResults: TTabResourceList;
     fResponse: TTabResponseView;
     fRetrieveFavIcon: boolean;
     fSideBar: TSandcatSidebar;
@@ -194,6 +195,7 @@ type
     property Number: integer read fNumber write fNumber;
     property Requests: TSandcatRequests read fRequests;
     property Resources: TTabResourceList read fResources;
+    property Results: TTabResourceList read fResults;
     property Response: TTabResponseView read fResponse;
     property SideBar: TSandcatSidebar read fSideBar;
     property SitePrefsFile: string read GetSitePrefsFile;
@@ -208,9 +210,8 @@ type
   end;
 
 const
-  // the default page 'browser' must be the last one in this array
-  cTabSubPageNames: array [1 .. 6] of string = ('source', 'log', 'extension',
-    'resources', 'response', 'browser');
+  cTabSubPageNames: array [1 .. 7] of string = ('browser', 'source', 'log',
+    'extension', 'resources', 'response', 'results');
 
 const // tab events to be sent to the tab manager
   SCBT_NEWTITLE = 1;
@@ -285,8 +286,6 @@ begin
 end;
 
 procedure TSandcatTab.ShowRequest(const filename: string);
-var
-  r: TSandcatRequestDetails;
 begin
   SetActivePage('response');
   if fRequests.requestexists(filename) then
@@ -918,8 +917,9 @@ begin
 end;
 
 type
-  TJSONCmds = (cmd_settreeurls, cmd_resaddcustomitem, cmd_runtbtis,
-    cmd_setaffecteditems, cmd_seticon, cmd_setstatus, cmd_syncwithtask);
+  TJSONCmds = (cmd_settreeurls, cmd_resaddcustomitem, cmd_resupdatehtml,
+    cmd_runtbtis, cmd_setaffecteditems, cmd_seticon, cmd_setstatus,
+    cmd_syncwithtask);
 
   // Runs simple commands in the form of a JSON object (used by Sandcat tasks
   // that run in an isolated process)
@@ -934,7 +934,9 @@ begin
   Debug('received JSON cmd:' + cmd + ' with content:' + str);
   case TJSONCmds(GetEnumValue(TypeInfo(TJSONCmds), 'cmd_' + cmd)) of
     cmd_resaddcustomitem:
-      fResources.AddPageResourceCustom(str);
+      fResults.AddCustomItem(str);
+    cmd_resupdatehtml:
+      fResults.UpdateHTMLPage(str);
     cmd_runtbtis:
       if fCustomToolbar <> nil then
         fCustomToolbar.Eval(str);
@@ -1026,7 +1028,7 @@ begin
   fSubTabs.Parent := fMainPanel;
   fSubTabs.Color := clWindow;
   fSubTabs.Align := AlClient;
-  for i := Low(cTabSubPageNames) to High(cTabSubPageNames) do
+  for i := High(cTabSubPageNames) downto Low(cTabSubPageNames) do
     fSubTabs.Pages.Add(cTabSubPageNames[i]);
   // Creates the browser page
   fBrowserPanel := TCanvasPanel.Create(fMainPanel);
@@ -1053,6 +1055,11 @@ begin
   fResources := TTabResourceList.Create(fBrowserPanel);
   fResources.Parent := GetPage('resources');
   fResources.Align := AlClient;
+  // Creates the results page
+  fResults := TTabResourceList.Create(fBrowserPanel);
+  fResults.Parent := GetPage('results');
+  fResults.Align := AlClient;
+  fResults.Lv.Columns.Clear;
   // Creates the response page
   fResponse := TTabResponseView.Create(fBrowserPanel);
   fResponse.Parent := GetPage('response');
@@ -1128,6 +1135,7 @@ begin
   fSourceInspect.Free;
   fLiveHeaders.Free;
   fResponse.Free;
+  fResults.Free;
   fResources.Free;
   fBrowserPanel.Free;
   fSubTabs.Free;

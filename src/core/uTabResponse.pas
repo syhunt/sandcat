@@ -75,6 +75,21 @@ implementation
 
 uses uMain, CatStrings, CatHTTP, CatUI, uMisc, LAPI_Element;
 
+const
+  cPageNames: array [1 .. 3] of string = ('Preview', 'Headers',
+    'Raw Response');
+
+function HighlightHeaders(const s: string): string;
+begin
+  result := replacestr(s, crlf, '<br>');
+  result := replacestr(result, 'GET', '<b>GET</b>');
+  result := replacestr(result, 'POST', '<b>POST</b>');
+  result := replacestr(result, 'HEAD', '<b>HEAD</b>');
+  result := replacestr(result, 'HTTP/1.1', '<b>HTTP/1.1</b>');
+  result := replacestr(result, 'HTTP/1.0', '<b>HTTP/1.0</b>');
+  result := '<font color="black">' + result + '</font>';
+end;
+
 procedure TTabResponseView.Clear;
 begin
   fHeadersRequest.Text := emptystr;
@@ -136,17 +151,6 @@ begin
   if fOSR.isLoading then
     fOSR.Stop;
   fOSR.LoadFromCache(url);
-end;
-
-function HighlightHeaders(const s: string): string;
-begin
-  result := replacestr(s, crlf, '<br>');
-  result := replacestr(result, 'GET', '<b>GET</b>');
-  result := replacestr(result, 'POST', '<b>POST</b>');
-  result := replacestr(result, 'HEAD', '<b>HEAD</b>');
-  result := replacestr(result, 'HTTP/1.1', '<b>HTTP/1.1</b>');
-  result := replacestr(result, 'HTTP/1.0', '<b>HTTP/1.0</b>');
-  result := '<font color="black">' + result + '</font>';
 end;
 
 function TTabResponseView.GetResponse:TSandcatResponseTabDetails;
@@ -237,10 +241,6 @@ begin
   fRespPages.ActivePage := fTabStrip.Tabs[NewTab];
 end;
 
-const
-  cPageNames: array [1 .. 3] of string = ('Preview', 'Headers',
-    'Response Text');
-
 constructor TTabResponseView.Create(AOwner: TComponent);
 var
   i: integer;
@@ -302,7 +302,7 @@ begin
   // create response memo
   fResponse := TSandSynEditExtended.Create(self);
   fResponse.Align := alClient;
-  fResponse.Parent := GetPage('Response Text');
+  fResponse.Parent := GetPage('Raw Response');
   fResponse.ReadOnly := true;
   ConfigSynEdit(fResponse);
 

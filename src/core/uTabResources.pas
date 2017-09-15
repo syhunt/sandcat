@@ -27,6 +27,7 @@ type
     fClickFunc: string;
     fCustomized: boolean;
     fDblClickFunc: string;
+    fPage: TSandUIEngine;
     fPopupMenu: TPopupMenu;
     fLastSortedColumn: integer;
     procedure ListViewDblClick(Sender: TObject);
@@ -37,8 +38,10 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure AddPageResource(const URL: string; ImgIdx: integer);
-    procedure AddPageResourceCustom(const JSON: string);
+    procedure AddCustomItem(const JSON: string);
+    procedure LoadHTML(const html: string);
     procedure RedefineColumns(const def, clickfunc, dblclickfunc: string);
+    procedure UpdateHTMLPage(const csvlist: string);
     // properties
     property Lv: TListView read fLv;
     property Ascending: boolean read fAscending;
@@ -79,7 +82,8 @@ begin
   if (fLv.Selected = nil) then
     exit;
   if fCustomized = false then
-    tabmanager.ActiveTab.LoadCachedURL(fLv.Selected.SubItems[0]) // regular display of URL
+    tabmanager.activetab.LoadCachedURL(fLv.Selected.SubItems[0])
+    // regular display of URL
   else
   begin
     if fDblClickFunc <> emptystr then
@@ -117,8 +121,8 @@ begin
   end;
 end;
 
-// Experimental: allows an extension to add custom resource items
-procedure TTabResourceList.AddPageResourceCustom(const JSON: string);
+// Experimental: allows an extension to add custom items
+procedure TTabResourceList.AddCustomItem(const JSON: string);
 var
   j: TSandJSON;
   i, c: integer;
@@ -141,6 +145,44 @@ begin
     end;
   end;
   j.Free;
+end;
+
+// Experimental: allows an extension to quickly update info from a loaded HTML
+procedure TTabResourceList.UpdateHTMLPage(const csvlist: string);
+var
+  e: ISandUIElement;
+  csv: TSandCSVParser;
+  selector: string;
+begin
+  if fPage = nil then
+    exit;
+  csv := TSandCSVParser.Create(csvlist);
+  while csv.Found do
+  begin
+    if csv.current <> emptystr then
+    begin
+      selector := csv['s'];
+      e := fPage.Root.Select(selector); // eg code.pid
+      if e <> nil then
+        e.value := csv['v'];
+    end;
+  end;
+  csv.Free;
+end;
+
+// Experimental: Allows an extension to load a HTML page
+procedure TTabResourceList.LoadHTML(const html: string);
+begin
+  if fPage = nil then
+  begin
+    tabmanager.activetab.SetActivePage('results');
+    fPage := TSandUIEngine.Create(self);
+    fPage.Parent := self;
+    fPage.Align := alClient;
+    fLv.Align := alBottom;
+    fLv.Height := 200;
+  end;
+  fPage.LoadHTML(html, pluginsdir);
 end;
 
 // Experimental: allows an extension to redefine the resource listview columns
@@ -188,7 +230,7 @@ begin
   fCustomized := false;
   fLv := TListView.Create(self);
   fLv.Parent := self;
-  fLv.Align := AlClient;
+  fLv.Align := alClient;
   fLv.SmallImages := SandBrowser.LiveImages;
   fLv.ReadOnly := true;
   fLv.DoubleBuffered := true;
@@ -220,6 +262,8 @@ end;
 
 destructor TTabResourceList.Destroy;
 begin
+  if fPage <> nil then
+    fPage.Free;
   fPopupMenu.Free;
   fLv.Free;
   inherited Destroy;

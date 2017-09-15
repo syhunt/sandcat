@@ -36,7 +36,10 @@ type Tabs
  function Select(name) {
   var tab = $("div[panel='"+name+"']");
   if (tab != undefined) {
-   if (tab.current != true) tab.current = true;
+   if (tab.current != true) {
+     tab.current = true;
+     tab.style["display"] = "block";
+     }
   }
  }
 }
@@ -48,7 +51,8 @@ type Tabs
          <div #mainpage panel="browser" onclick="browser.setactivepage('browser')" selected>browser</div>
          <div panel="source" onclick="browser.setactivepage('source')">source</div>
          <div panel="resources" onclick="browser.setactivepage('resources')">resources</div>
-         <div panel="response" onclick="browser.setactivepage('response')">response</div>
+         <div panel="response" onclick="browser.setactivepage('response')" style="display:none;">response</div>
+         <div panel="results" onclick="browser.setactivepage('results')" style="display:none;">results</div>
          <div panel="console" onclick="browser.setactivepage('console')" style="display:none;">console</div>
          <div panel="codeedit" onclick="browser.setactivepage('codeedit')" style="display:none;">codeeditor</div>
          <div panel="log" onclick="browser.setactivepage('log')">log</div>

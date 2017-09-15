@@ -1304,6 +1304,7 @@ begin
   if fTabStrip.Tabs.IndexOf(n) <> -1 then
     fTabStrip.TabIndex := fTabStrip.Tabs.IndexOf(n);
   fTabStrip.OnChange := TabStrip1Change;
+  fTitlePanel.Caption := TitleCase(name);
   // PageBar.SelectPage(name);
 end;
 
