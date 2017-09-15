@@ -20,8 +20,9 @@ uses
   Windows, Classes, Forms, SysUtils, Controls, ExtCtrls, Dialogs, Graphics,
   StdCtrls, CommCtrl, ImgList, pngimage, TypInfo, ComCtrls,
 {$IFEND}
-  SynUnicode, CatChromium, CatChromiumOSR, CatChromiumSB, CatConsole, CatPanels,
-  uReqBuilder, uRequests, uUIComponents, uTaskMon, Lua, pLuaTable;
+  SynUnicode, CatChromium, CatChromiumLib, CatChromiumOSR, CatChromiumSB,
+  CatConsole, CatPanels, uReqBuilder, uRequests, uUIComponents, uTaskMon, Lua,
+  pLuaTable;
 
 type
   TSandcatNavigationBar = class(TCustomControl)
@@ -293,8 +294,10 @@ type
     function ImageListAdd(const Pak, ImageFile: string): integer;
     procedure AddHTML(const Engine, Selector, HTML: string;
       const index: string = 'undefined');
+    procedure InitChrome(const crm: TCatChromium);
     procedure AddHTMLFile(const Engine, Selector, HTMLFilename: string);
     procedure AddTIS(const Script, Zone: string);
+    procedure BrowserMessage(const msg: integer; const str: string);
     procedure CreateElement(const Engine, Table, Selector: string);
     procedure InsertHTML(const Engine, index, Selector, HTML: string);
     procedure InsertHTMLFile(const Engine, index, Selector,
@@ -598,6 +601,31 @@ begin
     Extensions.RunJSONCmd(msg)
   else
     ContentArea.Console_WriteLn(msg);
+end;
+
+procedure TSandcatUIX.BrowserMessage(const msg: integer; const str: string);
+begin
+  case (msg) of
+    CRM_JS_ALERT:
+      SandDlg.ShowAlertText(str);
+    CRM_NEWTAB:
+      tabmanager.NewTab(str);
+    CRM_NEWTAB_INBACKGROUND:
+      tabmanager.NewTab(str, emptystr, false, true);
+    CRM_SEARCHWITHENGINE:
+      tabmanager.ActiveTab.DoSearch(str);
+    CRM_SEARCHWITHENGINE_INNEWTAB:
+      tabmanager.newtab_search(str);
+    CRM_SAVECACHEDRESOURCE:
+      SandDlg.SaveResource(str, false);
+    CRM_SAVECLOUDRESOURCE:
+      SandDlg.SaveResource(str, true);
+  end;
+end;
+
+procedure TSandcatUIX.InitChrome(const crm: TCatChromium);
+begin
+  crm.OnBrowserMessage := BrowserMessage;
 end;
 
 procedure TSandcatUIX.AddTIS(const Script, Zone: string);
@@ -1564,6 +1592,7 @@ begin
   fBrowser := TCatChromiumStandBy.Create(StatBar);
   fBrowser.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('Browser')]);
   fBrowser.Align := alClient;
+  fBrowser.OnInitialize := uix.InitChrome;
 end;
 
 destructor TSandcatBottomBar.Destroy;

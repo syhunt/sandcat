@@ -64,7 +64,7 @@ var
   EnableConsoleInteraction: boolean = true;
   HeadersVisible: boolean = false;
   ProgDir, PluginsDir: string;
-  URLLoad:string;
+  URLLoad: string;
 
   // Copy data messages to the main form
 const
@@ -91,22 +91,32 @@ uses uConst, uUIComponents, CatChromium, CatChromiumLib, uMisc, CatStrings,
 // Returns false for a standard launch, or true if it must exit before
 // initializing the user interface
 function ExitBeforeInitializing: boolean;
+var
+  s : TSandcatStartupSettings;
 begin
   result := false;
   ProgDir := extractfilepath(paramstr(0));
   URLLoad := paramstr(1);
+  s := GetStartupSettings;
   if fileexists(ProgDir + 'Config\Portable.json') then
     IsSandcatPortable := true;
   PluginsDir := GetSandcatDir(SCDIR_PLUGINS);
   CefSingleProcess := false;
-  CefOnBeforeCommandLineProcessing := {$IFDEF USEWACEF}Settings.OnbeforeCmdLineWACEF{$ELSE}OnbeforeCmdLine{$ENDIF};
-  {$IFDEF USEWACEF}CefCachePath{$ELSE}CefCache{$ENDIF} := GetSandcatDir(SCDIR_CACHE);
+{$IFDEF USEWACEF}
+  CefOnBeforeCommandLineProcessing := Settings.OnbeforeCmdLineWACEF;
+  CefCachePath := GetSandcatDir(SCDIR_CACHE);
+{$ELSE}
+  CefOnBeforeCommandLineProcessing := OnbeforeCmdLine;
+  CefCache := GetSandcatDir(SCDIR_CACHE);
+{$ENDIF}
   CefLocalesDirPath := ProgDir + 'Packs\CEF\Locales\';
   CefResourcesDirPath := ProgDir + 'Packs\CEF\Resources\';
-  CefUserAgent := GetCustomUserAgent;
-  if not CatCEFLoadLib then begin
+  CefUserAgent := s.UserAgent;
+  if not CatCEFLoadLib then
+  begin
     result := true; // This is a CEF renderer process
-  end else // Not a CEF renderer, check if this is a Sandcat task process
+  end
+  else // Not a CEF renderer, check if this is a Sandcat task process
     if beginswith(URLLoad, cBgTaskPrefix) then
     begin
       result := true; // This is a Sandcat task process
@@ -118,7 +128,7 @@ begin
     begin
       // Standard UI startup
       if SciterExists = false then
-         result := true; // There was a problem registering AxSciter
+        result := true; // There was a problem registering AxSciter
       if UseSingleInstance = true then
       begin
         SendCommandLineParams(GetWindowClassHandle(cMainClass));
@@ -132,7 +142,7 @@ var
   Msg: string;
 begin
   Msg := component + ': ' + s;
-  OutputDebugString(pWideChar(msg));
+  OutputDebugString(pWideChar(Msg));
   if DebugMode = false then
     exit;
   DebugMemo.Lines.add(Msg);
@@ -142,16 +152,16 @@ end;
 
 procedure EnableDebugMode;
 begin
-    debugmode := true;
-    if debugmemo = nil then
-    begin
-      debugmemo := tmemo.create(SandBrowser);
-      debugmemo.Parent := SandBrowser;
-      debugmemo.ScrollBars := ssBoth;
-      debugmemo.ReadOnly := true;
-      debugmemo.Align := AlBottom;
-      debugmemo.Height := 200;
-    end;
+  DebugMode := true;
+  if DebugMemo = nil then
+  begin
+    DebugMemo := TMemo.Create(SandBrowser);
+    DebugMemo.Parent := SandBrowser;
+    DebugMemo.ScrollBars := ssBoth;
+    DebugMemo.ReadOnly := true;
+    DebugMemo.Align := AlBottom;
+    DebugMemo.Height := 200;
+  end;
 end;
 
 procedure TSandBrowser.WMDropFiles(var Msg: TMessage);
@@ -215,25 +225,25 @@ end;
 procedure TSandBrowser.FormCreate(Sender: TObject);
 begin
   // makes the app. icon blank during startup
-  Application.Icon := Self.Icon;
+  application.Icon := self.Icon;
   DbgLogFileName := ProgDir + '\' + vDebugFile;
-  //EnableDebugMode;
+  // EnableDebugMode;
   if fileexists(DbgLogFileName) then
     deletefile(DbgLogFileName);
   vExeFileName := paramstr(0);
   Debug(crlf + 'sb.formcreate.start');
   color := clWindow;
   MainPanel := TPanel.Create(self);
-  MainPanel.parent := self;
+  MainPanel.Parent := self;
   ConfigPanel(MainPanel, alClient);
   ContentArea := TSandcatContentArea.Create(self);
-  ContentArea.parent := MainPanel;
-  ContentArea.align := alClient;
+  ContentArea.Parent := MainPanel;
+  ContentArea.Align := alClient;
   SandDlg := TSandcatDialogs.Create;
   TabManager := TSandcatTabManager.Create(self);
   StatBar := TSandcatStatusbar.Create(self);
-  StatBar.parent := self;
-  StatBar.align := albottom;
+  StatBar.Parent := self;
+  StatBar.Align := AlBottom;
   Settings := TSandcatSettings.Create(self);
   Settings.Load;
   Debug('sb.formcreate.end');

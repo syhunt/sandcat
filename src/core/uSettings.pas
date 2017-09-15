@@ -20,9 +20,12 @@ uses
   uUIComponents, CatPrefs;
 
 type
-  TSandcatProxySettings = record
-    Server: string;
+  TSandcatStartupSettings = record
+    ProxyServer: string;
     Anonymize: boolean;
+    AuditXSS: boolean;
+    AllowMultipleInstances: boolean;
+    UserAgent: string;
   end;
 
 type
@@ -74,15 +77,15 @@ const // Sandcat Settings
   SCO_SEARCHENGINE_NAME = 'sandcat.search.name';
   SCO_SEARCHENGINE_ICON = 'sandcat.search.icon';
   SCO_SEARCHENGINE_QUERYURL = 'sandcat.search.queryurl';
+  SCO_SECURITY_XSSAUDITOR_ENABLED =
+    'sandcat.browser.security.xssauditor.enabled';
 
 var
   IsSandcatPortable: boolean = false;
 
 function GetAppDataDir: string;
-function GetCustomUserAgent: string;
-function GetProxySettings: TSandcatProxySettings;
+function GetStartupSettings: TSandcatStartupSettings;
 function GetSandcatDir(dir: integer; Create: boolean = false): string;
-function IsMultipleInstancesAllowed: boolean;
 procedure OnbeforeCmdLine(const processType: ustring;
   const commandLine: ICefCommandLine);
 
@@ -94,17 +97,21 @@ uses uMain, uMisc, uConst, CatChromium, CatChromiumLib, CatUI, CatTime,
 procedure OnbeforeCmdLine(const processType: ustring;
   const commandLine: ICefCommandLine);
 var
-  proxy: TSandcatProxySettings;
+  s: TSandcatStartupSettings;
 begin
+  s := GetStartupSettings;
   commandLine.AppendSwitch('--enable-system-flash');
-  proxy := GetProxySettings;
-  if proxy.Server <> emptystr then
+  if FileExists(GetSandcatDir(SCDIR_PLUGINS) + 'PenTools.scx') then
+    s.AuditXSS := false;
+  if s.ProxyServer <> emptystr then
   begin
-    commandLine.AppendSwitchWithValue('proxy-server', proxy.Server);
+    commandLine.AppendSwitchWithValue('proxy-server', s.ProxyServer);
     commandLine.AppendSwitchWithValue('host-resolver-rules',
       'MAP * 0.0.0.0 , EXCLUDE 127.0.0.1');
-    if proxy.Anonymize = true then
+    if s.Anonymize = true then
     begin
+      // Keep XSS protection enabled
+      s.AuditXSS := true;
       // Prevent plugins from running
       commandLine.AppendSwitch('disable-plugins');
       // Disable restoring session state (cookies, session storage, etc.) when
@@ -112,49 +119,26 @@ begin
       commandLine.AppendSwitch('disable-restore-session-state');
     end;
   end;
+  if s.AuditXSS = false then
+    commandLine.AppendSwitch('--disable-xss-auditor');
   // if commandLine.IsValid then ShowMessage(commandLine.CommandLineString);
 end;
 
-function IsMultipleInstancesAllowed: boolean;
-var
-  j: TSandJSON;
-  jf: string;
-begin
-  result := false;
-  jf := GetSandcatDir(SCDIR_CONFIG) + vConfigFile;
-  j := TSandJSON.Create;
-  if fileexists(jf) then
-  begin
-    j.loadfromfile(jf);
-    result := j.getvalue(SCO_STARTUP_MULTIPLE_INSTANCES, false);
-  end;
-  j.Free;
-end;
-
-function GetProxySettings: TSandcatProxySettings;
+function GetStartupSettings: TSandcatStartupSettings;
 var
   j: TSandJSON;
   jf: string;
 begin
   jf := GetSandcatDir(SCDIR_CONFIG) + vConfigFile;
   j := TSandJSON.Create;
-  if fileexists(jf) then
+  if FileExists(jf) then
     j.loadfromfile(jf);
-  result.Server := j.getvalue(SCO_PROXY_SERVER, emptystr);
+  result.ProxyServer := j.getvalue(SCO_PROXY_SERVER, emptystr);
   result.Anonymize := j.getvalue(SCO_PROXY_ANONYMIZE, false);
-  j.Free;
-end;
-
-function GetCustomUserAgent: string;
-var
-  j: TSandJSON;
-  jf: string;
-begin
-  jf := GetSandcatDir(SCDIR_CONFIG) + vConfigFile;
-  j := TSandJSON.Create;
-  if fileexists(jf) then
-    j.loadfromfile(jf);
-  result := j.getvalue(SCO_USERAGENT, emptystr);
+  result.AuditXSS := j.getvalue(SCO_SECURITY_XSSAUDITOR_ENABLED, true);
+  result.AllowMultipleInstances :=
+    j.getvalue(SCO_STARTUP_MULTIPLE_INSTANCES, false);
+  result.UserAgent := j.getvalue(SCO_USERAGENT, emptystr);
   j.Free;
 end;
 
@@ -255,7 +239,7 @@ begin
   canadd := true;
   page := htmlescape(PageName);
   pageurl := htmlescape(pageurl);
-  if fileexists(hfile) then
+  if FileExists(hfile) then
   begin
     if filecanbeopened(hfile) then
     begin
@@ -307,7 +291,7 @@ end;
 procedure TSandcatSettings.DeleteCacheFile(const filename: string;
   const journal: boolean = false);
 begin
-  if fileexists(filename) = false then
+  if FileExists(filename) = false then
     exit;
   if filecanbeopened(filename) then
   begin
@@ -401,11 +385,12 @@ var
     fPreferences.RegisterDefault(SCO_STARTUP_MULTIPLE_INSTANCES, false);
     fPreferences.RegisterDefault(SCO_CONSOLE_BGCOLOR, '#262626');
     fPreferences.RegisterDefault(SCO_CONSOLE_FONT_COLOR, '#ffffff');
+    fPreferences.RegisterDefault(SCO_SECURITY_XSSAUDITOR_ENABLED, true);
   end;
 
 begin
   load_default_settings;
-  if fileexists(fPreferences.filename) then
+  if FileExists(fPreferences.filename) then
     fPreferences.loadfromfile(fPreferences.filename);
   State := fPreferences.Current.getvalue(SCO_FORM_STATE, Ord(wsNormal)); // int
   sandbrowser.Top := fPreferences.Current.getvalue(SCO_FORM_TOP,

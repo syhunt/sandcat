@@ -45,7 +45,7 @@ end;
 function UseSingleInstance: boolean;
 begin
   result := false;
-  if IsMultipleInstancesAllowed then
+  if GetStartupSettings.AllowMultipleInstances then
     exit;
   if BeginsWithSpecialParam(paramstr(1)) = false then
   begin
