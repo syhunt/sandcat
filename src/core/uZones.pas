@@ -265,6 +265,7 @@ type // Holds the HTML from the resources.pak for fast loading
     ReqBuilderBar: string;
     Tab_Custom: string;
     Tab_Response: string;
+    Tab_Results: string;
     Tab_Tasks: string;
     Tab_Toolbar: string;
   end;
@@ -735,6 +736,7 @@ begin
   Pages.BottomBar := GetResourceAsString('TAB_BOTTOMBAR', cHTML);
   Pages.Tab_Custom := GetResourceAsString('TAB_CUSTOM', cHTML);
   Pages.Tab_Response := GetResourceAsString('TAB_RESPONSE', cHTML);
+  Pages.Tab_Results := GetResourceAsString('TAB_RESULTS', cHTML);
   Pages.Tab_Tasks := GetResourceAsString('TAB_TASKS', cHTML);
   Pages.Tab_Toolbar := GetResourceAsString('TAB_TOOLBAR', cHTML);
   // create the UI engines

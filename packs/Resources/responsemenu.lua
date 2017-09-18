@@ -71,6 +71,7 @@ function M:sendrequest()
  local resp = tab:response_get()
  local reqhead = resp.previewheaders
  local path = ctk.http.crackrequest(reqhead).path
+ browser.options.showheaders = true
  j.url = ctk.url.combine(resp.url,path)
  j.method = ctk.string.before(reqhead,' ')
  j.details = 'Browser Request (Replay)'

@@ -49,7 +49,7 @@ type
 
 implementation
 
-uses uMain, CatHTTP, CatUI;
+uses uMain, uZones, CatStrings, CatHTTP, CatUI;
 
 // Sorts the resources page listview columns
 function Resources_SortByColumn(Item1, Item2: TListItem; Data: integer)
@@ -172,6 +172,8 @@ end;
 
 // Experimental: Allows an extension to load a HTML page
 procedure TTabResourceList.LoadHTML(const html: string);
+var
+  ht: string;
 begin
   if fPage = nil then
   begin
@@ -182,7 +184,8 @@ begin
     fLv.Align := alBottom;
     fLv.Height := 200;
   end;
-  fPage.LoadHTML(html, pluginsdir);
+  ht := replacestr(uix.Pages.Tab_Results, cContent, HTML);
+  fPage.LoadHTML(ht, pluginsdir);
 end;
 
 // Experimental: allows an extension to redefine the resource listview columns
@@ -227,6 +230,7 @@ var
   mi: TMenuItem;
 begin
   inherited Create(AOwner);
+  ControlStyle := ControlStyle + [csAcceptsControls];
   fCustomized := false;
   fLv := TListView.Create(self);
   fLv.Parent := self;

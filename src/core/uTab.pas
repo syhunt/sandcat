@@ -355,8 +355,6 @@ begin
   // debug('seting active page:'+fState.ActivePageName);
   SetActivePage(fState.ActivePage);
   // debug('active page set');
-  if fState.IsCustom then
-    fSubTabs.ActivePage := fState.CustomDefaultPage;
   Navbar.IsBookmarked := fState.IsBookmarked;
   pagebar.SelectPage(fState.ActivePage);
   pagebar.AdjustPageStrip(fSideBar);
@@ -931,7 +929,7 @@ begin
   j := TSandJSON.Create(JSON);
   cmd := lowercase(j['cmd']);
   str := j['s'];
-  Debug('received JSON cmd:' + cmd + ' with content:' + str);
+  //Debug('received JSON cmd:' + cmd + ' with content:' + str);
   case TJSONCmds(GetEnumValue(TypeInfo(TJSONCmds), 'cmd_' + cmd)) of
     cmd_resaddcustomitem:
       fResults.AddCustomItem(str);

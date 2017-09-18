@@ -167,7 +167,8 @@ end;
 
 function method_response_load(L: PLua_State): integer; cdecl;
 begin
-  // ToDo
+  tabmanager.ActiveTab.Response.LoadFromRequest
+    (BuildRequestDetailsFromLuaTable(L));
   result := 1;
 end;
 
@@ -662,10 +663,10 @@ begin
   RegisterMethod(L, 'sendrequest', method_sendrequest, classTable);
   RegisterMethod(L, 'results_add', method_results_additem, classTable);
   RegisterMethod(L, 'results_clear', method_results_clear, classTable);
-  RegisterMethod(L, 'results_customize', method_results_loadcustom,
-    classTable);
+  RegisterMethod(L, 'results_customize', method_results_loadcustom, classTable);
   RegisterMethod(L, 'results_loadx', method_results_loadx, classTable);
-  RegisterMethod(L, 'results_updatehtml', method_results_updatehtml, classTable);
+  RegisterMethod(L, 'results_updatehtml', method_results_updatehtml,
+    classTable);
   RegisterMethod(L, 'response_get', method_response_get, classTable);
   RegisterMethod(L, 'response_load', method_response_load, classTable);
   RegisterMethod(L, 'response_loadheaders', method_response_loadheaders,

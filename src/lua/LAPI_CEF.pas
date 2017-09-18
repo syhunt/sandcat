@@ -51,6 +51,7 @@ procedure RegisterCEF(L: PLua_State);
 function BuildJSCallFromLuaTable(L: PLua_State): TCatCustomJSCall;
 function BuildRequestFromJSON(json: string): TCatChromiumRequest;
 function BuildRequestFromLuaTable(L: PLua_State): TCatChromiumRequest;
+function BuildRequestDetailsFromLuaTable(L: PLua_State): TSandcatRequestDetails;
 function BuildRequestDetailsFromJSON(const json: string;
   const response: string = ''): TSandcatRequestDetails;
 
@@ -119,6 +120,30 @@ begin
   Result.usecachedcredentials := j.GetValue(REQUESTKEY_USEAUTH, true);
   Result.details := j.GetValue(REQUESTKEY_DETAILS, emptystr);
   j.Free;
+end;
+
+function BuildRequestDetailsFromLuaTable(L: PLua_State): TSandcatRequestDetails;
+var
+  t: TLuaTable;
+begin
+  t := TLuaTable.Create(L, true);
+  Result.host := t.ReadString('host', emptystr);
+  Result.port := t.ReadString('port', emptystr);
+  Result.SentHead := t.ReadString(REQUESTKEY_HEADERS, emptystr);
+  Result.RcvdHead := t.ReadString('responseheaders', emptystr);
+  Result.method := t.ReadString(REQUESTKEY_METHOD, emptystr);
+  Result.URL := t.ReadString(REQUESTKEY_URL, emptystr);
+  Result.postdata := t.ReadString(REQUESTKEY_POSTDATA, emptystr);
+  Result.StatusCode := t.ReadInteger('status', 0);
+  Result.Length := t.ReadInteger('length', 0);
+  Result.MimeType := t.ReadString('mimetype', emptystr);
+  Result.details := t.ReadString(REQUESTKEY_DETAILS, emptystr);
+  Result.reqid := t.ReadString('reqid', emptystr);
+  Result.responsefilename := t.ReadString('responsefilename', emptystr);
+  Result.response := t.ReadString('response', emptystr);
+  Result.isredir := t.ReadBool('isredir', false);
+  Result.IsLow := t.ReadBool('islow', false);
+  t.Free;
 end;
 
 function BuildRequestDetailsFromJSON(const json: string;
