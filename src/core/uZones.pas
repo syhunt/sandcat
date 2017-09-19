@@ -488,7 +488,7 @@ begin
       else
         result := ICONIDX_FOLDER_CLOSED;
       if beginswith(filename, '?') then
-        result := -1; // no icon
+        result := ICONIDX_FORM_FIELD;
     end;
   end;
   ext2 := lowercase(after(ext, '.'));
@@ -526,7 +526,7 @@ begin
   if pos('.php', ext) <> 0 then
     result := ICONIDX_PHPSCRIPT;
   if beginswith(filename, ['http://', 'https://']) then
-    result := ICONIDX_JSON;
+    result := ICONIDX_SERVER_CLOUD;
 end;
 
 procedure TSandcatUIX.Tree_SetAffectedImages(tv: TTreeView; paths: string);

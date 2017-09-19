@@ -138,6 +138,8 @@ var
         result := ICONIDX_RISK_MEDIUM;
       'l':
         result := ICONIDX_RISK_LOW;
+      'i':
+        result := ICONIDX_RISK_INFO;
     end;
   end;
   function canadditem(atab, ityp: string): Boolean;
