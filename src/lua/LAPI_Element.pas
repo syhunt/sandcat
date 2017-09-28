@@ -202,10 +202,8 @@ begin
   if tablename <> emptystr then
     s := '<meta name="SandcatUIX" content="' + tablename + '">' + crlf + s;
   case o.EngineID of
-    ENGINE_BOTTOMBAR:
-      BottomBar.LoadBottomBar(s);
     ENGINE_EXTENSIONPAGE:
-      contentarea.ToolsBar.LoadPage(s);
+      bottombar.LoadPage(s);
     ENGINE_CUSTOMTAB:
       tabmanager.ActiveTab.LoadExtensionPage(s);
   else
@@ -227,10 +225,8 @@ begin
   if s = emptystr then
     s := cBlank_Htm;
   case o.EngineID of
-    ENGINE_BOTTOMBAR:
-      BottomBar.Engine.loadhtml(s, pluginsdir);
     ENGINE_EXTENSIONPAGE:
-      ExtensionPage.loadhtml(s, pluginsdir);
+      BottomBar.ExtensionPage.loadhtml(s, pluginsdir);
     ENGINE_CUSTOMTAB:
       tabmanager.ActiveTab.LoadExtensionPage(s);
   else

@@ -46,6 +46,7 @@ function lua_saveresource(L: plua_State): integer; cdecl;
 function lua_showbottombar(L: plua_State): integer; cdecl;
 function lua_showurl(L: plua_State): integer; cdecl;
 function lua_showreqbuilderbar(L: plua_State): integer; cdecl;
+function lua_showtasks(L: plua_State): integer; cdecl;
 function lua_builder_getrequestoption(L: plua_State): integer; cdecl;
 function lua_builder_setrequestoption(L: plua_State): integer; cdecl;
 function lua_sidebar_loaddir(L: plua_State): integer; cdecl;
@@ -204,33 +205,27 @@ begin
   result := 1;
 end;
 
+function lua_showtasks(L: plua_State): integer; cdecl;
+begin
+  ContentArea.ToolsBar.ShowTaskMonitor;
+  result := 1;
+end;
+
 function lua_showbottombar(L: plua_State): integer; cdecl;
 begin
-  BottomBar.LoadBottomBarRight(lua_tostring(L, 1));
+  BottomBar.LoadBottomBar(lua_tostring(L, 1));
   result := 1;
 end;
 
 function lua_closepage(L: plua_State): integer; cdecl;
 begin
-  contentarea.toolsbar.closepage(lua_tostring(L, 1));
+  bottombar.closepage(lua_tostring(L, 1));
   result := 1;
 end;
 
 function lua_loadpagex(L: plua_State): integer; cdecl;
-var
-  html, subtabname, tablename: string;
 begin
-  subtabname := lua_tostring(L, 1);
-  html := lua_tostring(L, 2);
-  if lua_isnone(L, 3) then
-    tablename := emptystr
-  else
-    tablename := lua_tostring(L, 3);
-  if tablename <> emptystr then
-    html := '<meta name="SandcatUIX" content="' + tablename + '">' +
-      crlf + html;
-  if subtabname <> emptystr then
-    contentarea.toolsbar.LoadPage(html, subtabname);
+  bottombar.LoadPage(bottombar.BuildCustomPageFromLuaTable(L));
   result := 1;
 end;
 

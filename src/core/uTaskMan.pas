@@ -407,12 +407,8 @@ begin
     begin
       Task.fOriginatorTab := tab.UID;
       Task.fTabMsgHandle := tab.msg.msgHandle;
-      if contentarea.toolsbar.PageExists('tasks') = false then
-      begin
-        contentarea.toolsbar.createpage('tasks');
-        TaskMonitor.LoadHtml(uix.Pages.Tab_Tasks, pluginsdir);
-      end;
-      Task.SetMonitor(TaskMonitor);
+      contentarea.ToolsBar.ShowTaskMonitor;
+      Task.SetMonitor(contentarea.toolsbar.TaskMonitor);
       // Associates the task monitor with this task
       j := TSandJSON.Create;
       j['tid'] := taskid;
@@ -420,7 +416,6 @@ begin
       Task.fMonitor.eval('Tasks.Add(' + j.TextUnquoted + ')');
       j.Free;
       Task.SetIconAni('@ICON_RUNNING');
-      contentarea.toolsbar.SetActivePage('tasks');
       Task.SetCaption('Starting Task...');
     end;
   end;
@@ -553,7 +548,7 @@ begin
       if list.IndexOf(inttostr(id)) = -1 then
         list.Add(inttostr(id));
       d := Add(id, fullpath);
-      contentarea.toolsbar.SetActivePage('tasks');
+      bottombar.SetActivePage('tasks');
     end;
   end;
   if d = nil then

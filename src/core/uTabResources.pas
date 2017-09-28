@@ -180,9 +180,9 @@ begin
     tabmanager.activetab.SetActivePage('results');
     fPage := TSandUIEngine.Create(self);
     fPage.Parent := self;
-    fPage.Align := alClient;
-    fLv.Align := alBottom;
-    fLv.Height := 200;
+    fPage.Height := 300;
+    fPage.Align := alTop;
+    //fLv.Align := alClient;
   end;
   ht := replacestr(uix.Pages.Tab_Results, cContent, HTML);
   fPage.LoadHTML(ht, pluginsdir);

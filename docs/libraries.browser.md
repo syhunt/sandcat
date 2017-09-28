@@ -26,7 +26,11 @@
 
 * **browser.gototab** ( tabname ): Goes to the specified tab
 
-* **browser.loadpagex** ( pagename, html [,tablename]): Loads an extension page in a separate page. The third parameter is optional. If supplied, associates the HTML elements of the page with a Lua table. See UI Manipulation for details.
+* **browser.loadpagex** ( luatable ): Loads an extension page in a separate page.
+ * *name* - page name
+ * *html* - page contents
+ * *table* - the name of a Lua table. Associates the HTML elements of the page with the table. See UI Manipulation for details.
+ * *noreload* - avoids reloading the page if loadpagex() is called again with the same table parameters
 
 * **browser.newtab** ( url [,source] ): Opens an URL in a new tab. The source parameter is optional - if specified, the page will be loaded from it. Returns the tab number. Returns `integer`
 

@@ -27,7 +27,6 @@ function Sandcat:Init()
  
  -- Sets UI zones for quick manipulation by extensions
  -- Described in docs\objects.uizones.md
- browser.bottombar = self:GetUIZone("browser.bottombar")
  browser.navbar = self:GetUIZone("browser.navbar")
  browser.pagebar = self:GetUIZone("browser.pagebar")
  browser.pagex = self:GetUIZone("browser.pagex")

@@ -227,7 +227,7 @@ end
 
 function PageMenu:ViewTasks()
  if browser.info.tasks ~= '' then
-  browser.setactivepage('tasks')
+  browser.showtasks()
  else
   app.showmessage('No tasks to display.')
  end

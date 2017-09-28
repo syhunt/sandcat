@@ -25,6 +25,14 @@ uses
   pLuaTable;
 
 type
+  TCustomPageSettings = record
+    Pagename: string;
+    HTML: string;
+    Tablename: string;
+    AvoidReload: boolean;
+  end;
+
+type
   TSandcatNavigationBar = class(TCustomControl)
   private
     e: ISandUIElement;
@@ -147,25 +155,19 @@ type
 type
   TSandcatToolsBar = class(TCustomControl)
   private
-    fExtensionEngine: TSandUIEngine;
     fNote: TNoteBook;
-    fPageHTML: string;
-    fTabStrip: TTabSet;
+    fTaskMonitor: TSandUIEngine;
+    fTaskMonitorLoaded: boolean;
     fTitlePanel: TBarTitlePanel;
     procedure CloseBtnClick(Sender: TObject);
-    procedure SetActiveSciter(page: TPage);
-    procedure TabStrip1Change(Sender: TObject; NewTab: integer;
-      var AllowChange: boolean);
     procedure ShowBar(const visible: boolean);
   public
-    function PageExists(const name: string): boolean;
+    procedure ShowTaskMonitor;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure ClosePage(const name: string);
-    procedure LoadPage(const HTML: string; const SubTabName: string = '');
-    procedure CreatePage(const SubTabName: string);
-    procedure SetActivePage(const name: string);
+    // properties
     property Note: TNoteBook read fNote;
+    property TaskMonitor: TSandUIEngine read fTaskMonitor;
   end;
 
 type
@@ -202,21 +204,35 @@ type
   private
     fBrowser: TCatChromiumStandBy;
     fEngine: TSandUIEngine;
+    fExtensionPage: TSandUIEngine;
     fNote: TNoteBook;
     fReqBuilder: TSandRequestPanel;
+    fReqBuilderPageName: string;
     fSplitter: TSplitter;
+    fPageHTML: string;
+    fTabStrip: TTabSet;
     fTaskMsgs: TTaskMessages;
+    procedure SetActiveSciter(page: TPage);
+    procedure TabStrip1Change(Sender: TObject; NewTab: integer;
+      var AllowChange: boolean);
   public
+    function BuildCustomPageFromLuaTable(L: PLua_State): TCustomPageSettings;
+    function PageExists(const name: string): boolean;
+    procedure ClosePage(const name: string);
+    procedure LoadPage(const HTML: string); overload;
+    procedure LoadPage(const Settings: TCustomPageSettings); overload;
+    procedure CreatePage(const Pagename: string);
+    procedure SetActivePage(const name: string);
     procedure Load;
-    procedure LoadBottomBar(const HTML: string);
-    procedure LoadBottomBarRight(const pagename: string);
-    procedure LoadSettings(settings, DefaultSettings: TSandJSON);
+    procedure LoadBottomBar(const Pagename: string);
+    procedure LoadSettings(Settings, DefaultSettings: TSandJSON);
     procedure ViewBottomBar(const b: boolean = true);
     procedure ShowRequestBuilderBar;
     procedure ShowURL(const URL: string; const source: string = '');
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Engine: TSandUIEngine read fEngine;
+    property ExtensionPage: TSandUIEngine read fExtensionPage;
     property Note: TNoteBook read fNote;
     property TaskMsgs: TTaskMessages read fTaskMsgs;
     property ReqBuilder: TSandRequestPanel read fReqBuilder;
@@ -291,7 +307,7 @@ type
   public
     TIS: TSandcatTISUserScript;
     Pages: TSandcatHTMLPages;
-    function BuildDirTreeOptionsFromLuaTable(L: plua_State): TDirTreeOptions;
+    function BuildDirTreeOptionsFromLuaTable(L: PLua_State): TDirTreeOptions;
     function ImageListAdd(const Pak, ImageFile: string): integer;
     procedure AddHTML(const Engine, Selector, HTML: string;
       const index: string = 'undefined');
@@ -316,7 +332,6 @@ type
   end;
 
 const // IDs for the main Sciter engines
-  ENGINE_BOTTOMBAR = 1;
   ENGINE_CUSTOMTAB = 2;
   ENGINE_NAVBAR = 3;
   ENGINE_LIVEHEADERS = 5;
@@ -332,7 +347,6 @@ const
   cUIXUpdate = 'SandcatUIX.Update();';
 
 var
-  TaskMonitor, ExtensionPage: TSandUIEngine;
   Navbar: TSandcatNavigationBar;
   StatBar: TSandcatStatusbar;
   PageBar: TSandcatPageBar;
@@ -374,9 +388,7 @@ begin
   end
   else if beginswith(z, 'browser.') then
   begin
-    if z = 'browser.bottombar' then
-      result := ENGINE_BOTTOMBAR
-    else if z = 'browser.navbar' then
+    if z = 'browser.navbar' then
       result := ENGINE_NAVBAR
     else if z = 'browser.pagex' then
       result := ENGINE_EXTENSIONPAGE
@@ -394,12 +406,10 @@ function GetZoneByID(const n: integer): TSandUIEngine;
 begin
   result := nil;
   case n of
-    ENGINE_BOTTOMBAR:
-      result := BottomBar.Engine;
     ENGINE_CUSTOMTAB:
       result := tabmanager.ActiveTab.customtab;
     ENGINE_EXTENSIONPAGE:
-      result := ExtensionPage;
+      result := BottomBar.ExtensionPage;
     ENGINE_NAVBAR:
       result := Navbar.Engine;
     ENGINE_PAGEBAR:
@@ -413,7 +423,7 @@ begin
   end;
 end;
 
-function TSandcatUIX.BuildDirTreeOptionsFromLuaTable(L: plua_State)
+function TSandcatUIX.BuildDirTreeOptionsFromLuaTable(L: PLua_State)
   : TDirTreeOptions;
 var
   t: TLuaTable;
@@ -1146,9 +1156,9 @@ begin
   SandConsole.Align := alClient;
   SandConsole.OnScriptCommand := ConsoleScriptCommand;
   SandConsole.Console.Font.Color :=
-    HtmlColorToColor(settings.preferences[SCO_CONSOLE_FONT_COLOR]);
+    HtmlColorToColor(Settings.preferences[SCO_CONSOLE_FONT_COLOR]);
   SandConsole.Console.Color :=
-    HtmlColorToColor(settings.preferences[SCO_CONSOLE_BGCOLOR]);
+    HtmlColorToColor(Settings.preferences[SCO_CONSOLE_BGCOLOR]);
   SandConsole.Boot;
   SandConsole.Parent := Self;
   ConSplitter := TSplitter.Create(MainPanel);
@@ -1157,7 +1167,7 @@ begin
   ConSplitter.Align := AlBottom;
   ConSplitter.height := 2;
   ConSplitter.visible := false;
-  SandConsole.LoadSettings(settings.preferences);
+  SandConsole.LoadSettings(Settings.preferences);
 end;
 
 procedure TSandcatContentArea.ViewConsole(const visible: boolean = true);
@@ -1263,158 +1273,6 @@ begin
 end;
 
 // ------------------------------------------------------------------------//
-// TSandcatToolsBar                                                        //
-// ------------------------------------------------------------------------//
-
-procedure TSandcatToolsBar.ShowBar(const visible: boolean);
-begin
-  if visible then
-  begin
-    Width := 300;
-  end
-  else
-  begin
-    Width := 0;
-  end;
-end;
-
-procedure TSandcatToolsBar.CloseBtnClick(Sender: TObject);
-begin
-  ShowBar(false);
-end;
-
-procedure TSandcatToolsBar.SetActiveSciter(page: TPage);
-var
-  i: integer;
-begin
-  for i := page.ControlCount - 1 downto 0 do
-  begin
-    if page.Controls[i] is TSandUIEngine then
-      ExtensionPage := TSandUIEngine(page.Controls[i]);
-  end;
-end;
-
-procedure TSandcatToolsBar.LoadPage(const HTML: string;
-  const SubTabName: string = '');
-var
-  p, ht: string;
-begin
-  p := SubTabName;
-  if p = emptystr then
-    p := 'extension';
-  SetActivePage(p);
-  ht := replacestr(fPageHTML, cContent, HTML);
-  ExtensionPage.LoadHTML(ht, pluginsdir);
-end;
-
-procedure TSandcatToolsBar.ClosePage(const name: string);
-begin
-  // PageBar.ShowPage(name, false);
-  // SetActivePage('browser');
-end;
-
-function TSandcatToolsBar.PageExists(const name: string): boolean;
-begin
-  if Note.Pages.IndexOf(Name) = -1 then
-    result := false
-  else
-    result := true;
-end;
-
-procedure TSandcatToolsBar.SetActivePage(const name: string);
-var
-  n: string;
-begin
-  ShowBar(true);
-  n := lowercase(name);
-  CreatePage(n);
-  Note.ActivePage := n;
-  SetActiveSciter(TPage(Note.Pages.Objects[Note.Pages.IndexOf(n)]));
-  fTabStrip.OnChange := nil;
-  if fTabStrip.Tabs.IndexOf(n) <> -1 then
-    fTabStrip.TabIndex := fTabStrip.Tabs.IndexOf(n);
-  fTabStrip.OnChange := TabStrip1Change;
-  fTitlePanel.Caption := TitleCase(name);
-  // PageBar.SelectPage(name);
-end;
-
-procedure TSandcatToolsBar.TabStrip1Change(Sender: TObject; NewTab: integer;
-  var AllowChange: boolean);
-begin
-  SetActivePage(fTabStrip.Tabs[NewTab]);
-end;
-
-// Creates a new bottom tab (if inexistent)
-procedure TSandcatToolsBar.CreatePage(const SubTabName: string);
-var
-  new: TSandUIEngine;
-  backref: string;
-begin
-  if PageExists(SubTabName) = false then
-  begin
-    // showmessage('creating new tab:'+SubTabName);
-    backref := Note.ActivePage;
-    Note.Pages.add(SubTabName);
-    new := TSandUIEngine.Create(StatBar);
-    new.Parent := TPage(Note.Pages.Objects[Note.Pages.IndexOf(SubTabName)]);
-    new.Align := alClient;
-    new.OnonStdOut := uix.StdOut;
-    new.OnonStdErr := uix.StdErr;
-    if SubTabName = 'tasks' then
-      TaskMonitor := new;
-    // PageBar.AddPage(SubTabName);
-    fTabStrip.Tabs.add(SubTabName);
-    Note.ActivePage := backref; // Gets back to the previous page
-  end
-  else
-    PageBar.ShowPage(SubTabName, true);
-  // Tab already created. If it is hidden, displays it
-end;
-
-constructor TSandcatToolsBar.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  ControlStyle := ControlStyle + [csAcceptsControls];
-  fTitlePanel := TBarTitlePanel.Create(Self);
-  fTitlePanel.Parent := Self;
-  fTitlePanel.Align := AlTop;
-  fTitlePanel.Caption := 'Tools';
-  fTitlePanel.CloseButton.onclick := CloseBtnClick;
-  fTabStrip := TTabSet.Create(Self);
-  fTabStrip.Parent := Self;
-  fTabStrip.Align := alRight;
-  fTabStrip.Style := tsModernPopout;
-  fTabStrip.Width := 22;
-  fTabStrip.TabPosition := tpRight;
-  fTabStrip.OnChange := TabStrip1Change;
-  fNote := TNoteBook.Create(Self);
-  fNote.Parent := Self;
-  fNote.Align := alClient;
-  fNote.Pages.add('console');
-  fNote.Pages.add('extension');
-  fNote.ActivePage := 'default';
-  // extension tab
-  fExtensionEngine := TSandUIEngine.Create(MainPanel);
-  fExtensionEngine.Parent :=
-    TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('extension')]);
-  fExtensionEngine.Align := alClient;
-  fExtensionEngine.OnonStdOut := uix.StdOut;
-  fExtensionEngine.OnonStdErr := uix.StdErr;
-  ExtensionPage := fExtensionEngine;
-  fPageHTML := GetResourceAsString('PAGE_EXTENSION', 'HTML');
-  ShowBar(false);
-end;
-
-destructor TSandcatToolsBar.Destroy;
-begin
-  fTitlePanel.Free;
-  fTabStrip.Free;
-  fExtensionEngine.Free;
-  fNote.Free;
-  inherited Destroy;
-end;
-
-// ------------------------------------------------------------------------//
 // TSandcatPageBar                                                         //
 // ------------------------------------------------------------------------//
 
@@ -1483,38 +1341,219 @@ begin
 end;
 
 // ------------------------------------------------------------------------//
+// TSandcatToolsBar                                                        //
+// ------------------------------------------------------------------------//
+
+procedure TSandcatToolsBar.ShowBar(const visible: boolean);
+begin
+  if visible then
+  begin
+    Width := 300;
+  end
+  else
+  begin
+    Width := 0;
+  end;
+end;
+
+procedure TSandcatToolsBar.ShowTaskMonitor;
+begin
+  ShowBar(true);
+  fNote.ActivePage := 'tasks';
+  if fTaskMonitorLoaded = false then
+  begin
+    fTaskMonitorLoaded := true;
+    fTaskMonitor.LoadHTML(uix.Pages.Tab_Tasks, pluginsdir);
+  end;
+end;
+
+procedure TSandcatToolsBar.CloseBtnClick(Sender: TObject);
+begin
+  ShowBar(false);
+end;
+
+constructor TSandcatToolsBar.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  ControlStyle := ControlStyle + [csAcceptsControls];
+  fTitlePanel := TBarTitlePanel.Create(Self);
+  fTitlePanel.Parent := Self;
+  fTitlePanel.Align := AlTop;
+  fTitlePanel.Caption := 'Tasks';
+  fTitlePanel.CloseButton.onclick := CloseBtnClick;
+  fNote := TNoteBook.Create(Self);
+  fNote.Parent := Self;
+  fNote.Align := alClient;
+  fNote.Pages.add('console');
+  fNote.Pages.add('tasks');
+  fNote.ActivePage := 'default';
+
+  fTaskMonitorLoaded := false;
+  fTaskMonitor := TSandUIEngine.Create(StatBar);
+  fTaskMonitor.Parent := TPage(Note.Pages.Objects[Note.Pages.IndexOf('tasks')]);
+  fTaskMonitor.Align := alClient;
+  fTaskMonitor.OnonStdOut := uix.StdOut;
+  fTaskMonitor.OnonStdErr := uix.StdErr;
+
+  ShowBar(false);
+end;
+
+destructor TSandcatToolsBar.Destroy;
+begin
+  fTaskMonitor.Free;
+  fTitlePanel.Free;
+  fNote.Free;
+  inherited Destroy;
+end;
+
+// ------------------------------------------------------------------------//
 // TSandcatBottomBar                                                       //
 // ------------------------------------------------------------------------//
 
-procedure TSandcatBottomBar.LoadBottomBar(const HTML: string);
+function TSandcatBottomBar.BuildCustomPageFromLuaTable(L: PLua_State)
+  : TCustomPageSettings;
 var
-  ht: string;
+  def: TCustomPageSettings;
+  t: TLuaTable;
 begin
-  ViewBottomBar(true);
-  ht := replacestr(uix.Pages.BottomBar, cContent, HTML);
-  fEngine.LoadHTML(ht, pluginsdir);
+  t := TLuaTable.Create(L, true);
+  result.HTML := t.ReadString('html', emptystr);
+  result.Pagename := t.ReadString('name', emptystr);
+  result.Tablename := t.ReadString('table', emptystr);
+  result.AvoidReload := t.ReadBool('noreload', false);
+  t.Free;
 end;
 
-procedure TSandcatBottomBar.LoadBottomBarRight(const pagename: string);
+procedure TSandcatBottomBar.LoadPage(const HTML: string);
+var
+  s: TCustomPageSettings;
 begin
-  LoadBottomBar
-    ('<style>html {background-color:#f3f3f3 #ebebeb #f3f3f3 #ebebeb;} </style>');
+  s.HTML := HTML;
+  LoadPage(s);
+end;
+
+procedure TSandcatBottomBar.LoadPage(const Settings: TCustomPageSettings);
+var
+  ht: string;
+  function needload: boolean;
+  begin
+    result := true;
+    if Settings.AvoidReload then
+    begin
+      if lowercase(fNote.ActivePage) = lowercase(Settings.Pagename) then
+        result := false;
+    end;
+  end;
+
+begin
+  if needload = false then
+    exit;
+  SetActivePage(Settings.Pagename);
+  ht := Settings.HTML;
+  if Settings.Tablename <> emptystr then
+    ht := '<meta name="SandcatUIX" content="' + Settings.Tablename + '">' +
+      crlf + ht;
+  ht := replacestr(fPageHTML, cContent, ht);
+  ExtensionPage.LoadHTML(ht, pluginsdir);
+end;
+
+procedure TSandcatBottomBar.ClosePage(const name: string);
+begin
+  // PageBar.ShowPage(name, false);
+  // SetActivePage('browser');
+end;
+
+function TSandcatBottomBar.PageExists(const name: string): boolean;
+begin
+  if Note.Pages.IndexOf(Name) = -1 then
+    result := false
+  else
+    result := true;
+end;
+
+procedure TSandcatBottomBar.SetActiveSciter(page: TPage);
+var
+  i: integer;
+begin
+  for i := page.ControlCount - 1 downto 0 do
+  begin
+    if page.Controls[i] is TSandUIEngine then
+      fExtensionPage := TSandUIEngine(page.Controls[i]);
+  end;
+end;
+
+procedure TSandcatBottomBar.SetActivePage(const name: string);
+var
+  n: string;
+begin
+  n := lowercase(name);
+  CreatePage(n);
+  LoadBottomBar(name);
+  // Note.ActivePage := n;
+  SetActiveSciter(TPage(Note.Pages.Objects[Note.Pages.IndexOf(n)]));
+  fTabStrip.OnChange := nil;
+  if fTabStrip.Tabs.IndexOf(n) <> -1 then
+    fTabStrip.TabIndex := fTabStrip.Tabs.IndexOf(n);
+  fTabStrip.OnChange := TabStrip1Change;
+  // fTitlePanel.Caption := TitleCase(name);
+  // PageBar.SelectPage(name);
+end;
+
+procedure TSandcatBottomBar.TabStrip1Change(Sender: TObject; NewTab: integer;
+  var AllowChange: boolean);
+begin
+  SetActivePage(fTabStrip.Tabs[NewTab]);
+end;
+
+// Creates a new bottom tab (if inexistent)
+procedure TSandcatBottomBar.CreatePage(const Pagename: string);
+var
+  new: TSandUIEngine;
+  backref: string;
+begin
+  if PageExists(Pagename) = false then
+  begin
+    // showmessage('creating new tab:'+pagename);
+    backref := Note.ActivePage;
+    Note.Pages.add(Pagename);
+    new := TSandUIEngine.Create(StatBar);
+    new.Parent := TPage(Note.Pages.Objects[Note.Pages.IndexOf(Pagename)]);
+    new.Align := alClient;
+    new.OnonStdOut := uix.StdOut;
+    new.OnonStdErr := uix.StdErr;
+    // PageBar.AddPage(SubTabName);
+    fTabStrip.Tabs.add(Pagename);
+    Note.ActivePage := backref; // Gets back to the previous page
+  end;
+end;
+
+procedure TSandcatBottomBar.LoadBottomBar(const Pagename: string);
+var
+  ht: string;
+const
+  cCSS = '<style>html {background-color:#f3f3f3 #ebebeb #f3f3f3 #ebebeb;} </style>';
+begin
+  ViewBottomBar(true);
+  ht := replacestr(uix.Pages.BottomBar, cContent, cCSS);
+  fEngine.LoadHTML(ht, pluginsdir);
   fEngine.Align := alRight;
   fEngine.Width := 50;
   fNote.visible := true;
-  fNote.ActivePage := pagename;
+  if fNote.ActivePage <> Pagename then
+    fNote.ActivePage := Pagename;
+  if Pagename = fReqBuilderPageName then
+    ReqBuilder.Load;
 end;
 
 procedure TSandcatBottomBar.ShowRequestBuilderBar;
 begin
-  LoadBottomBarRight('reqbuilder');
-  ReqBuilder.Load;
+  SetActivePage(fReqBuilderPageName);
 end;
 
 procedure TSandcatBottomBar.ShowURL(const URL: string;
   const source: string = '');
 begin
-  LoadBottomBarRight('browser');
+  SetActivePage('browser');
   if source = emptystr then
     fBrowser.c.Load(URL)
   else
@@ -1531,7 +1570,7 @@ begin
     fSplitter.visible := true;
     fSplitter.Align := AlBottom;
     visible := true;
-    PageBar.Top := BottomBar.Top + 10;
+    BottomBar.Top := PageBar.Top + 30;
     fSplitter.Top := BottomBar.Top + 10;
   end
   else
@@ -1542,10 +1581,10 @@ begin
   end;
 end;
 
-procedure TSandcatBottomBar.LoadSettings(settings, DefaultSettings: TSandJSON);
+procedure TSandcatBottomBar.LoadSettings(Settings, DefaultSettings: TSandJSON);
 begin
   if fBrowser.Available then
-    fBrowser.c.LoadSettings(settings, DefaultSettings);
+    fBrowser.c.LoadSettings(Settings, DefaultSettings);
 end;
 
 procedure TSandcatBottomBar.Load;
@@ -1554,6 +1593,8 @@ begin
 end;
 
 constructor TSandcatBottomBar.Create(AOwner: TComponent);
+const
+  cTaskMessagesPageName = 'task messages';
 begin
   inherited Create(AOwner);
   ControlStyle := ControlStyle + [csAcceptsControls];
@@ -1565,7 +1606,21 @@ begin
   fSplitter.Color := clBtnShadow;
 
   visible := false;
-  height := 300;
+  height := 380;
+  fReqBuilderPageName := 'request builder';
+
+  fTabStrip := TTabSet.Create(Self);
+  fTabStrip.Parent := Self;
+  fTabStrip.Align := AlBottom;
+  fTabStrip.Style := tsModernPopout;
+  fTabStrip.Width := 22;
+  fTabStrip.TabPosition := tpBottom; // tpRight;
+  fTabStrip.Tabs.add(fReqBuilderPageName);
+  fTabStrip.Tabs.add('browser');
+  fTabStrip.Tabs.add(cTaskMessagesPageName);
+  fTabStrip.TabIndex := 0;
+  fTabStrip.OnChange := TabStrip1Change;
+
   fEngine := TSandUIEngine.Create(Self);
   fEngine.Parent := Self;
   fEngine.Align := alClient;
@@ -1576,29 +1631,30 @@ begin
   fNote.Parent := Self;
   fNote.Color := clWindow;
   fNote.Align := alClient;
-  fNote.Pages.add('codeedit');
   fNote.Pages.add('browser');
-  fNote.Pages.add('reqbuilder');
-  fNote.Pages.add('taskmon');
-  fNote.ActivePage := 'Default';
+  fNote.Pages.add(fReqBuilderPageName);
+  fNote.Pages.add(cTaskMessagesPageName);
+  fNote.ActivePage := 'default';
+  fPageHTML := GetResourceAsString('PAGE_EXTENSION', 'HTML');
 
   fReqBuilder := TSandRequestPanel.Create(Self);
   fReqBuilder.Parent :=
-    TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('reqbuilder')]);
+    TPage(fNote.Pages.Objects[fNote.Pages.IndexOf(fReqBuilderPageName)]);
   fReqBuilder.Align := alClient;
   fTaskMsgs := TTaskMessages.Create(Self);
   fTaskMsgs.Parent :=
-    TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('taskmon')]);
+    TPage(fNote.Pages.Objects[fNote.Pages.IndexOf(cTaskMessagesPageName)]);
   fTaskMsgs.Align := alClient;
 
   fBrowser := TCatChromiumStandBy.Create(StatBar);
-  fBrowser.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('Browser')]);
+  fBrowser.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('browser')]);
   fBrowser.Align := alClient;
   fBrowser.OnInitialize := uix.InitChrome;
 end;
 
 destructor TSandcatBottomBar.Destroy;
 begin
+  fTabStrip.Free;
   fBrowser.Free;
   fTaskMsgs.Free;
   fReqBuilder.Free;

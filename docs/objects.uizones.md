@@ -5,7 +5,6 @@ Used to extend the Sandcat user interface
 ###Available UI Zones
 name | description
 --- | ---
-browser.bottombar|Bottom bar
 browser.navbar|Navigation bar
 browser.pagebar|Page tab strip
 browser.statbar|Status bar

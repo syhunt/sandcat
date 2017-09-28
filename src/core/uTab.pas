@@ -443,7 +443,7 @@ begin
     exit;
   case (msg) of
     SCBM_MONITOR_EVAL:
-      taskmonitor.Eval(str);
+      contentarea.ToolsBar.taskmonitor.Eval(str);
     SCBM_RUNJSONCMD:
       RunJSONCmd(str);
     SCBM_TASK_STOPPED:
