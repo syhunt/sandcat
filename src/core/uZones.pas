@@ -1446,6 +1446,7 @@ var
   end;
 
 begin
+  ViewBottomBar(true);
   if needload = false then
     exit;
   SetActivePage(Settings.Pagename);
@@ -1533,7 +1534,8 @@ var
 const
   cCSS = '<style>html {background-color:#f3f3f3 #ebebeb #f3f3f3 #ebebeb;} </style>';
 begin
-  ViewBottomBar(true);
+  if visible = false then
+    ViewBottomBar(true);
   ht := replacestr(uix.Pages.BottomBar, cContent, cCSS);
   fEngine.LoadHTML(ht, pluginsdir);
   fEngine.Align := alRight;
@@ -1564,9 +1566,6 @@ procedure TSandcatBottomBar.ViewBottomBar(const b: boolean = true);
 begin
   if b then
   begin
-    fNote.visible := false;
-    if fEngine.Align <> alClient then
-      fEngine.Align := alClient;
     fSplitter.visible := true;
     fSplitter.Align := AlBottom;
     visible := true;
@@ -1577,7 +1576,6 @@ begin
   begin
     fSplitter.visible := false;
     visible := false;
-    fEngine.LoadHTML(cBlank_Htm, pluginsdir);
   end;
 end;
 
