@@ -76,11 +76,11 @@ function M:sendrequest()
  j.method = ctk.string.before(reqhead,' ')
  j.details = 'Browser Request (Replay)'
  j.postdata = ctk.http.crackrequest(reqhead).data
- if ctk.url.crack(tab.url).host ~= ctk.url.crack(resp.url).host then
-  tab:sendrequest(j)
- else
-  tab:sendxhr(j)
- end
+ --if ctk.url.crack(tab.url).host ~= ctk.url.crack(resp.url).host then
+ tab:sendrequest(j)
+ --else
+ -- tab:sendxhr(j)
+ --end
 end
 
 return M
