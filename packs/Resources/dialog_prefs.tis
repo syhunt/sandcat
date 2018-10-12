@@ -62,6 +62,7 @@
   for(var e in $$(input[type="checkbox"])) e.onClick = handle_genericclick;
   for(var e in $$(input[type="color-chooser"])) e.onClick = handle_genericclick;
   for(var e in $$(input[type="text"])) e.onControlEvent = handle_controlevent;
+  for(var e in $$(input[type="number"])) e.onControlEvent = handle_controlevent;
   for(var e in $$(input[type="password"])) e.onControlEvent = handle_controlevent;
   for(var e in $$(input[type="folder-path"])) e.onControlEvent = handle_controlevent;
   for(var e in $$(input[type="file-path"])) e.onControlEvent = handle_controlevent;
