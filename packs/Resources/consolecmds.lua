@@ -11,7 +11,7 @@ function M:AddCommands()
  console.addcmd('exit','browser.exit()','Exits the application')
  console.addcmd('go back|fwd','Sandcat.Commands:Go(s)','Goes back or forward in history')
  console.addcmd('google [query]','Sandcat.Commands:Google(cmd.params)','Searches Google')
- console.addcmd('help','browser.bottombar:loadx(browser.info.commands)','Displays a screen with the list of commands available')
+ console.addcmd('help','Sandcat.Commands:DisplayHelp()','Displays a screen with the list of commands available')
  console.addcmd('hide','browser.options.showconsole = false','Hides the console')
  console.addcmd('ip','print(ctk.net.nametoip(ctk.url.crack(tab.url).host))','Displays the server IP address')
  console.addcmd('js [code]','tab:runjs(cmd.params,tab.url,0)','Runs JavaScript Code in Loaded Page')
@@ -28,6 +28,10 @@ function M:AddCommands()
  console.addcmd('start [filename] [optional:params]','ctk.file.exec(cmd.params)','Executes a file (eg: exec Notepad.exe)')
  console.addcmd('tab clone|close|new','Sandcat.Commands:Tab(cmd.params)','Creates, clones or closes a tab')
  console.addcmd('useragent','Sandcat.Commands:DisplayUserAgent()','Displays the current user-agent')
+end
+
+function M:DisplayHelp()
+ browser.loadpagex({name='console help',html=browser.info.commands})
 end
 
 function M:DisplayCookie()

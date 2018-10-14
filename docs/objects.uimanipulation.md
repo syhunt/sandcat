@@ -34,7 +34,7 @@ $(#btndemo).onControlEvent = function(evt) {
 
 ###Method 2: Using Lua
 
-You can associate the HTML elements of a Sandcat extension user interface with a Lua table by supplying a table name as a second parameter of the UI zone's loadx() method, as exemplified below.
+You can associate the HTML elements of a Sandcat extension user interface with a Lua table by supplying a table name when calling the browser.loadpagex() method, as exemplified below.
 
 interface.html:
 ```html
@@ -46,11 +46,10 @@ interface.lua:
 ```lua
 MyExtension = extensionpack:new()
 MyExtension.filename = 'Demo.scx'
-MyExtension.zone = browser.bottombar
 
 function MyExtension:show()
   local html = self:getfile('interface.html')
-  self.zone:loadx(html,'MyExtension')
+  browser.loadpagex({name='My Extension',html=html,table='MyExtension'})
 end
 
 function MyExtension:changeit()
@@ -71,11 +70,11 @@ interface.lua:
 ```lua
 MyExtension = extensionpack:new()
 MyExtension.filename = 'Demo.scx'
-MyExtension.zone = browser.bottombar
+MyExtension.zone = browser.pagex
 
 function MyExtension:show()
   local html = self:getfile('interface.html')
-  self.zone:loadx(html)
+  browser.loadpagex({name='My Extension',html=html,table='MyExtension'})
 end
 
 function MyExtension:changeit()
