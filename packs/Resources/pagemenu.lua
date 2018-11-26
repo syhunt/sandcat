@@ -134,6 +134,50 @@ function PageMenu:ViewDevTools()
  end
 end
 
+-- ToDo WIP: This function should soon replace procedure
+-- TSandcatSettings.AddToURLList() in uSettings.pas
+function PageMenu:AddURLLogItem(item,logname)
+ local logfile = browser.info.configdir..logname..'.sclist'
+ local unixtime = os.time(os.date("!*t"))
+ item.name = item.name or ''
+ item.name = ctk.html.escape(item.name)
+ item.url = ctk.html.escape(item.url)
+ local sl = ctk.string.list:new()
+ if ctk.file.exists(logfile) then
+  sl:loadfromfile(logfile)
+ end
+ local id = tostring(unixtime)..'-'..tostring(sl.count)
+ local linecontent = '<item id="'..id..'" url="'..item.url..'" name="'..item.name..'"/>'
+ sl:insert(0, linecontent)
+ sl:savetofile(logfile)
+ sl:release()
+end
+
+function PageMenu:GetURLLogItem(itemid,logname)
+ function getvalue(line, name)
+    local s = ctk.string.after(line, ' '..name..'="')
+    s = ctk.string.before(s, '"')
+    s = ctk.html.unescape(s)
+    return s
+ end
+ local logfile = browser.info.configdir..logname..'.sclist'
+ local slp = ctk.string.loop:new()
+ local i = nil
+ local found = false
+ if ctk.file.exists(logfile) then
+  slp:loadfromfile(logfile)
+  while slp:parsing() do
+   if ctk.string.match(slp.current,'<item*id="'..itemid..'"*>') then
+    i = {}
+    i.url = getvalue(slp.current, 'url')
+    i.id = itemid
+   end
+  end
+ end
+ slp:release()
+ return i
+end
+
 function PageMenu:DeleteURLLogItem(itemid,logname)
  local logfile = browser.info.configdir..logname..'.sclist'
  local slp = ctk.string.loop:new()
@@ -154,34 +198,42 @@ function PageMenu:DeleteURLLogItem(itemid,logname)
  tab.engine:eval('$("#'..itemid..'").remove()')
 end
 
-function PageMenu:ViewURLLogFile(newtab,histname)
+function PageMenu:GetSiteName(url)
+ local jsonfile = prefs.getsiteprefsfilename(url)
+ local name = ''
+ if ctk.file.exists(jsonfile) then
+   local j = ctk.json.object:new()
+   j:loadfromfile(jsonfile)
+   name = j['site.name']
+   if name == nil then
+     name = ''
+   end
+   j:release()
+ end
+ return name
+end
+
+function PageMenu:ViewURLLogFile(conf)
  local html = Sandcat:getfile('histview.html')
- local style = ''
+ local histname = conf.histname
  local histfile = browser.info.configdir..histname..'.sclist'
- local tabicon = '@ICON_BLANK'
- local menu = ''
  local sl = ctk.string.list:new()
- if newtab == nil then
-  newtab = true
+ if conf.newtab == nil then
+  conf.newtab = true
  end
- if histname == 'History' then
-  style = [[
-  tr.item { context-menu: selector(#historymenu); }
-  ]]
-  menu = [[
-  <li onclick="PageMenu:DeleteURLLogItem('%i','History')">Delete</li>
-  ]]
- end
- if histname == 'Bookmarks' then
-  style = [[
+ conf.style = conf.style or ''
+ conf.menu = conf.menu or ''
+ conf.tabicon = conf.tabicon or '@ICON_BLANK'
+ conf.showvisicol = conf.showvisicol or false
+ conf.readsiteprefs = conf.readsiteprefs or false
+ 
+ if conf.showvisicol == false then
+  conf.style = conf.style..[[
   th.visited { display: none; }
   td.visited { display: none; }
-  ]]
-  tabicon = 'url(Resources.pak#16/icon_bookmarks.png)'
-  menu = [[
-  <li onclick="PageMenu:DeleteURLLogItem('%i','Bookmarks')">Delete</li>
-  ]]
+  ]] 
  end
+ 
  if ctk.file.exists(histfile) then
   local p = ctk.html.parser:new()
   p:load(ctk.file.getcontents(histfile))
@@ -191,25 +243,28 @@ function PageMenu:ViewURLLogFile(newtab,histname)
     local visited = p:getattrib('visited')
     local name = p:getattrib('name')
     local id = p:getattrib('id')
+    if conf.readsiteprefs == true then
+      name = ctk.html.escape(self:GetSiteName(url))
+    end
     sl:add('<tr.item url="'..url..'" role="option" style="context-menu: selector(#menu'..id..');" id="'..id..'">')
     sl:add('<td>'..name..'</td>')
     sl:add('<td>'..url..'</td>')
     sl:add('<td.visited>'..visited..'</td>')
-    sl:add('<menu.context id="menu'..id..'">'..ctk.string.replace(menu,'%i',id)..'</menu>')
+    sl:add('<menu.context id="menu'..id..'">'..ctk.string.replace(conf.menu,'%i',id)..'</menu>')
     sl:add('</tr>')
    end
   end
   p:release()
  end
- html = ctk.string.replace(html,'%style%',style)
+ html = ctk.string.replace(html,'%style%',conf.style)
  html = ctk.string.replace(html,'%history%',sl.text)
  sl:release()
- if newtab then
+ if conf.newtab then
   local j = {}
   j.title = histname
   j.tag = string.lower(histname)..'view'
-  j.toolbar = 'Resources.pak#histview_tb'..string.lower(histname)..'.html'
-  j.icon = tabicon
+  j.toolbar = conf.toolbar
+  j.icon = conf.tabicon
   j.html = html
   browser.newtabx(j)
  else
@@ -218,11 +273,32 @@ function PageMenu:ViewURLLogFile(newtab,histname)
 end
 
 function PageMenu:ViewHistory(newtab)
- self:ViewURLLogFile(newtab,'History')
+ local t = {}
+ t.newtab = newtab
+ t.toolbar = 'Resources.pak#histview_tbhistory.html'
+ t.histname = 'History'
+ t.style = [[
+  tr.item { context-menu: selector(#historymenu); }
+  ]] 
+ t.menu = [[
+  <li onclick="PageMenu:DeleteURLLogItem('%i','History')">Delete</li>
+  ]]  
+ t.showvisicol = true
+ self:ViewURLLogFile(t)
 end
 
 function PageMenu:ViewBookmarks(newtab)
- self:ViewURLLogFile(newtab,'Bookmarks')
+ local t = {}
+ t.newtab = newtab
+ t.toolbar = 'Resources.pak#histview_tbbookmarks.html'
+ t.histname = 'Bookmarks'
+ t.tabicon = 'url(Resources.pak#16/icon_bookmarks.png)'
+ t.style = [[
+  ]]
+ t.menu = [[
+  <li onclick="PageMenu:DeleteURLLogItem('%i','Bookmarks')">Delete</li>
+  ]]  
+ self:ViewURLLogFile(t)
 end
 
 function PageMenu:ViewTasks()
