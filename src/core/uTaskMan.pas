@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Classes, Messages, Controls, SysUtils, Dialogs, ExtCtrls,
-  Forms, TypInfo, Lua, LuaObject, uUIComponents, uRequests, CatMsg;
+  Forms, TypInfo, Lua, LuaObject, uUIComponents, uRequests, CatMsgCromis;
 
 type
   TSandcatTaskOnStop = procedure(const tid: string) of object;
@@ -40,7 +40,7 @@ type
     fMonitor: TSandUIEngine;
     fMonitorQueue: TStringList;
     fMonitorQueueTimer: TTimer;
-    fMsg: TCatMsg;
+    fMsg: TCatMsgCromis;
     fOnStop: TSandcatTaskOnStop;
     fOriginatorTab: string;
     fParams: TSandJSON;
@@ -88,7 +88,7 @@ type
     property Icon: string read fIcon write SetIcon;
     property IsDownload: boolean read fIsDownload;
     property IsSuspended: boolean read fSuspended;
-    property msg: TCatMsg read fMsg;
+    property msg: TCatMsgCromis read fMsg;
     property OnStop: TSandcatTaskOnStop read fOnStop write fOnStop;
     property Status: string read fStatus write SetStatus;
     property tid: string read fTID;
@@ -160,7 +160,7 @@ begin
   uMain.Debug(s, component);
 end;
 
-procedure SendAMessage(desthandle, msgid: integer; msgstr: string);
+{procedure SendAMessage(desthandle, msgid: integer; msgstr: string);
 var
   pData: PCopyDataStruct;
 begin
@@ -174,7 +174,7 @@ begin
   finally
     Dispose(pData);
   end;
-end;
+end;}
 
 type
   TJSONCmds = (cmd_setcaption, cmd_setprogress, cmd_setscript, cmd_setstatus,
@@ -617,7 +617,7 @@ begin
     SCTASK_WRITELN:
       WriteLn(str);
     SCTASK_LOGREQUEST_DYNAMIC:
-      SendAMessage(fTabMsgHandle, SCBM_LOGDYNAMICREQUEST, str);
+      SendCromisMessage(fTabMsgHandle, SCBM_LOGDYNAMICREQUEST, str);
   end;
 end;
 
@@ -673,7 +673,7 @@ end;
 procedure TSandcatTask.TaskUpdated;
 begin
   if fScripts.OnParamChange <> emptystr then
-    SendAMessage(fTabMsgHandle, SCBM_LUA_RUN, fScripts.OnParamChange);
+    SendCromisMessage(fTabMsgHandle, SCBM_LUA_RUN, fScripts.OnParamChange);
 end;
 
 function TSandcatTask.GetParam(const name, default: string): string;
@@ -870,7 +870,7 @@ end;
 procedure TSandcatTask.MonitorEval(const tis: string);
 begin
   if fHasMonitor then
-    SendAMessage(fTabMsgHandle, SCBM_MONITOR_EVAL, tis);
+    SendCromisMessage(fTabMsgHandle, SCBM_MONITOR_EVAL, tis);
 end;
 
 procedure TSandcatTask.QueueTIS(const s: string);
@@ -907,7 +907,7 @@ begin
       SuspendProcess(fPID);
       SetIconAni('@ICON_SUSPENDED');
       SetStatus('Suspended.');
-      SendAMessage(fTabMsgHandle, SCBM_TASK_SUSPENDED, '1');
+      SendCromisMessage(fTabMsgHandle, SCBM_TASK_SUSPENDED, '1');
     end
     else
     begin
@@ -915,7 +915,7 @@ begin
       ResumeProcess(fPID);
       SetIconAni('@ICON_RUNNING');
       SetStatus('Resumed.');
-      SendAMessage(fTabMsgHandle, SCBM_TASK_RESUMED, '1');
+      SendCromisMessage(fTabMsgHandle, SCBM_TASK_RESUMED, '1');
     end;
   end;
 end;
@@ -942,7 +942,7 @@ begin
     OnStop(fTID);
   if reason = emptystr then
   begin
-    SendAMessage(fTabMsgHandle, SCBM_TASK_STOPPED, '1');
+    SendCromisMessage(fTabMsgHandle, SCBM_TASK_STOPPED, '1');
     SetStatus('Stopped.');
     fStopped := true;
   end
@@ -979,7 +979,7 @@ constructor TSandcatTask.Create(const tid: string);
 begin
   inherited Create;
   self.fTID := tid;
-  fMsg := TCatMsg.Create;
+  fMsg := TCatMsgCromis.Create;
   fMsg.OnDataMessage := CopyDataMessage;
   Debug('task created (handle ' + inttostr(fMsg.msgHandle) + ')');
   fEnabled := true;

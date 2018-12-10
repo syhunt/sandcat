@@ -83,7 +83,7 @@ uses uConst, uUIComponents, CatChromium, CatChromiumLib, uMisc, CatStrings,
 {$ELSE}
   ceflib,
 {$ENDIF}
-  CatCLUtils, CatUI, CatTasks, CatStdSysMenu, CatMsg;
+  CatCLUtils, CatUI, CatTasks, CatStdSysMenu, CatMsgCromis;
 
 {$R *.dfm}
 

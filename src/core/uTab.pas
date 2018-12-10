@@ -26,7 +26,7 @@ uses
 {$ENDIF}
   CatUI, uUIComponents, CatConsole, CatChromium, CatChromiumLib, CatChromiumSB,
   uRequests, SynUnicode, uLiveHeaders, uCodeInspect, uTabResources,
-  uTabResponse, uExtensions, uZones, CatMsg, CatPanels;
+  uTabResponse, uExtensions, uZones, CatMsgCromis, CatPanels;
 
 type // Used for restoring the state of a tab when switching tabs
   TTabState = class
@@ -81,8 +81,8 @@ type
     fLog: TSandLogMemo;
     fLogBrowserRequests: boolean;
     fMainPanel: TPanel;
-    fMsg: TCatMsg;
-    fMsgV8: TCatMsg;
+    fMsg: TCatMsgCromis;
+    fMsgV8: TCatMsgCromis;
     fNumber: integer; // unique tab number
     fOnMessage: TSandcatTabOnMessage;
     fRequests: TSandcatRequests;
@@ -191,7 +191,7 @@ type
     property LogBrowserRequests: boolean read fLogBrowserRequests
       write fLogBrowserRequests;
     property OnMessage: TSandcatTabOnMessage read fOnMessage write fOnMessage;
-    property msg: TCatMsg read fMsg;
+    property msg: TCatMsgCromis read fMsg;
     property Number: integer read fNumber write fNumber;
     property Requests: TSandcatRequests read fRequests;
     property Resources: TTabResourceList read fResources;
@@ -1087,9 +1087,9 @@ begin
   ControlStyle := ControlStyle + [csAcceptsControls];
   Align := AlClient;
   Color := clWindow;
-  fMsg := TCatMsg.Create;
+  fMsg := TCatMsgCromis.Create;
   fMsg.OnDataMessage := CopyDataMessage;
-  fMsgV8 := TCatMsg.Create;
+  fMsgV8 := TCatMsgCromis.Create;
   fMsgV8.OnDataMessage := BrowserMessage;
   fState := TTabState.Create;
   fDefaultIcon := '@ICON_EMPTY';

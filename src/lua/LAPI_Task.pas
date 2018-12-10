@@ -53,7 +53,7 @@ implementation
 
 uses
   uTab, uSettings, uMain, LAPI_Browser, CatFiles, CatUI, CatZIP, CatStrings,
-  CatTasks, CatChromium, PLua, uConst, CatUtils, CatMsg, LAPI_CEF;
+  CatTasks, CatChromium, PLua, uConst, CatUtils, CatMsgCromis, LAPI_CEF;
 
 var
   UserParams: TSandJSON;
@@ -64,7 +64,7 @@ var
 
 procedure SendJSONCmd(json: string);
 begin
-  SendCDMessage(tabhandle, SCBM_TASK_RUNJSONCMD, json);
+  SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, json);
 end;
 
 procedure SendJSONCmdStr(cmd, str: string);
@@ -75,7 +75,7 @@ begin
   j['tid'] := TaskID;
   j['cmd'] := cmd;
   j['s'] := str;
-  SendCDMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
+  SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
   j.free;
 end;
 
@@ -87,7 +87,7 @@ begin
   j['tid'] := TaskID;
   j['cmd'] := cmd;
   j['s'] := str;
-  SendCDMessage(tabhandle, SCBM_RUNJSONCMD, j.text);
+  SendCromisMessage(tabhandle, SCBM_RUNJSONCMD, j.text);
   j.free;
 end;
 
@@ -100,7 +100,7 @@ begin
   j['sender'] := sender;
   j['line'] := line;
   j['msg'] := msg;
-  SendCDMessage(tabhandle, SCBM_LOGCUSTOMSCRIPTERROR, j.text);
+  SendCromisMessage(tabhandle, SCBM_LOGCUSTOMSCRIPTERROR, j.text);
   j.free;
 end;
 
@@ -112,7 +112,7 @@ begin
   p.values['TID'] := tid;
   p.values['Name'] := name;
   p.WriteString('data', 'Value', value, 'base64');
-  SendCDMessage(tabhandle, SCBM_TASK_SETPARAM, p.text);
+  SendCromisMessage(tabhandle, SCBM_TASK_SETPARAM, p.text);
   p.free;
 end;
 
@@ -145,7 +145,7 @@ begin
   j['cmd'] := 'outputmsg';
   j['s'] := Msg;
   j.sObject.I['i'] := imgindex;
-  SendCDMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
+  SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
   j.free;
   Result := 1;
 end;
@@ -164,13 +164,13 @@ end;
 
 function lua_console_writeln(L: PLua_State): Integer; cdecl;
 begin
-  SendCDMessage(tabhandle, SCBM_LOGWRITELN, plua_AnyToString(L, 1));
+  SendCromisMessage(tabhandle, SCBM_LOGWRITELN, plua_AnyToString(L, 1));
   Result := 1;
 end;
 
 function lua_console_write(L: PLua_State): Integer; cdecl;
 begin
-  SendCDMessage(tabhandle, SCBM_LOGWRITE, plua_AnyToString(L, 1));
+  SendCromisMessage(tabhandle, SCBM_LOGWRITE, plua_AnyToString(L, 1));
   Result := 1;
 end;
 
@@ -356,7 +356,7 @@ begin
     fLuaWrap.ExecuteCmd('task:stop(task.status)');
   fLuaWrap.ExecuteCmd('task:release()');
   j.free;
-  SendCDMessage(tabhandle, SCBM_CONSOLE_ENDEXTERNALOUTPUT, emptystr);
+  SendCromisMessage(tabhandle, SCBM_CONSOLE_ENDEXTERNALOUTPUT, emptystr);
   application.ProcessMessages;
   catdelay(1);
 end;
@@ -398,19 +398,19 @@ end;
 function lua_LogRequest(L: PLua_State): Integer; cdecl;
 begin
   if lua_tostring(L, 2) <> emptystr then
-    SendCDMessage(tabhandle, SCBM_LOGEXTERNALREQUEST_JSON, lua_tostring(L, 2));
+    SendCromisMessage(tabhandle, SCBM_LOGEXTERNALREQUEST_JSON, lua_tostring(L, 2));
   Result := 1;
 end;
 
 function lua_request_send(L: PLua_State): Integer; cdecl;
 begin
-  SendCDMessage(tabhandle, SCBM_REQUEST_SEND, lua_tostring(L, 2));
+  SendCromisMessage(tabhandle, SCBM_REQUEST_SEND, lua_tostring(L, 2));
   Result := 1;
 end;
 
 function lua_Run(L: PLua_State): Integer; cdecl;
 begin
-  SendCDMessage(tabhandle, SCBM_LUA_RUN, lua_tostring(L, 2));
+  SendCromisMessage(tabhandle, SCBM_LUA_RUN, lua_tostring(L, 2));
   Result := 1;
 end;
 
@@ -424,7 +424,7 @@ function lua_setprogress(L: PLua_State): Integer; cdecl;
     j['cmd'] := 'setprogress';
     j.sObject.I['p'] := pos;
     j.sObject.I['m'] := max;
-    SendCDMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
+    SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
     j.free;
   end;
 
@@ -448,7 +448,7 @@ begin
   j['cmd'] := 'setscript';
   j['e'] := event;
   j['s'] := script;
-  SendCDMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
+  SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
   j.free;
   Result := 1;
 end;
