@@ -33,6 +33,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   protected
     procedure WMDropFiles(var Msg: TMessage); message WM_DROPFILES;
   private
@@ -220,6 +221,20 @@ begin
   FStartupTimer.Interval := 1;
   FStartupTimer.OnTimer := StartupTimer;
   Debug(crlf + 'sb.formshow.end');
+end;
+
+procedure TSandBrowser.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+var
+  bs : Integer; msg:string;
+begin
+  if tasks.Running then begin
+    msg := 'Closing will stop running tasks. Continue?';
+    bs := messagedlg(msg,mtCustom, [mbYes,mbNo], 0);
+    case bs of
+     mrYes: ;
+     mrNo: CanClose := false;
+    end;
+  end;
 end;
 
 procedure TSandBrowser.FormCreate(Sender: TObject);
