@@ -180,7 +180,7 @@ begin
     tabmanager.activetab.SetActivePage('results');
     fPage := TSandUIEngine.Create(self);
     fPage.Parent := self;
-    fPage.Height := 300;
+    fPage.Height := 320;
     fPage.Align := alTop;
     //fLv.Align := alClient;
   end;

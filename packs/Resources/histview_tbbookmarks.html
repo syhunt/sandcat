@@ -1,5 +1,16 @@
 <div id="toolbar" class="toolbar">
-<div .button onclick="PageMenu:ViewBookmarks(false)" style="foreground-image: @ICON_RELOAD" titleid="for-reload"/>
+<div .button onclick="HistView:ViewBookmarks(false)" style="foreground-image: @ICON_RELOAD" titleid="for-reload"/>
+<div .sepv />
+<div #setmanmenu .button style="foreground-image: url(Resources.pak#16\icon_settings_man.png); behavior: ~ popup-menu;" titleid="for-setmanmenu" >6
+  <menu.popup id="setmanmenu-list">
+  <li onclick="HistView:ImportURLLogFile('Bookmarks','HistView:ViewBookmarks(false)')">Import bookmarks from file...</li>
+  <hr/>
+  <li onclick="HistView:ExportURLLogFile('Bookmarks')">Export bookmarks to file...</li>  
+  <hr/>  
+  <li onclick="HistView:ClearURLLogFile('Bookmarks','HistView:ViewBookmarks(false)')">Clear bookmarks</li>    
+  </menu>
+</div>
 </div>
 
 <popup id="for-reload">Reload</popup>
+<popup id="for-setmanmenu">Import/Export Bookmarks...</popup>
