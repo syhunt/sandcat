@@ -6,6 +6,10 @@
   Sandcat.RunLua("Sandcat.Preferences:EditConfirm()");
   view.close();
  }
+ function exit_to_url(url,newtab=true) {
+  Sandcat.GoToURL(url, newtab);
+  cancel_edit();
+ } 
  function canset_value(sel,j) {
   var b = true;
   if (sel.attributes["type"] == "file-path") {
@@ -62,6 +66,7 @@
   for(var e in $$(input[type="checkbox"])) e.onClick = handle_genericclick;
   for(var e in $$(input[type="color-chooser"])) e.onClick = handle_genericclick;
   for(var e in $$(input[type="text"])) e.onControlEvent = handle_controlevent;
+  for(var e in $$(plaintext)) e.onControlEvent = handle_controlevent;
   for(var e in $$(input[type="number"])) e.onControlEvent = handle_controlevent;
   for(var e in $$(input[type="password"])) e.onControlEvent = handle_controlevent;
   for(var e in $$(input[type="folder-path"])) e.onControlEvent = handle_controlevent;

@@ -49,13 +49,31 @@ function M:AddURLLogItem(item,logname)
  sl:release()
 end
 
-function M:GetURLLogItem(itemid,logname)
- function getvalue(line, name)
-    local s = ctk.string.after(line, ' '..name..'="')
-    s = ctk.string.before(s, '"')
-    s = ctk.html.unescape(s)
-    return s
+function M:GetURLLogItemNames(logname)
+ local liststr = ''
+ local logfile = browser.info.configdir..logname..'.sclist'
+ local l = ctk.string.list:new()
+ local slp = ctk.string.loop:new()
+ if ctk.file.exists(logfile) then
+  slp:loadfromfile(logfile)
+  while slp:parsing() do
+    l:add(self:GetValue(slp.current, 'name'))
+  end
  end
+ liststr = l.text
+ l:release()
+ slp:release()
+ return liststr
+end
+
+function M:GetValue(line, name)
+ local s = ctk.string.after(line, ' '..name..'="')
+ s = ctk.string.before(s, '"')
+ s = ctk.html.unescape(s)
+ return s
+end
+
+function M:GetURLLogItem(itemid,logname)
  local logfile = browser.info.configdir..logname..'.sclist'
  local slp = ctk.string.loop:new()
  local i = nil
@@ -65,7 +83,8 @@ function M:GetURLLogItem(itemid,logname)
   while slp:parsing() do
    if ctk.string.match(slp.current,'<item*id="'..itemid..'"*>') then
     i = {}
-    i.url = getvalue(slp.current, 'url')
+    i.url = self:GetValue(slp.current, 'url')
+    i.name = self:GetValue(slp.current, 'name')
     i.id = itemid
    end
   end
@@ -160,7 +179,7 @@ function M:ExportURLLogFile(logname)
 end
 
 function M:ViewURLLogFile(conf)
- local html = Sandcat:getfile('histview.html')
+ local html = conf.html or Sandcat:getfile('histview_listurl.html')
  local histname = conf.histname
  local histfile = browser.info.configdir..histname..'.sclist'
  local sl = ctk.string.list:new()
@@ -194,7 +213,7 @@ function M:ViewURLLogFile(conf)
     end
     sl:add('<tr.item url="'..url..'" role="option" style="context-menu: selector(#menu'..id..');" id="'..id..'">')
     sl:add('<td>'..name..'</td>')
-    sl:add('<td>'..url..'</td>')
+    sl:add('<td.address>'..url..'</td>')
     sl:add('<td.visited>'..visited..'</td>')
     sl:add('<menu.context id="menu'..id..'">'..ctk.string.replace(conf.menu,'%i',id)..'</menu>')
     sl:add('</tr>')

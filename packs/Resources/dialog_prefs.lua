@@ -68,6 +68,7 @@ function M:EditCustomFile(t)
   local ok = self:EditCustom(t)
   if self.backup ~= prefs.getall() then
     if self.confirmed == true then
+      ctk.dir.create(ctk.file.getdir(t.jsonfile))
       prefs.savetofile(t.jsonfile)
     end
   end
