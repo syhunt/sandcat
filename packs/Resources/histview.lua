@@ -30,6 +30,18 @@ function M:ViewBookmarks(newtab)
  self:ViewURLLogFile(t)
 end
 
+function M:AddBookmark()
+  local d = {}
+  d.title = 'Add Bookmark'
+  d.name_caption = 'Name (eg: MySite)'
+  d.value_caption = 'URL'
+  local r = Sandcat.Preferences:EditNameValue(d)
+  if r.res == true then
+    browser.bookmark(r.name, r.value)
+    self:ViewBookmarks(false)
+  end
+end
+
 -- ToDo WIP: This function should soon replace procedure
 -- TSandcatSettings.AddToURLList() in uSettings.pas
 function M:AddURLLogItem(item,logname)
@@ -209,7 +221,14 @@ function M:ViewURLLogFile(conf)
     local name = p:getattrib('name')
     local id = p:getattrib('id')
     if conf.readsiteprefs == true then
-      name = ctk.html.escape(self:GetSiteName(url))
+      local sitename = ctk.html.escape(self:GetSiteName(url))
+      if name == '' then
+        name = sitename
+      else
+        if sitename ~= '' then
+          name = name..' ('..sitename..')'
+        end
+      end
     end
     sl:add('<tr.item url="'..url..'" role="option" style="context-menu: selector(#menu'..id..');" id="'..id..'">')
     sl:add('<td>'..name..'</td>')

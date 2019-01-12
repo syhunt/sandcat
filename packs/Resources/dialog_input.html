@@ -1,0 +1,40 @@
+<html>
+<head>
+<title>%title%</title>
+<link rel="stylesheet" type="text/css" href="Resources.pak#dialog_prefs.css">
+<style>
+body {
+ height:160px;
+}
+</style>
+<script type="text/tiscript" src="{$PluginsDir}Resources.pak#dialog_prefs.tis"/>
+<script type="text/tiscript">
+ self.onControlEvent = function(evt)
+ {
+      if( evt.type == Event.DOCUMENT_COMPLETE ) {
+       importsettings();
+       sethandlers();
+      }
+ }
+
+ $(#ok).onClick = function() { confirm_edit(); }
+ $(#cancel).onClick = function() { cancel_edit(); }
+</script>
+</head>
+<body marginwidth="0" marginheight="0">
+
+<br>
+<div .optgroup>
+%name_caption%:<br>
+<input type="text" cid="sandcat.dialog.input.name"><br><br>
+%value_caption%:<br>
+<input type="text" cid="sandcat.dialog.input.value">
+</div>
+
+<p style="text-align:right">
+<button #ok role="default-button" style="width:50px;margin-right:5px;">OK</button>
+<button #cancel style="width:50px;margin-right:10px;">Cancel</button>
+</p>
+
+</body>
+</html>

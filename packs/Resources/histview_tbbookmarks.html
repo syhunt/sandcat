@@ -1,5 +1,6 @@
 <div id="toolbar" class="toolbar">
 <div .button onclick="HistView:ViewBookmarks(false)" style="foreground-image: @ICON_RELOAD" titleid="for-reload"/>
+<div .button onclick="HistView:AddBookmark()" style="foreground-image: url(Resources.pak#16\icon_bookmark.png)" titleid="for-addbkmark"/>
 <div .sepv />
 <div #setmanmenu .button style="foreground-image: url(Resources.pak#16\icon_settings_man.png); behavior: ~ popup-menu;" titleid="for-setmanmenu" >6
   <menu.popup id="setmanmenu-list">
@@ -12,5 +13,6 @@
 </div>
 </div>
 
+<popup id="for-addbkmark">Add Bookmark</popup>
 <popup id="for-reload">Reload</popup>
 <popup id="for-setmanmenu">Import/Export Bookmarks...</popup>

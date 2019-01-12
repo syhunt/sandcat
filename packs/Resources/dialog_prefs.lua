@@ -40,7 +40,33 @@ function M:Edit()
  t.html = ctk.string.replace(t.html,'%extensions%',browser.info.extensions)
  t.id = 'prefs'
  t.options = browser.info.options
- self:EditCustom(t)
+ return self:EditCustom(t)
+end
+
+-- Launches a simple name value input dialog
+function M:EditNameValue(dlg)
+ prefs.regdefault('sandcat.dialog.input.name', '')
+ prefs.regdefault('sandcat.dialog.input.value', '')
+ dlg.title = dlg.title or 'Input'
+ dlg.name = dlg.name or ''
+ dlg.value = dlg.value or ''
+ dlg.name_caption = dlg.name_caption or 'Name'
+ dlg.value_caption = dlg.value_caption or 'Value'
+ prefs.set('sandcat.dialog.input.name',dlg.name)
+ prefs.set('sandcat.dialog.input.value',dlg.value)
+ local t = {}
+ t.html = browser.getpackfile(Sandcat.filename,'dialog_input.html')
+ t.html = ctk.string.replace(t.html,'%title%',ctk.html.escape(dlg.title))
+ t.html = ctk.string.replace(t.html,'%name_caption%',ctk.html.escape(dlg.name_caption))
+ t.html = ctk.string.replace(t.html,'%value_caption%',ctk.html.escape(dlg.value_caption))
+ t.id = 'prefs_namevalue'
+ t.options = browser.info.options
+ dlg.res = self:EditCustom(t)
+ if dlg.res == true then
+   dlg.name = prefs.get('sandcat.dialog.input.name',dlg.name)
+   dlg.value = prefs.get('sandcat.dialog.input.value',dlg.value)
+ end
+ return dlg
 end
 
 function M:EditCancel()
@@ -65,7 +91,7 @@ function M:EditCustomFile(t)
    prefs.load('')
   end
   self.backup = prefs.getall() -- Custom File Preferences backup
-  local ok = self:EditCustom(t)
+  ok = self:EditCustom(t)
   if self.backup ~= prefs.getall() then
     if self.confirmed == true then
       ctk.dir.create(ctk.file.getdir(t.jsonfile))
