@@ -454,6 +454,12 @@ begin
   result := 1;
 end;
 
+function method_tree_loaditem(L: PLua_State): integer; cdecl;
+begin
+  // no action, must set new function using tab.tree_loaditemfunc property
+  result := 1;
+end;
+
 function method_tree_loaddir(L: PLua_State): integer; cdecl;
 begin
   if lua_istable(L, 2) then
@@ -518,7 +524,7 @@ type
     loadendjs, capture, capturebrowser, capturerealtime, captureurls,
     downloadfiles, headersfilter, logtext, mode, name, rcvdheaders, reslist,
     screenshot, sentheaders, showtree, siteprefsfilename, Source,
-    sourcefilename, statuscode, status, Title, updatesource, url, urldev,
+    sourcefilename, statuscode, status, Title, tree_loaditemfunc, updatesource, url, urldev,
     urllist, zoomlevel);
 
 function TSCBTabObject.GetPropValue(propName: String): Variant;
@@ -572,6 +578,8 @@ begin
         result := strtointdef(tab.Browser.c.Headers.statuscode, 0);
     Title:
       result := tab.Title;
+    tree_loaditemfunc:
+      result := tab.SideBar.LoadTreeItemFunc;
     url:
       result := tab.GetURL;
     urllist:
@@ -622,6 +630,8 @@ begin
       tab.StatusBarText := String(AValue);
     Title:
       tab.SetTitle(String(AValue));
+    tree_loaditemfunc:
+      tab.SideBar.LoadTreeItemFunc := String(AValue);
     updatesource:
       tab.CanUpdateSource := AValue;
     zoomlevel:
@@ -683,6 +693,7 @@ begin
   RegisterMethod(L, 'stopload', method_stopload, classTable);
   RegisterMethod(L, 'tree_clear', method_tree_clear, classTable);
   RegisterMethod(L, 'tree_loaddir', method_tree_loaddir, classTable);
+  RegisterMethod(L, 'tree_loaditem', method_tree_loaditem, classTable);
   RegisterMethod(L, 'userdata_get', method_getparam, classTable);
   RegisterMethod(L, 'userdata_set', method_setparam, classTable);
   RegisterMethod(L, 'viewdevtools', method_viewdevtools, classTable);

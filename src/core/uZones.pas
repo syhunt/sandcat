@@ -1036,7 +1036,8 @@ begin
   ControlStyle := ControlStyle + [csAcceptsControls];
   Width := 300;
   visible := false;
-  fLoadTreeItemFunc := 'sidebar.loadtreeitem'; // tab must use tab.tree_loaditem
+  // tab must set new function using tab.tree_loaditemfunc property
+  fLoadTreeItemFunc := emptystr;
   fCanExecLua := true;
   fNote := TNoteBook.Create(Self);
   fNote.Parent := Self;
@@ -1121,6 +1122,8 @@ end;
 procedure TSandcatSidebar.LoadTreeItem(const path: string);
 begin
   if fCanExecLua = false then
+    exit;
+  if fLoadTreeItemFunc = emptystr then
     exit;
   Extensions.LuaWrap.value['_temppath'] := path;
   Extensions.RunLuaCmd(fLoadTreeItemFunc + '(_temppath)');
