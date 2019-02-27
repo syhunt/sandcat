@@ -71,6 +71,7 @@ type
   public
     function GetParam(const name, default: string): string;
     procedure DoSpecial(const s: string);
+    procedure Finish(const reason: string = '');
     procedure GetInfoL(L: PLua_State);
     procedure RunScript(const s: string);
     procedure SetParam(const name, value: string);
@@ -178,8 +179,8 @@ end;}
 
 type
   TJSONCmds = (cmd_setcaption, cmd_setprogress, cmd_setscript, cmd_setstatus,
-    cmd_special, cmd_print, cmd_outputmsg, cmd_showmsg, cmd_stop, cmd_writeln,
-    cmd_write);
+    cmd_special, cmd_print, cmd_outputmsg, cmd_showmsg, cmd_stop, cmd_finish,
+    cmd_writeln, cmd_write);
 
 procedure TSandcatTaskManager.RunJSONCmd(const json: string);
 var
@@ -211,6 +212,8 @@ begin
         sanddlg.showmessage(j.GetValue('s', emptystr));
       cmd_stop:
         Task.Stop(j.GetValue('s', emptystr));
+      cmd_finish:
+        Task.Finish(j.GetValue('s', emptystr));
       cmd_writeln:
         Task.writeln(j['s']);
       cmd_write:
@@ -918,6 +921,12 @@ begin
       SendCromisMessage(fTabMsgHandle, SCBM_TASK_RESUMED, '1');
     end;
   end;
+end;
+
+procedure TSandcatTask.Finish(const reason: string = '');
+begin
+  fScripts.OnStop := emptystr;
+  Stop(reason, false);
 end;
 
 procedure TSandcatTask.Stop(const reason: string = '';

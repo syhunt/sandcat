@@ -353,7 +353,7 @@ begin
   script := base64decode(j.ReadString(tid, 'script', emptystr));
   fLuaWrap.ExecuteCmd(script);
   if TaskStopped = false then
-    fLuaWrap.ExecuteCmd('task:stop(task.status)');
+    fLuaWrap.ExecuteCmd('task:finish(task.status)');
   fLuaWrap.ExecuteCmd('task:release()');
   j.free;
   SendCromisMessage(tabhandle, SCBM_CONSOLE_ENDEXTERNALOUTPUT, emptystr);
@@ -473,6 +473,13 @@ begin
   Result := 1;
 end;
 
+function lua_method_finish(L: PLua_State): Integer; cdecl;
+begin
+  TaskStopped := true;
+  SendJSONCmdStr('finish', lua_tostring(L, 2));
+  Result := 1;
+end;
+
 procedure register_methods(L: PLua_State; classTable: Integer);
 begin
   RegisterMethod(L, 'browserdostring', @lua_Run, classTable);
@@ -485,6 +492,7 @@ begin
   RegisterMethod(L, 'showmessage', @lua_showmessage, classTable);
   RegisterMethod(L, 'special', @lua_method_special, classTable);
   RegisterMethod(L, 'stop', @lua_method_stop, classTable);
+  RegisterMethod(L, 'finish', @lua_method_finish, classTable);
 end;
 
 const
