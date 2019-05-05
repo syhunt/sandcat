@@ -593,10 +593,10 @@ begin
         NewNode.SelectedIndex := GetFileImageIndex(sname, true);
         if opt.MakeBold then
           SetNodeBoldState(NewNode, true);
-      end;
-      if opt.Recurse and ((SRec.Attr and faDirectory) <> 0) then
+       if opt.Recurse and ((SRec.Attr and faDirectory) <> 0) then
         Tree_FilePathToTreeNode(aTreeView, NewNode,
           path + SRec.name + '\', opt);
+      end;
     until FindNext(SRec) <> 0;
 end;
 
