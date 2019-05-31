@@ -22,6 +22,7 @@ function app_gettitle(L: plua_State): Integer; cdecl;
 function app_processmessages(L: plua_State): Integer; cdecl;
 function app_settitle(L: plua_State): Integer; cdecl;
 function app_showalert(L: plua_State): Integer; cdecl;
+function app_showalerttext(L: plua_State): Integer; cdecl;
 function app_showcustomdialog(L: plua_State): Integer; cdecl;
 function app_showinputdialog(L: plua_State): Integer; cdecl;
 function app_showmessage(L: plua_State): Integer; cdecl;
@@ -225,6 +226,12 @@ end;
 function app_showalert(L: plua_State): Integer; cdecl;
 begin
   sanddlg.ShowAlert(lua_tostring(L, 1), true);
+  result := 1;
+end;
+
+function app_showalerttext(L: plua_State): Integer; cdecl;
+begin
+  sanddlg.ShowAlertText(lua_tostring(L, 1));
   result := 1;
 end;
 

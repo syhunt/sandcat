@@ -137,6 +137,7 @@ type
     procedure SideBarTreeChange(Sender: TObject; Node: TTreeNode);
     procedure SideBarTreeDblClick(Sender: TObject);
   public
+    function JsonToDirTreeOptions(const json:string):TDirTreeOptions;
     procedure Clear;
     procedure LoadAffectedScripts(const paths: string);
     procedure LoadDir(const Dir: string); overload;
@@ -1088,6 +1089,19 @@ begin
   uix.Tree_FilePathToTreeNode(fTV, nil, opt.Dir, opt);
   if opt.AffectedScripts <> emptystr then
     LoadAffectedScripts(opt.AffectedScripts);
+end;
+
+function TSandcatSidebar.JsonToDirTreeOptions(const json:string):TDirTreeOptions;
+var
+  j: TSandJSON;
+begin
+  j := TSandJSON.Create(JSON);
+  result.Dir := j.GetValue('dir', emptystr);
+  result.Hex := j.GetValue('hex', false);
+  result.Recurse := j.GetValue('recurse', true);
+  result.MakeBold := j.GetValue('makebold', false);
+  result.AffectedScripts := j.GetValue('affectedscripts', emptystr);
+  j.Free;
 end;
 
 procedure TSandcatSidebar.SetURLList(const list: string);

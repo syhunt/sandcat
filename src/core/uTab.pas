@@ -915,8 +915,8 @@ begin
 end;
 
 type
-  TJSONCmds = (cmd_settreeurls, cmd_resaddcustomitem, cmd_resupdatehtml,
-    cmd_runtbtis, cmd_setaffecteditems, cmd_seticon, cmd_setstatus,
+  TJSONCmds = (cmd_treeseturls, cmd_resaddcustomitem, cmd_resupdatehtml,
+    cmd_runtbtis, cmd_treesetaffecteditems, cmd_treeloaddir, cmd_seticon, cmd_setstatus,
     cmd_syncwithtask);
 
   // Runs simple commands in the form of a JSON object (used by Sandcat tasks
@@ -938,9 +938,11 @@ begin
     cmd_runtbtis:
       if fCustomToolbar <> nil then
         fCustomToolbar.Eval(str);
-    cmd_setaffecteditems:
+    cmd_treeloaddir:
+      SideBar.LoadDir(SideBar.JsonToDirTreeOptions(str));
+    cmd_treesetaffecteditems:
       SideBar.LoadAffectedScripts(str);
-    cmd_settreeurls:
+    cmd_treeseturls:
       SideBar.SetURLList(str);
     cmd_seticon:
       SetIcon(str);
