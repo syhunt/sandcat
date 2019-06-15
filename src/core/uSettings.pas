@@ -79,6 +79,8 @@ const // Sandcat Settings
   SCO_SEARCHENGINE_QUERYURL = 'sandcat.search.queryurl';
   SCO_SECURITY_XSSAUDITOR_ENABLED =
     'sandcat.browser.security.xssauditor.enabled';
+  SCO_OPTIONS_OPENPOPUPSINNEWTAB =
+    'sandcat.options.openpopupsinnewtab';
 
 var
   IsSandcatPortable: boolean = false;
@@ -386,6 +388,8 @@ var
     fPreferences.RegisterDefault(SCO_CONSOLE_BGCOLOR, '#262626');
     fPreferences.RegisterDefault(SCO_CONSOLE_FONT_COLOR, '#ffffff');
     fPreferences.RegisterDefault(SCO_SECURITY_XSSAUDITOR_ENABLED, true);
+    fPreferences.RegisterDefault(SCO_OPTIONS_OPENPOPUPSINNEWTAB, false);
+
   end;
 
 begin
