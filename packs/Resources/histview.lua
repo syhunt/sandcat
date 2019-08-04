@@ -203,6 +203,7 @@ function M:ViewURLLogFile(conf)
  conf.tabicon = conf.tabicon or '@ICON_BLANK'
  conf.showvisicol = conf.showvisicol or false
  conf.readsiteprefs = conf.readsiteprefs or false
+ conf.genurlfunc = conf.genurlfunc or nil
  
  if conf.showvisicol == false then
   conf.style = conf.style..[[
@@ -220,6 +221,9 @@ function M:ViewURLLogFile(conf)
     local visited = p:getattrib('visited')
     local name = p:getattrib('name')
     local id = p:getattrib('id')
+    if conf.genurlfunc ~= nil then
+      url = conf.genurlfunc({name=name})
+    end
     if conf.readsiteprefs == true then
       local sitename = ctk.html.escape(self:GetSiteName(url))
       if name == '' then

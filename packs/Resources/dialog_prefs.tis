@@ -71,5 +71,6 @@
   for(var e in $$(input[type="password"])) e.onControlEvent = handle_controlevent;
   for(var e in $$(input[type="folder-path"])) e.onControlEvent = handle_controlevent;
   for(var e in $$(input[type="file-path"])) e.onControlEvent = handle_controlevent;
-  for(var e in $$(select[type="select"])) e.onControlEvent = handle_controlevent;
+  for(var e in $$(select)) e.onControlEvent = handle_controlevent;
+  //for(var e in $$(select[type="select"])) e.onControlEvent = handle_controlevent;
  }
