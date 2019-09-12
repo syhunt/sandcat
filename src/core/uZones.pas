@@ -743,13 +743,13 @@ const
 begin
   inherited Create;
   fImageListRegistry := TStringList.Create;
-  Pages.ReqBuilderBar := GetResourceAsString('REQUESTBUILDER', cHTML);
-  Pages.BottomBar := GetResourceAsString('TAB_BOTTOMBAR', cHTML);
-  Pages.Tab_Custom := GetResourceAsString('TAB_CUSTOM', cHTML);
-  Pages.Tab_Response := GetResourceAsString('TAB_RESPONSE', cHTML);
-  Pages.Tab_Results := GetResourceAsString('TAB_RESULTS', cHTML);
-  Pages.Tab_Tasks := GetResourceAsString('TAB_TASKS', cHTML);
-  Pages.Tab_Toolbar := GetResourceAsString('TAB_TOOLBAR', cHTML);
+  Pages.ReqBuilderBar := GetResourceAsString('HTML_REQUESTBUILDER');
+  Pages.BottomBar := GetResourceAsString('HTML_TAB_BOTTOMBAR');
+  Pages.Tab_Custom := GetResourceAsString('HTML_TAB_CUSTOM');
+  Pages.Tab_Response := GetResourceAsString('HTML_TAB_RESPONSE');
+  Pages.Tab_Results := GetResourceAsString('HTML_TAB_RESULTS');
+  Pages.Tab_Tasks := GetResourceAsString('HTML_TAB_TASKS');
+  Pages.Tab_Toolbar := GetResourceAsString('HTML_TAB_TOOLBAR');
   // create the UI engines
   Navbar := TSandcatNavigationBar.Create(MainPanel);
   Navbar.Parent := MainPanel;
@@ -779,7 +779,7 @@ end;
 
 procedure TSandcatNavigationBar.Load;
 begin
-  fEngine.LoadHTML(GetResourceAsString('TAB_NAVBAR', 'HTML'), pluginsdir);
+  fEngine.LoadHTML(GetResourceAsString('HTML_TAB_NAVBAR'), pluginsdir);
 end;
 
 procedure TSandcatNavigationBar.AnimateTasksIcon(const b: boolean);
@@ -1010,7 +1010,7 @@ begin
   fEngine := TSandUIEngine.Create(Self);
   fEngine.Parent := Self;
   fEngine.Align := alClient;
-  fEngine.LoadHTML(GetResourceAsString('STATBAR', 'HTML'), pluginsdir);
+  fEngine.LoadHTML(GetResourceAsString('HTML_STATBAR'), pluginsdir);
 end;
 
 constructor TSandcatStatusbar.Create(AOwner: TComponent);
@@ -1336,7 +1336,7 @@ end;
 
 procedure TSandcatPageBar.Load;
 begin
-  fEngine.LoadHTML(GetResourceAsString('PAGEBAR', 'HTML'), pluginsdir);
+  fEngine.LoadHTML(GetResourceAsString('HTML_PAGEBAR'), pluginsdir);
 end;
 
 constructor TSandcatPageBar.Create(AOwner: TComponent);
@@ -1650,7 +1650,7 @@ begin
   fNote.Pages.add(fReqBuilderPageName);
   fNote.Pages.add(cTaskMessagesPageName);
   fNote.ActivePage := 'default';
-  fPageHTML := GetResourceAsString('PAGE_EXTENSION', 'HTML');
+  fPageHTML := GetResourceAsString('HTML_PAGE_EXTENSION');
 
   fReqBuilder := TSandRequestPanel.Create(Self);
   fReqBuilder.Parent :=
@@ -1728,7 +1728,7 @@ begin
   fEngine.Parent := Self;
   fEngine.OnonStdOut := uix.StdOut;
   fEngine.OnonStdErr := uix.StdErr;
-  fEngine.LoadHTML(GetResourceAsString('TABBAR', 'HTML'), pluginsdir);
+  fEngine.LoadHTML(GetResourceAsString('HTML_TABBAR'), pluginsdir);
 end;
 
 constructor TSandcatTabstrip.Create(AOwner: TComponent);

@@ -130,7 +130,7 @@ begin
   fLuaWrap.OnException := ScriptExceptionHandler;
   Register_Sandcat(fLuaWrap.LuaState);
   Debug('createluaengine.sandcatlua.begin');
-  fLuaWrap.ExecuteCmd(GetResourceAsString('SANDCAT', 'Lua'));
+  fLuaWrap.ExecuteCmd(GetResourceAsString('SANDCAT_LUA'));
   Debug('createluaengine.sandcatlua.end');
   fLuaWrap.ExecuteCmd('Sandcat:Init()');
   // fLuaWrap.ExecuteCmd(GetPakResourceAsString('Sandcat.lua'));

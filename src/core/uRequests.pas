@@ -47,7 +47,7 @@ const
 implementation
 
 uses uMain, CatDCP, uMisc, CatTime, CatChromium, CatHTTP, CatStrings,
-  CatFiles, uSettings, uConst, CatDCPKey;
+  CatFiles, uSettings, uConst, CatCryptKey;
 
 procedure TSandcatRequests.Clear;
 begin
@@ -75,7 +75,7 @@ begin
     exit;
   j := TSandJINI.Create;
   j.text := Cache.gettextfile(cReqFolder + jsonrequestfile);
-  result.URL := aestostr(j.Values['URL'],GetDCPKey(CATKEY_REQUESTHEADERS));
+  result.URL := aestostr(j.Values['URL'],GetCatKey(CATKEY_REQUESTHEADERS));
   result.response := j.Values['Response'];
   result.MimeType := j.Values['MimeType'];
   result.StatusCode := StrToIntDef(j.Values['Status'],0);
@@ -86,7 +86,7 @@ begin
     result.Filename := responsefile;
   end;
   result.RcvdHead := j.Values['ResponseHeaders'];
-  result.SentHead := aestostr(j.Values['Headers'],GetDCPKey(CATKEY_REQUESTHEADERS));
+  result.SentHead := aestostr(j.Values['Headers'],GetCatKey(CATKEY_REQUESTHEADERS));
   result.Method := j.Values['Method'];
   if j.Values['IsLow'] = '1' then
     result.IsLow := true
@@ -174,7 +174,7 @@ begin
       logfile.text := Cache.gettextfile(cReqFolder + logfile.Filename);
   end;
   if request.URL <> emptystr then
-    logfile.Values['URL'] := strtoaes(request.URL,GetDCPKey(CATKEY_REQUESTHEADERS));
+    logfile.Values['URL'] := strtoaes(request.URL,GetCatKey(CATKEY_REQUESTHEADERS));
   if request.Method <> emptystr then
     logfile.Values['Method'] := request.Method;
   logfile.Values['Status'] := IntToStr(request.StatusCode);
@@ -183,11 +183,11 @@ begin
   if request.MimeType <> emptystr then
     logfile.Values['MimeType'] := request.MimeType;
   if request.SentHead <> emptystr then
-    logfile.Values['Headers'] := strtoaes(request.SentHead,GetDCPKey(CATKEY_REQUESTHEADERS));
+    logfile.Values['Headers'] := strtoaes(request.SentHead,GetCatKey(CATKEY_REQUESTHEADERS));
   if request.IsLow then
     logfile.Values['IsLow'] := '1';
   if request.postdata <> emptystr then
-    logfile.Values['PostData'] := strtoaes(request.postdata,GetDCPKey(CATKEY_REQUESTHEADERS));
+    logfile.Values['PostData'] := strtoaes(request.postdata,GetCatKey(CATKEY_REQUESTHEADERS));
   if request.details <> emptystr then
     logfile.Values['Details'] := request.details;
   if request.response <> emptystr then
