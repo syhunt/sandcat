@@ -34,6 +34,7 @@ type
     fHasMonitor: boolean;
     fHidden: boolean;
     fIcon: string;
+    fIconStopped: string;
     fIsDownload: boolean;
     fLog: TStringList;
     fMenuHTML: string;
@@ -756,7 +757,21 @@ begin
     e.StyleAttr['color'] := 'white';
     setfontcolor('white');
     SetIconAni('@ICON_BLANK');
-  end;
+    fIconStopped := '@ICON_FAILURE';
+  end else
+  if s = 'paintyellow' then
+  begin
+    e := fMonitor.Root.Select(cMainDiv);
+    e.StyleAttr['background-color'] := '#c9bc15 #b5a512 #998500 #8d7a00';
+    e.StyleAttr['border-color'] := '#f9f591 #eeea7e #c7ba13 #b5a50a';
+    //orange:
+    //e.StyleAttr['background-color'] := '#f8ca2d #edb218 #da9104 #cd7c04';
+    //e.StyleAttr['border-color'] := '#ffdd39 #ffdb19 #ffd800 #ffd801';
+    e.StyleAttr['color'] := 'white';
+    setfontcolor('white');
+    SetIconAni('@ICON_BLANK');
+    fIconStopped := '@ICON_FATALERROR';
+  end else
   if s = 'paintgreen' then
   begin
     e := fMonitor.Root.Select(cMainDiv);
@@ -765,6 +780,7 @@ begin
     e.StyleAttr['color'] := 'white';
     setfontcolor('white');
     SetIconAni('@ICON_BLANK');
+    fIconStopped := '@ICON_SUCCESS';
   end;
 end;
 
@@ -828,12 +844,11 @@ procedure TSandcatTask.SetIconAni(const url: string);
 var
   e: ISandUIElement;
 begin
-  if fHasMonitor then
-  begin
+  if fHasMonitor = false then
+  exit;
     e := fMonitor.Root.Select('img.staticon[tid="' + fTID + '"]');
     if e <> nil then
       e.StyleAttr['foreground-image'] := url;
-  end;
 end;
 
 procedure TSandcatTask.SetIcon(const url: string);
@@ -972,7 +987,7 @@ begin
       e.StyleAttr['display'] := 'none';
     e := fMonitor.Root.Select('img.staticon[tid="' + fTID + '"]');
     if e <> nil then
-      e.StyleAttr['foreground-image'] := '@ICON_BLANK';
+      e.StyleAttr['foreground-image'] := fIconStopped;
     e := fMonitor.Root.Select('code.pid[tid="' + fTID + '"]');
     if e <> nil then
       e.StyleAttr['color'] := 'gray';
@@ -999,6 +1014,7 @@ begin
   fHasMonitor := false;
   fHasProgressBar := false;
   fProgressMax := 100;
+  fIconStopped := '@ICON_BLANK';
   fParams := TSandJSON.Create;
   fLog := TStringList.Create;
   fMonitorQueue := TStringList.Create;

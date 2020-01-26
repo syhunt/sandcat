@@ -43,4 +43,5 @@ In addition to the functions above, all functions above and all functions from t
 * **paramstr** ( key, defaultvalue ): Returns the value of a parameter key as a string. If the supplied key is not found and a default value has been supplied, returns the default value. Returns `string`
 * **print** ( v ): Prints a line to the task log
 * **printfailure** ( v ): Prints a line to the task log and paints the task progress monitor panel in red color
+* **printfatalerror** ( v ): Prints a line to the task log and paints the task progress monitor panel in yellow color
 * **printsuccess** ( v ): Prints a line to the task log and paints the task progress monitor panel in green color

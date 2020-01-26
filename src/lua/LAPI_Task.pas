@@ -4,7 +4,7 @@ unit LAPI_Task;
   Sandcat Task Process component
   A Sandcat task that runs in a separate process
 
-  Copyright (c) 2011-2014, Syhunt Informatica
+  Copyright (c) 2011-2020, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 
@@ -126,6 +126,13 @@ end;
 function lua_method_printfailure(L: PLua_State): Integer; cdecl;
 begin
   SendJSONCmdStr('special', 'paintred');
+  SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
+  Result := 1;
+end;
+
+function lua_method_printfatalerror(L: PLua_State): Integer; cdecl;
+begin
+  SendJSONCmdStr('special', 'paintyellow');
   SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
   Result := 1;
 end;
@@ -268,11 +275,12 @@ begin
   fLoaded := false;
   fLuaWrap.RegisterLuaMethod('print', @lua_task_writeln);
   fLuaWrap.RegisterLuaMethod('printfailure', @lua_method_printfailure);
+  fLuaWrap.RegisterLuaMethod('printfatalerror', @lua_method_printfatalerror);
   fLuaWrap.RegisterLuaMethod('printsuccess', @lua_method_printsuccess);
   fLuaWrap.RegisterLuaMethod('outputmsg', @lua_method_outputmsg);
   fLuaWrap.RegisterLuaMethod('runtabcmd', @lua_method_runtabcmd);
   fLuaWrap.RegisterLuaMethod('runcmd', @lua_method_runcmd);
-  // for io redirect from Underscript
+  // for IO redirect from Underscript library
   fLuaWrap.RegisterLuaMethod('sandcat_writeln', @lua_task_writeln);
   fLuaWrap.RegisterLuaMethod('sandcat_write', @lua_task_write);
   fLuaWrap.RegisterLuaMethod('sandcat_logerror', @lua_ScriptLogError);
