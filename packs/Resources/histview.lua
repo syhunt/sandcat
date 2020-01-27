@@ -1,5 +1,5 @@
 local M = {}
-M.listfilter = 'Syhunt URL List (*.sclist)|*.sclist'
+M.listfilter = 'Sandcat URL List (*.sclist)|*.sclist|List files (*.lst;*.list)|*.lst;*.list|CSV (Comma-Separated Values) files (*.csv)|*.csv'
 
 function M:ViewHistory(newtab)
  local t = {}
@@ -42,21 +42,27 @@ function M:AddBookmark()
   end
 end
 
--- ToDo WIP: This function should soon replace procedure
--- TSandcatSettings.AddToURLList() in uSettings.pas
-function M:AddURLLogItem(item,logname)
- local logfile = browser.info.configdir..logname..'.sclist'
+function M:AddURLLogItemToList(sl, item)
  local unixtime = os.time(os.date("!*t"))
  item.name = item.name or ''
  item.name = ctk.html.escape(item.name)
  item.url = ctk.html.escape(item.url)
+ local id = tostring(unixtime)..'-'..tostring(sl.count)
+ local linecontent = '<item id="'..id..'" url="'..item.url..'" name="'..item.name..'"/>'
+ if (ctk.string.occur(sl.text, 'url="'..item.url..'"') == 0) then
+   sl:insert(0, linecontent)
+ end
+end
+
+-- ToDo WIP: This function should soon replace procedure
+-- TSandcatSettings.AddToURLList() in uSettings.pas
+function M:AddURLLogItem(item,logname)
+ local logfile = browser.info.configdir..logname..'.sclist'
  local sl = ctk.string.list:new()
  if ctk.file.exists(logfile) then
   sl:loadfromfile(logfile)
  end
- local id = tostring(unixtime)..'-'..tostring(sl.count)
- local linecontent = '<item id="'..id..'" url="'..item.url..'" name="'..item.name..'"/>'
- sl:insert(0, linecontent)
+ self:AddURLLogItemToList(sl, item)
  sl:savetofile(logfile)
  sl:release()
 end
@@ -153,10 +159,45 @@ function M:ClearURLLogFile(logname,onendlua)
  end
 end
 
+function M:MakeValidURL(url)
+   local res = url
+   if (ctk.string.occur(url, '://') == 0) then
+     res = 'http://'..url
+   end
+   return res
+end
+
+function M:ImportURLLogFileItem(list, line, fileext)
+   if fileext == '.sclist' then
+     if list:indexof(line) == -1 then
+       list:add(line)
+     end
+   end
+   if fileext == '.lst' then
+     item = {}
+     item.url = self:MakeValidURL(line)
+     self:AddURLLogItemToList(list, item)
+   end
+   if fileext == '.csv' then
+     local csv = ctk.string.loop:new()
+     csv.commatext = line
+     item = {}
+     item.url = csv:get(0)
+     if csv.count >= 2 then
+       item.name = csv:get(1)
+     end     
+     csv:release()
+     if (ctk.string.occur(item.url, '://') ~= 0) then
+       self:AddURLLogItemToList(list, item)
+     end
+   end
+end
+
 function M:ImportURLLogFile(logname,onendlua)
  local histfile = browser.info.configdir..logname..'.sclist'
  local srcfile = app.openfile(self.listfilter,'sclist')
  if ctk.file.exists(srcfile) == true then
+   local fileext = ctk.file.getext(srcfile:lower())
    local l = ctk.string.list:new()
    local slp = ctk.string.loop:new()
    if ctk.file.exists(histfile) == true then
@@ -164,9 +205,7 @@ function M:ImportURLLogFile(logname,onendlua)
    end
    slp:loadfromfile(srcfile)
    while slp:parsing() do
-     if l:indexof(slp.current) == -1 then
-       l:add(slp.current)
-     end
+     self:ImportURLLogFileItem(l, slp.current, fileext)
    end
    l:savetofile(histfile)
    slp:release() 
