@@ -17,12 +17,14 @@ uses Lua, Classes, Windows, Messages, SysUtils, Forms, Dialogs, TypInfo,
 function lua_getappinfo(L: plua_State): Integer; cdecl;
 function lua_setappinfo(L: plua_State): Integer; cdecl;
 function app_askyesorno(L: plua_State): Integer; cdecl;
+function app_bringtofront(L: plua_State): Integer; cdecl;
 function app_editlist(L: plua_State): Integer; cdecl;
 function app_gettitle(L: plua_State): Integer; cdecl;
 function app_processmessages(L: plua_State): Integer; cdecl;
 function app_settitle(L: plua_State): Integer; cdecl;
 function app_showalert(L: plua_State): Integer; cdecl;
 function app_showalerttext(L: plua_State): Integer; cdecl;
+function app_showalerttextx(L: plua_State): Integer; cdecl;
 function app_showcustomdialog(L: plua_State): Integer; cdecl;
 function app_showinputdialog(L: plua_State): Integer; cdecl;
 function app_showmessage(L: plua_State): Integer; cdecl;
@@ -235,6 +237,12 @@ begin
   result := 1;
 end;
 
+function app_showalerttextx(L: plua_State): Integer; cdecl;
+begin
+  sanddlg.ShowAlertText(lua_tostring(L, 1),false);
+  result := 1;
+end;
+
 function app_showhtmlmessage(L: plua_State): Integer; cdecl;
 begin
   sanddlg.ShowHTMLMessage(lua_tostring(L, 1));
@@ -244,6 +252,12 @@ end;
 function app_processmessages(L: plua_State): Integer; cdecl;
 begin
   Application.processmessages;
+  result := 1;
+end;
+
+function app_bringtofront(L: plua_State): Integer; cdecl;
+begin
+  Application.bringtofront;
   result := 1;
 end;
 

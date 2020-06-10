@@ -242,6 +242,7 @@ const // messages from the V8 extension or Sandcat tasks
   SCBM_TASK_SUSPENDED = 20;
   SCBM_TASK_RESUMED = 21;
   SCBM_LOGCUSTOMSCRIPTERROR = 22;
+  SCBM_NEWTAB = 23;
 
 implementation
 
@@ -461,6 +462,8 @@ begin
       tasks.SetTaskParam_JSON(str);
     SCBM_LUA_RUN:
       Extensions.RunLuaCmd(str);
+    SCBM_NEWTAB:
+      tabmanager.NewTab(str);
     SCBM_LOGWRITELN:
       fLog.WriteLn(str);
     SCBM_LOGWRITE:

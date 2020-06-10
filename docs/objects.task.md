@@ -8,6 +8,8 @@ Methods available from within an isolated process of a Sandcat Task:
 
 * **task:browserdostring** ( luacode ): Runs a Lua script in the browser process.
 
+* **task:browsernewtab** ( url ): Opens a URL in a new tab
+
 * **task:dopackfile** ( pakfilename, scriptfilename): Loads and runs a Lua script that is inside an extension package
 
 * **task:logrequest** ( json ) Can be used to manually log a request from a custom HTTP client class to the Live Headers list. Accepts the same keys as the tab:logrequest() method.

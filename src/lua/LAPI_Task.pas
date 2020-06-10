@@ -7,8 +7,6 @@ unit LAPI_Task;
   Copyright (c) 2011-2020, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
-
-  TODO: needs some cleanup
 }
 
 interface
@@ -67,40 +65,42 @@ begin
   SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, json);
 end;
 
-procedure SendJSONCmdStr(cmd, str: string);
+function SendJSONCmdStr(cmd, str: string): Integer;
 var
   j: TSandJSON;
 begin
+  result := 1;
   j := TSandJSON.Create;
   j['tid'] := TaskID;
   j['cmd'] := cmd;
   j['s'] := str;
-  SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
+  SendJSONCmd(j.Text);
   j.free;
 end;
 
-procedure SendTabJSONCmdStr(cmd, str: string);
+function SendTabJSONCmdStr(cmd, str: string): Integer;
 var
   j: TSandJSON;
 begin
+  result := 1;
   j := TSandJSON.Create;
   j['tid'] := TaskID;
   j['cmd'] := cmd;
   j['s'] := str;
-  SendCromisMessage(tabhandle, SCBM_RUNJSONCMD, j.text);
+  SendCromisMessage(tabhandle, SCBM_RUNJSONCMD, j.Text);
   j.free;
 end;
 
-procedure LogLuaError(sender:string; line: integer;msg:string);
+procedure LogLuaError(sender: string; Line: Integer; Msg: string);
 var
   j: TSandJSON;
 begin
   j := TSandJSON.Create;
   j['tid'] := TaskID;
   j['sender'] := sender;
-  j['line'] := line;
-  j['msg'] := msg;
-  SendCromisMessage(tabhandle, SCBM_LOGCUSTOMSCRIPTERROR, j.text);
+  j['line'] := Line;
+  j['msg'] := Msg;
+  SendCromisMessage(tabhandle, SCBM_LOGCUSTOMSCRIPTERROR, j.Text);
   j.free;
 end;
 
@@ -112,29 +112,30 @@ begin
   p.values['TID'] := tid;
   p.values['Name'] := name;
   p.WriteString('data', 'Value', value, 'base64');
-  SendCromisMessage(tabhandle, SCBM_TASK_SETPARAM, p.text);
+  SendCromisMessage(tabhandle, SCBM_TASK_SETPARAM, p.Text);
   p.free;
+end;
+
+function PrintSpecial(const specialcmd, s: string): Integer;
+begin
+  result := 1;
+  SendJSONCmdStr('special', specialcmd);
+  SendJSONCmdStr('writeln', s);
 end;
 
 function lua_method_printsuccess(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr('special', 'paintgreen');
-  SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
-  Result := 1;
+  result := PrintSpecial('paintgreen', plua_AnyToString(L, 1));
 end;
 
 function lua_method_printfailure(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr('special', 'paintred');
-  SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
-  Result := 1;
+  result := PrintSpecial('paintred', plua_AnyToString(L, 1));
 end;
 
 function lua_method_printfatalerror(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr('special', 'paintyellow');
-  SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
-  Result := 1;
+  result := PrintSpecial('paintyellow', plua_AnyToString(L, 1));
 end;
 
 function lua_method_outputmsg(L: PLua_State): Integer; cdecl;
@@ -152,39 +153,36 @@ begin
   j['cmd'] := 'outputmsg';
   j['s'] := Msg;
   j.sObject.I['i'] := imgindex;
-  SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
+  SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.Text);
   j.free;
-  Result := 1;
+  result := 1;
 end;
 
 function lua_task_writeln(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
-  Result := 1;
+  result := SendJSONCmdStr('writeln', plua_AnyToString(L, 1));
 end;
 
 function lua_task_write(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr('write', plua_AnyToString(L, 1));
-  Result := 1;
+  result := SendJSONCmdStr('write', plua_AnyToString(L, 1));
 end;
 
 function lua_console_writeln(L: PLua_State): Integer; cdecl;
 begin
-  SendCromisMessage(tabhandle, SCBM_LOGWRITELN, plua_AnyToString(L, 1));
-  Result := 1;
+  result := SendCromisMessage(tabhandle, SCBM_LOGWRITELN,
+    plua_AnyToString(L, 1));
 end;
 
 function lua_console_write(L: PLua_State): Integer; cdecl;
 begin
-  SendCromisMessage(tabhandle, SCBM_LOGWRITE, plua_AnyToString(L, 1));
-  Result := 1;
+  result := SendCromisMessage(tabhandle, SCBM_LOGWRITE, plua_AnyToString(L, 1));
 end;
 
 function lua_ScriptLogError(L: PLua_State): Integer; cdecl;
 begin
-  LogLuaError('Task',lua_tointeger(L, 1),lua_tostring(L, 2));
-  Result := 1;
+  LogLuaError('Task', lua_tointeger(L, 1), lua_tostring(L, 2));
+  result := 1;
 end;
 
 function lua_getParamStr(L: PLua_State): Integer; cdecl;
@@ -198,7 +196,7 @@ begin
   end
   else
     lua_pushstring(L, lua_tostring(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 function lua_getParamInt(L: PLua_State): Integer; cdecl;
@@ -207,7 +205,7 @@ begin
     lua_pushinteger(L, UserParams.sObject.I[lua_tostring(L, 1)])
   else
     lua_pushinteger(L, lua_tointeger(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 function lua_getParamBool(L: PLua_State): Integer; cdecl;
@@ -216,13 +214,13 @@ begin
     lua_pushboolean(L, UserParams.sObject.b[lua_tostring(L, 1)])
   else
     lua_pushboolean(L, lua_toboolean(L, 2));
-  Result := 1;
+  result := 1;
 end;
 
 procedure TSandcatTaskProcess.ScriptExceptionHandler(Title: string;
   Line: Integer; Msg: string; var handled: Boolean);
 begin
-  logluaerror('Task',Line,format('%s: %s', [Title, Msg]));
+  LogLuaError('Task', Line, format('%s: %s', [Title, Msg]));
   handled := true;
 end;
 
@@ -237,7 +235,7 @@ begin
   end
   else
     lua_pushstring(L, emptystr);
-  Result := 1;
+  result := 1;
 end;
 
 function lua_Params_SetParam(L: PLua_State): Integer; cdecl;
@@ -245,25 +243,23 @@ begin
   if UserParams.HasPath(lua_tostring(L, 2)) then
     UserParams.sObject.s[lua_tostring(L, 2)] := lua_tostring(L, 3);
   Task_SetParam(tabhandle, TaskID, lua_tostring(L, 2), lua_tostring(L, 3));
-  Result := 1;
+  result := 1;
 end;
 
 function lua_getappdir(L: PLua_State): Integer; cdecl;
 begin
   lua_pushstring(L, extractfilepath(paramstr(0)));
-  Result := 1;
+  result := 1;
 end;
 
 function lua_method_runtabcmd(L: PLua_State): Integer; cdecl;
 begin
-  SendTabJSONCmdStr(lua_tostring(L, 1), lua_tostring(L, 2));
-  Result := 1;
+  result := SendTabJSONCmdStr(lua_tostring(L, 1), lua_tostring(L, 2));
 end;
 
 function lua_method_runcmd(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr(lua_tostring(L, 1), lua_tostring(L, 2));
-  Result := 1;
+  result := SendJSONCmdStr(lua_tostring(L, 1), lua_tostring(L, 2));
 end;
 
 constructor TSandcatTaskProcess.Create(AOwner: TComponent);
@@ -307,7 +303,7 @@ end;
 
 function GetTaskFileName(tid: string): string;
 begin
-  Result := GetSandcatDir(SCDIR_TASKS) + tid + '.json';
+  result := GetSandcatDir(SCDIR_TASKS) + tid + '.json';
 end;
 
 function RunTaskSeparateProcess(tid, script: string; tabhandle: Integer;
@@ -316,7 +312,7 @@ var
   f: string;
   j: TSandJINI;
 begin
-  Result := 0;
+  result := 0;
   if tid = emptystr then
     exit;
   if script = emptystr then
@@ -329,10 +325,10 @@ begin
   if UserScript.Lua_Task_Init <> emptystr then
     j.WriteString(tid, 'initscript', UserScript.Lua_Task_Init);
   j.WriteString(tid, 'script', base64encode(script));
-  j.WriteString(tid, 'params', base64encode(UserParams.text));
+  j.WriteString(tid, 'params', base64encode(UserParams.Text));
   j.SaveToFile;
   j.free;
-  Result := RunTask(paramstr(0) + ' ' + cBgTaskPrefix + tid, false, SW_HIDE);
+  result := RunTask(paramstr(0) + ' ' + cBgTaskPrefix + tid, false, SW_HIDE);
 end;
 
 procedure TSandcatTaskProcess.Run(const tid: string);
@@ -357,7 +353,7 @@ begin
   fLuaWrap.ExecuteCmd('task.id = tid');
   fLuaWrap.ExecuteCmd('task.pid = pid');
   fLuaWrap.ExecuteCmd(j.ReadString(tid, 'initscript', emptystr));
-  UserParams.text := base64decode(j.ReadString(tid, 'params', emptystr));
+  UserParams.Text := base64decode(j.ReadString(tid, 'params', emptystr));
   script := base64decode(j.ReadString(tid, 'script', emptystr));
   fLuaWrap.ExecuteCmd(script);
   if TaskStopped = false then
@@ -379,11 +375,11 @@ begin
   if fileexists(pakfile) then
   begin
     script := tstringlist.Create;
-    script.text := GetTextFileFromZIP(pakfile, lua_tostring(L, 3));
-    lua_pushstring(L, script.text);
+    script.Text := GetTextFileFromZIP(pakfile, lua_tostring(L, 3));
+    lua_pushstring(L, script.Text);
     script.free;
   end;
-  Result := 1;
+  result := 1;
 end;
 
 function lua_dofile(L: PLua_State): Integer; cdecl;
@@ -395,31 +391,35 @@ begin
   if fileexists(extfile) then
   begin
     script := tstringlist.Create;
-    script.text := GetTextFileFromZIP(extfile, lua_tostring(L, 3));
-    showmessage(script.text);
-    plua_dostring(L, script.text);
+    script.Text := GetTextFileFromZIP(extfile, lua_tostring(L, 3));
+    showmessage(script.Text);
+    plua_dostring(L, script.Text);
     script.free;
   end;
-  Result := 1;
+  result := 1;
 end;
 
 function lua_LogRequest(L: PLua_State): Integer; cdecl;
 begin
   if lua_tostring(L, 2) <> emptystr then
-    SendCromisMessage(tabhandle, SCBM_LOGEXTERNALREQUEST_JSON, lua_tostring(L, 2));
-  Result := 1;
+    SendCromisMessage(tabhandle, SCBM_LOGEXTERNALREQUEST_JSON,
+      lua_tostring(L, 2));
+  result := 1;
 end;
 
 function lua_request_send(L: PLua_State): Integer; cdecl;
 begin
-  SendCromisMessage(tabhandle, SCBM_REQUEST_SEND, lua_tostring(L, 2));
-  Result := 1;
+  result := SendCromisMessage(tabhandle, SCBM_REQUEST_SEND, lua_tostring(L, 2));
 end;
 
-function lua_Run(L: PLua_State): Integer; cdecl;
+function lua_browser_dostring(L: PLua_State): Integer; cdecl;
 begin
-  SendCromisMessage(tabhandle, SCBM_LUA_RUN, lua_tostring(L, 2));
-  Result := 1;
+  result := SendCromisMessage(tabhandle, SCBM_LUA_RUN, lua_tostring(L, 2));
+end;
+
+function lua_browser_newtab(L: PLua_State): Integer; cdecl;
+begin
+  result := SendCromisMessage(tabhandle, SCBM_NEWTAB, lua_tostring(L, 2));
 end;
 
 function lua_setprogress(L: PLua_State): Integer; cdecl;
@@ -432,7 +432,7 @@ function lua_setprogress(L: PLua_State): Integer; cdecl;
     j['cmd'] := 'setprogress';
     j.sObject.I['p'] := pos;
     j.sObject.I['m'] := max;
-    SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
+    SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.Text);
     j.free;
   end;
 
@@ -441,7 +441,7 @@ begin
     Task_SetProgress(lua_tointeger(L, 2))
   else
     Task_SetProgress(lua_tointeger(L, 2), lua_tointeger(L, 3));
-  Result := 1;
+  result := 1;
 end;
 
 function lua_setscript(L: PLua_State): Integer; cdecl;
@@ -456,41 +456,36 @@ begin
   j['cmd'] := 'setscript';
   j['e'] := event;
   j['s'] := script;
-  SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.text);
+  result := SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.Text);
   j.free;
-  Result := 1;
 end;
 
 function lua_showmessage(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr('showmsg', lua_tostring(L, 2));
-  // showmessage(lua_tostring(L,2));
-  Result := 1;
+  result := SendJSONCmdStr('showmsg', lua_tostring(L, 2));
 end;
 
 function lua_method_special(L: PLua_State): Integer; cdecl;
 begin
-  SendJSONCmdStr('special', lua_tostring(L, 2));
-  Result := 1;
+  result := SendJSONCmdStr('special', lua_tostring(L, 2));
 end;
 
 function lua_method_stop(L: PLua_State): Integer; cdecl;
 begin
   TaskStopped := true;
-  SendJSONCmdStr('stop', lua_tostring(L, 2));
-  Result := 1;
+  result := SendJSONCmdStr('stop', lua_tostring(L, 2));
 end;
 
 function lua_method_finish(L: PLua_State): Integer; cdecl;
 begin
   TaskStopped := true;
-  SendJSONCmdStr('finish', lua_tostring(L, 2));
-  Result := 1;
+  result := SendJSONCmdStr('finish', lua_tostring(L, 2));
 end;
 
 procedure register_methods(L: PLua_State; classTable: Integer);
 begin
-  RegisterMethod(L, 'browserdostring', @lua_Run, classTable);
+  RegisterMethod(L, 'browserdostring', @lua_browser_dostring, classTable);
+  RegisterMethod(L, 'browsernewtab', @lua_browser_newtab, classTable);
   RegisterMethod(L, 'dopackfile', @lua_dofile, classTable);
   RegisterMethod(L, 'getpackfile', @lua_readpakfile, classTable);
   RegisterMethod(L, 'logrequest', @lua_LogRequest, classTable);
@@ -508,7 +503,7 @@ const
 
 function new_callback(L: PLua_State; AParent: TLuaObject = nil): TLuaObject;
 begin
-  Result := TSandcatTaskProcessLuaObject.Create(L, AParent);
+  result := TSandcatTaskProcessLuaObject.Create(L, AParent);
 end;
 
 function Create(L: PLua_State): Integer; cdecl;
@@ -516,7 +511,7 @@ var
   p: TLuaObjectNewCallback;
 begin
   p := @new_callback;
-  Result := new_LuaObject(L, aObjectName, p);
+  result := new_LuaObject(L, aObjectName, p);
 end;
 
 procedure RegisterTaskProcessObject(L: PLua_State);
@@ -531,11 +526,11 @@ function TSandcatTaskProcessLuaObject.GetPropValue(propName: string): Variant;
 begin
   case TProps(GetEnumValue(TypeInfo(TProps), 'prop_' + lowercase(propName))) of
     prop_caption:
-      Result := fCaption;
+      result := fCaption;
     prop_status:
-      Result := fStatus;
+      result := fStatus;
   else
-    Result := inherited GetPropValue(propName);
+    result := inherited GetPropValue(propName);
   end;
 end;
 
@@ -553,14 +548,14 @@ function TSandcatTaskProcessLuaObject.SetPropValue(propName: string;
   end;
 
 begin
-  Result := true;
+  result := true;
   case TProps(GetEnumValue(TypeInfo(TProps), 'prop_' + lowercase(propName))) of
     prop_caption:
       setcaption(string(AValue));
     prop_status:
       setstatus(string(AValue));
   else
-    Result := inherited SetPropValue(propName, AValue);
+    result := inherited SetPropValue(propName, AValue);
   end;
 end;
 

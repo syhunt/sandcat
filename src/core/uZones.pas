@@ -268,7 +268,7 @@ type
     procedure SaveResource(const URL: string; const fromcloud: boolean = false);
     procedure SaveURLAs(const URL: string);
     procedure ShowAlert(const msg: string; const escape_html: boolean = true);
-    procedure ShowAlertText(const msg: string);
+    procedure ShowAlertText(const msg: string; const escape_html: boolean = true);
     procedure ShowCustomDialog(const HTML: string; const id: string = '');
     procedure ShowHTMLMessage(const HTML: string);
     procedure ShowMessage(const msg: string; const escape: boolean = true);
@@ -1781,11 +1781,16 @@ begin
   j.Free;
 end;
 
-procedure TSandcatDialogs.ShowAlertText(const msg: string);
+procedure TSandcatDialogs.ShowAlertText(const msg: string;
+  const escape_html: boolean = true);
+var amsg:string;
 begin
+  amsg := msg;
+  if escape_html = true then
+    amsg := htmlescape(amsg);
   ShowAlert(
     '<plaintext style="width:300px;height:150px;overflow-x:none;margin:10px;" readonly="true">'
-    + htmlescape(msg) + '</plaintext>', false);
+    + amsg + '</plaintext>', false);
 end;
 
 procedure TSandcatDialogs.ShowAlert(const msg: string;
@@ -1795,7 +1800,7 @@ var
   amsg: string;
 begin
   amsg := msg;
-  if escape_html then
+  if escape_html = true then
     amsg := htmlescape(amsg);
   j := TSandJSON.Create;
   j['msg'] := amsg;

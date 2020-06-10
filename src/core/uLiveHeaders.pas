@@ -96,6 +96,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    property HeadersAscending: boolean read fHeadersAscending;
+    property FilteredAscending: boolean read fFilteredAscending;
     property FilterEdit: TEdit read fFilterEdit;
   end;
 
@@ -123,7 +125,7 @@ begin
   else
     result := AnsiCompareText(Item1.SubItems[Data - 1],
       Item2.SubItems[Data - 1]);
-  if not tabmanager.ActiveTab.liveheaders.fHeadersAscending then
+  if not tabmanager.ActiveTab.liveheaders.HeadersAscending then
     result := -result;
 end;
 
@@ -135,7 +137,7 @@ begin
   else
     result := AnsiCompareText(Item1.SubItems[Data - 1],
       Item2.SubItems[Data - 1]);
-  if not tabmanager.ActiveTab.liveheaders.fFilteredAscending then
+  if not tabmanager.ActiveTab.liveheaders.FilteredAscending then
     result := -result;
 end;
 

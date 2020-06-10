@@ -4,6 +4,8 @@ Contains mostly application and window related functions
 
 * **app.ask_yn** (msg [,caption]) : Asks a question. Returns true if the Yes button is pressed and false if No is pressed. The second parameter is optional. Returns `boolean`
 
+* **app.bringtofront** (): Brings the application window to the front.
+
 * **app.gettitle** (): Gets the application window title. Returns `string`
 
 * **app.openfile** ( [filter, default_ext, default_filename] ): Displays the open file dialog. Returns the entered filename or an empty string if the Cancel button has been pressed. All parameters are optional. Returns `string`

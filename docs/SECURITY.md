@@ -5,6 +5,7 @@ Sandcat Extensions, built using HTML and Lua, can execute Lua code with file IO 
 This applies to the following functions:
 * **app.showdialogx()**
 * **app.showmessagex()**
+* **app_showalerttext()**
 * **browser.loadpagex()**
 * **browser.newtabx()**
 * **tab:loadx()**

@@ -82,9 +82,9 @@ end;
 
 procedure RegisterApp(L: plua_State);
 const
-  app_table: array [1 .. 18] of luaL_reg = (
+  app_table: array [1 .. 20] of luaL_reg = (
   (name: 'ask_yn';func: app_askyesorno),
-  // (name:'doedit';func:app_do_operation),
+  (name: 'bringtofront';func: app_bringtofront),
   (name: 'editlist'; func: app_editlist),
   (name: 'gettitle'; func: app_gettitle),
   (name: 'openfile'; func: app_showopendialog),
@@ -95,6 +95,7 @@ const
   (name: 'settitle'; func: app_settitle),
   (name: 'showalert'; func: app_showalert),
   (name: 'showalerttext'; func: app_showalerttext),
+  (name: 'showalerttextx'; func: app_showalerttextx),  
   (name: 'showdialogx'; func: app_showcustomdialog),
   (name: 'showinputdialog'; func: app_showinputdialog),
   (name: 'showmessage'; func: app_showmessage),
