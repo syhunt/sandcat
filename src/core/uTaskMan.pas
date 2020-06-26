@@ -53,6 +53,7 @@ type
     fStatus: string;
     fStopped: boolean;
     fTabMsgHandle: HWND;
+    fTag: string;
     fTID: string;
     function Format(const s: string): string;
     procedure MonitorEval(const tis: string);
@@ -63,6 +64,7 @@ type
     procedure SetCaption(const s: string);
     procedure SetStatus(const s: string);
     procedure SetMonitor(const m: TSandUIEngine);
+    procedure SetTag(const s: string);
     procedure Suspend(const resume: boolean = false);
     procedure CopyDataMessage(const msg: integer; const str: string);
     procedure MonitorQueueTimerTimer(Sender: TObject);
@@ -93,7 +95,8 @@ type
     property msg: TCatMsgCromis read fMsg;
     property OnStop: TSandcatTaskOnStop read fOnStop write fOnStop;
     property Status: string read fStatus write SetStatus;
-    property tid: string read fTID;
+    property Tag: string read fTag write SetTag;
+    property TID: string read fTID;
   end;
 
 type
@@ -110,7 +113,7 @@ type
   public
     function AddTask(const MenuHTML: string; const Hidden: boolean = false)
       : TSandcatTask;
-    function SelectTask(const tid: string): TSandcatTask;
+    function SelectTask(const tid: string; IsTag:boolean=false): TSandcatTask;
     procedure ClearInactiveTasks;
     procedure GetDownloadList(var sl: TStringList);
     procedure GetTaskList(var sl: TStringList);
@@ -181,7 +184,7 @@ end;}
 type
   TJSONCmds = (cmd_setcaption, cmd_setprogress, cmd_setscript, cmd_setstatus,
     cmd_special, cmd_print, cmd_outputmsg, cmd_showmsg, cmd_stop, cmd_finish,
-    cmd_writeln, cmd_write);
+    cmd_settag, cmd_writeln, cmd_write);
 
 procedure TSandcatTaskManager.RunJSONCmd(const json: string);
 var
@@ -205,6 +208,8 @@ begin
         Task.SetScript(j['e'], j['s']);
       cmd_setstatus:
         Task.SetStatus(j['s']);
+      cmd_settag:
+        Task.SetTag(j['s']);
       cmd_special:
         Task.DoSpecial(j['s']);
       cmd_print:
@@ -310,7 +315,8 @@ begin
   end;
 end;
 
-function TSandcatTaskManager.SelectTask(const tid: string): TSandcatTask;
+// Selects a task by its TID or by its tag name
+function TSandcatTaskManager.SelectTask(const tid: string; IsTag:boolean=false): TSandcatTask;
 var
   c: integer;
   Task: TSandcatTask;
@@ -319,9 +325,15 @@ begin
   for c := fCache.Count - 1 downto 0 do
   begin
     Task := TSandcatTask(fCache.ObjectAt(c));
-    if Task <> nil then
-      if Task.fTID = tid then
-        result := Task;
+    if Task <> nil then begin
+      if istag = false then begin
+        if Task.fTID = tid then
+          result := Task;
+      end else begin
+        if (Task.fTag <> emptystr) and (Task.fTag = tid) then
+          result := Task;
+      end;
+    end;
   end;
 end;
 
@@ -838,6 +850,12 @@ begin
     if e <> nil then
       e.value := fCaption;
   end;
+end;
+
+// ToDo, future: support multiple tags
+procedure TSandcatTask.SetTag(const s: string);
+begin
+  fTag := s;
 end;
 
 procedure TSandcatTask.SetIconAni(const url: string);

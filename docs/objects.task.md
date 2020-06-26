@@ -34,6 +34,7 @@ caption	| string | Gets or sets the task caption
 id | string | Gets the unique ID of the task
 pid | string | Gets the process ID of the task
 status | string | Gets or sets the task status text
+tag	| string | Gets or sets an optional tag for the task
 
 ###Additional Functions
 

@@ -22,6 +22,8 @@
 
 * **browser.getpackfile** ( pakfilename, filename): Gets the contents of a file that is inside an extension package. Returns `string`
 
+* **browser.gettaskidbytag** ( tag ): Gets the ID of task by its tag name. Returns `string`
+
 * **browser.gettaskinfo** ( taskid ): Gets details about a Sandcat Task, launched using the tab:runtask() function. Returns `table`
 
 * **browser.gototab** ( tabname ): Goes to the specified tab

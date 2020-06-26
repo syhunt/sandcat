@@ -33,6 +33,7 @@ type
   private
     fCaption: string;
     fStatus: string;
+    fTag: string;
   public
     constructor Create(LuaState: PLua_State; AParent: TLuaObject = nil);
       overload; override;
@@ -520,7 +521,7 @@ begin
 end;
 
 type
-  TProps = (prop_status, prop_caption);
+  TProps = (prop_status, prop_caption, prop_tag);
 
 function TSandcatTaskProcessLuaObject.GetPropValue(propName: string): Variant;
 begin
@@ -529,6 +530,8 @@ begin
       result := fCaption;
     prop_status:
       result := fStatus;
+    prop_tag:
+      result := fTag;
   else
     result := inherited GetPropValue(propName);
   end;
@@ -536,24 +539,21 @@ end;
 
 function TSandcatTaskProcessLuaObject.SetPropValue(propName: string;
   const AValue: Variant): Boolean;
-  procedure setstatus(s: string);
+  function setprop(const cmd, value: string):string;
   begin
-    SendJSONCmdStr('setstatus', s);
-    fStatus := s;
-  end;
-  procedure setcaption(s: string);
-  begin
-    SendJSONCmdStr('setcaption', s);
-    fCaption := s;
+    SendJSONCmdStr(cmd, value);
+    result := value;
   end;
 
 begin
   result := true;
   case TProps(GetEnumValue(TypeInfo(TProps), 'prop_' + lowercase(propName))) of
     prop_caption:
-      setcaption(string(AValue));
+      fCaption := setprop('setcaption',string(AValue));
     prop_status:
-      setstatus(string(AValue));
+      fStatus := setprop('setstatus', string(AValue));
+    prop_tag:
+      fStatus := setprop('settag', string(AValue));
   else
     result := inherited SetPropValue(propName, AValue);
   end;

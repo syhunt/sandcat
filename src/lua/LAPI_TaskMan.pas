@@ -40,6 +40,7 @@ function lua_bgtasksetparams(L: PLua_State): integer; cdecl;
 function lua_bgtaskgetparam(L: PLua_State): integer; cdecl;
 function lua_bgtaskspecial(L: PLua_State): integer; cdecl;
 function lua_bgtaskgethandle(L: PLua_State): integer; cdecl;
+function lua_bgtaskgettidbytag(L: PLua_State): integer; cdecl;
 function lua_bgtasksetscript(L: PLua_State): integer; cdecl;
 function lua_gettasklist(L: PLua_State): integer; cdecl;
 function lua_bgtaskgetstatus(L: PLua_State): integer; cdecl;
@@ -164,6 +165,17 @@ begin
       Task.SetParams(lua_tostring(L, 3));
     Task.RunScript(lua_tostring(L, 2));
   end;
+  result := 1;
+end;
+
+function lua_bgtaskgettidbytag(L: PLua_State): integer; cdecl;
+var
+  Task: TSandcatTask;
+begin
+  Task := tasks.SelectTask(lua_tostring(L, 1), true);
+  if Task <> nil then
+    lua_pushstring(L, Task.TID) else
+    lua_pushstring(L, emptystr);
   result := 1;
 end;
 
