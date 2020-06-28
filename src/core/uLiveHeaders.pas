@@ -103,7 +103,7 @@ type
 
 implementation
 
-uses uMain, uZones, uConst, CatFiles, CatStrings, CatUI, CatHTTP, CatRegEx,
+uses uMain, uZones, uConst, CatFiles, CatStrings, CatUI, CatHTTP, CatMatch,
   uMisc;
 
 function GetSearchParam(line, param: string; def_value: string = ''): string;

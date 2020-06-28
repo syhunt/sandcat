@@ -363,7 +363,7 @@ function GetZoneID(const name: string): integer;
 
 implementation
 
-uses uMain, uTab, CatRegEx, CatCEFCache, CatStrings, CatHTTP, uConst,
+uses uMain, uTab, CatMatch, CatCEFCache, CatStrings, CatHTTP, uConst,
   uLiveHeaders, uSettings, uMisc, CatFiles, CatUI, CatZIP, CatRes;
 
 procedure Debug(const s: string; const component: string = cUIX);
