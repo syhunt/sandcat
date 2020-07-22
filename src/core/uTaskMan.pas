@@ -469,7 +469,7 @@ begin
       Task.Stop(emptystr, true);
       if Task.fPID <> 0 then
       begin
-        KillProcessByPID(Task.fPID);
+        KillTaskByPID(Task.fPID);
         Task.fPID := 0;
       end;
     end;
@@ -973,7 +973,7 @@ begin
   fScripts.OnParamChange := emptystr; // Clears the Lua code
   if fPID <> 0 then
   begin
-    KillProcessByPID(fPID);
+    KillTaskByPID(fPID);
     fPID := 0;
   end;
   if fScripts.OnStop <> emptystr then
