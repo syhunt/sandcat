@@ -44,27 +44,54 @@ end
 
 function M:AddURLLogItemToList(sl, item)
  local unixtime = os.time(os.date("!*t"))
+ local canadd = true
  item.name = item.name or ''
  item.name = ctk.html.escape(item.name)
  item.url = ctk.html.escape(item.url)
  local id = tostring(unixtime)..'-'..tostring(sl.count)
  local linecontent = '<item id="'..id..'" url="'..item.url..'" name="'..item.name..'"/>'
- if (ctk.string.occur(sl.text, 'url="'..item.url..'"') == 0) then
+ if (ctk.string.occur(sl.text, 'url="'..item.url..'"') ~= 0) then
+   canadd = false
+ end 
+ if (item.repeatnameallow == false) and (ctk.string.occur(sl.text, 'name="'..item.name..'"') ~= 0) then
+   canadd = false
+   if (item.repeatnamewarn == true) then
+     app.showmessage(item.name..' already in list.')
+   end
+ end  
+ if (canadd == true) then
    sl:insert(0, linecontent)
  end
+ return canadd
 end
 
--- ToDo WIP: This function should soon replace procedure
--- TSandcatSettings.AddToURLList() in uSettings.pas
-function M:AddURLLogItem(item,logname)
+function M:IsURLInList(item,logname)
+ local inlist = false
  local logfile = browser.info.configdir..logname..'.sclist'
  local sl = ctk.string.list:new()
  if ctk.file.exists(logfile) then
   sl:loadfromfile(logfile)
  end
- self:AddURLLogItemToList(sl, item)
+ if (ctk.string.occur(sl.text, 'url="'..item.url..'"') ~= 0) then
+   inlist = true
+ end 
+ sl:release() 
+ return inlist
+end
+
+-- ToDo WIP: This function should soon replace procedure
+-- TSandcatSettings.AddToURLList() in uSettings.pas
+function M:AddURLLogItem(item,logname)
+ local added = false
+ local logfile = browser.info.configdir..logname..'.sclist'
+ local sl = ctk.string.list:new()
+ if ctk.file.exists(logfile) then
+  sl:loadfromfile(logfile)
+ end
+ added = self:AddURLLogItemToList(sl, item)
  sl:savetofile(logfile)
  sl:release()
+ return added
 end
 
 function M:GetURLLogItemNames(logname)
