@@ -5,13 +5,18 @@
 local M = {}
 M.backup = ''
 M.confirmed = false
-M.cfg_expextension = 'scpref'
-M.cfg_expfilter = 'Preferences files (*.scpref)|*.scpref'
+M.cfg_expextension = 'scpbak'
+M.cfg_expfilter = 'Preferences Backup files (*.scpbak)|*.scpbak|Basic Preferences files (*.scpref)|*.scpref'
 
 function M:LoadFromFile(file)
  file = file or app.openfile(self.cfg_expfilter,self.cfg_expextension)
  if file ~= '' then
-  prefs.load(ctk.file.getcontents(file))
+  if ctk.file.getext(file) == '.scpbak' then
+    ctk.dir.unpackfromtar(file, browser.info.configdir)
+  end 
+  if ctk.file.getext(file) == '.scpref' then
+    prefs.load(ctk.file.getcontents(file))
+  end
   prefs.update()
  end
 end
@@ -19,10 +24,16 @@ end
 function M:SaveToFile(destfile)
  destfile = destfile or app.savefile(self.cfg_expfilter,self.cfg_expextension)
  if destfile ~= '' then
-  local sl = ctk.string.list:new()
-  sl.text = prefs.getall()
-  sl:savetofile(destfile)
-  sl:release()
+  if ctk.file.getext(destfile) == '.scpbak' then
+    prefs.save()
+    ctk.dir.packtotar(browser.info.configdir, destfile,'*.*')
+  end
+  if ctk.file.getext(destfile) == '.scpref' then
+    local sl = ctk.string.list:new()
+    sl.text = prefs.getall()
+    sl:savetofile(destfile)
+    sl:release()
+  end
  end
 end
 
