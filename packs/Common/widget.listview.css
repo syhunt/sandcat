@@ -65,6 +65,8 @@
     background-repeat: stretch;
     font-weight: normal;
     height:21px;
+    text-align: left;
+    padding-left:8px;    
   }
   table[name="reportview"] th:hover
   {
@@ -90,3 +92,43 @@
     background-color: highlight;
     color: highlighttext;
   }
+  
+       table[name="reportview"] tr.header th:nth-child(1) { 
+        assigned! : self.sorted = "desc";
+       }
+  
+        /* sort column on header cell click: */
+  table[name="reportview"] tr.header > th
+      {
+        active-on! :
+          self.parent().$1( th[sorted] ).sorted = null,   // remove @sorted from previous td of the row, if any
+          self.sorted = "asc",                            // set @sorted="asc" on this element
+          ncolumn = self:index,                           // store ncolumn for future use in the comparator
+          is_less = @(row1, row2)                      // comparator function per se
+            row1.child(ncolumn):value.toLower() < row2.child(ncolumn):value.toLower() ? true #
+            row1.child(ncolumn):value.toLower() > row2.child(ncolumn):value.toLower() ? false #
+            row1:index < row2:index,
+          self.$1p(table).$(tr:not(.header)).sort(is_less);      // do the sort.
+      }
+   table[name="reportview"] tr.header > th[sorted="asc"]
+      {
+        foreground-image: url("stock:arrow-down");
+        foreground-position-top: 50%;
+        foreground-position-right: 5px;
+        foreground-repeat: no-repeat;
+        active-on! :
+          self.sorted = "desc",
+          ncolumn = self:index,
+          is_less = @(row1, row2) 
+            row2.child(ncolumn):value.toLower() < row1.child(ncolumn):value.toLower() ? true #
+            row2.child(ncolumn):value.toLower() > row1.child(ncolumn):value.toLower() ? false #
+            row1:index < row2:index,
+          self.$1p(table).$(tr:not(.header)).sort(is_less);
+      }
+  table[name="reportview"] tr.header > th[sorted="desc"]
+      {
+        foreground-image: url("stock:arrow-up");     
+        foreground-position-top: 50%;
+        foreground-position-right: 5px;
+        foreground-repeat: no-repeat;         
+      }  

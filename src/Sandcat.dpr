@@ -43,6 +43,14 @@ uses
 {$R *.res}
 {$R Browser.res}
 
+ // Reduces executable size
+{$IFDEF RELEASE}
+{$WEAKLINKRTTI ON}
+{$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
+{$ENDIF}
+{$O+} {$SetPEFlags IMAGE_FILE_RELOCS_STRIPPED}
+ // Reduces exe size end
+
 begin
   if ExitBeforeInitializing = true then
     Halt(0);
