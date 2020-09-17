@@ -152,7 +152,7 @@ var
 begin
   scx := TSCXObject(LuaToTLuaObject(L, 1));
   i := uix.imagelistadd(scx.PakFilename, lua_tostring(L, 2));
-  lua_pushinteger(L, i);
+  plua_pushintnumber(L, i);
   result := 1;
 end;
 

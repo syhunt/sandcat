@@ -51,8 +51,8 @@ procedure RegisterTaskProcessObject(L: PLua_State);
 implementation
 
 uses
-  uTab, uSettings, uMain, LAPI_Browser, CatFiles, CatUI, CatZIP, CatStrings,
-  CatTasks, CatChromium, PLua, uConst, CatUtils, CatMsgCromis, LAPI_CEF;
+  uTab, uSettings, uMain, LAPI_Browser, CatFiles, CatUI, CatZIP, CatStrings, pLua,
+  CatTasks, CatChromium, uConst, CatUtils, CatMsgCromis, LAPI_CEF;
 
 var
   UserParams: TSandJSON;
@@ -203,9 +203,9 @@ end;
 function lua_getParamInt(L: PLua_State): Integer; cdecl;
 begin
   if UserParams.HasPath(lua_tostring(L, 1)) then
-    lua_pushinteger(L, UserParams.sObject.I[lua_tostring(L, 1)])
+    plua_pushintnumber(L, UserParams.sObject.I[lua_tostring(L, 1)])
   else
-    lua_pushinteger(L, lua_tointeger(L, 2));
+    plua_pushintnumber(L, lua_tointeger(L, 2));
   result := 1;
 end;
 

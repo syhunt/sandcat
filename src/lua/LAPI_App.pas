@@ -120,7 +120,7 @@ begin
     info_fullname:
       lua_pushstring(L, vAppNameShort);
     info_handle:
-      lua_pushinteger(L, SandBrowser.Handle);
+      plua_pushintnumber(L, SandBrowser.Handle);
     info_iconfilename:
       lua_pushstring(L, vExeFileName);
     info_initmode:

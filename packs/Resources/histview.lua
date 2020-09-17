@@ -94,21 +94,26 @@ function M:AddURLLogItem(item,logname)
  return added
 end
 
-function M:GetURLLogItemNames(logname)
- local liststr = ''
+-- Returns a table containing a list of ids and names
+function M:GetURLLogLists(logname)
+ local lists = {}
  local logfile = browser.info.configdir..logname..'.sclist'
- local l = ctk.string.list:new()
+ local names = ctk.string.list:new()
+ local ids = ctk.string.list:new() 
  local slp = ctk.string.loop:new()
  if ctk.file.exists(logfile) then
   slp:loadfromfile(logfile)
   while slp:parsing() do
-    l:add(self:GetValue(slp.current, 'name'))
+    names:add(self:GetValue(slp.current, 'name'))
+    ids:add(self:GetValue(slp.current, 'id'))    
   end
  end
- liststr = l.text
- l:release()
+ lists.namelist = names.text
+ lists.idlist = ids.text
+ names:release()
+ ids:release() 
  slp:release()
- return liststr
+ return lists
 end
 
 function M:GetValue(line, name)

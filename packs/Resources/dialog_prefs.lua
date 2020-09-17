@@ -154,6 +154,7 @@ function M:GetOptionsImport(list,options,options_disabled)
   local s = slp.current
   local en = 'true'
   s = ctk.string.trim(s)
+  --print(disabled:indexof(s))
   if disabled:indexof(s) ~= -1 then
    en = 'false'
   end

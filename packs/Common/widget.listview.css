@@ -93,7 +93,7 @@
     color: highlighttext;
   }
   
-       table[name="reportview"] tr.header th:nth-child(1) { 
+       table[name="reportview"] tr.headerdesc th:nth-child(1) { 
         assigned! : self.sorted = "desc";
        }
   

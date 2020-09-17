@@ -259,7 +259,7 @@ begin
   Task := tasks.SelectTask(lua_tostring(L, 1));
   if Task <> nil then
     h := Task.msg.MsgHandle;
-  lua_pushinteger(L, h);
+  plua_pushintnumber(L, h);
   result := 1;
 end;
 

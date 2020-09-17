@@ -151,7 +151,7 @@ const
 begin
   lual_register(L, 'console', @sandcatconsole_table);
   lua_register(L, 'print', @lua_console_writeln);
-  // for io redirect from Runik.dll
+  // for io redirect from Underscript.dll
   lua_register(L, 'sandcat_writeln', @lua_console_writeln);
   lua_register(L, 'sandcat_write', @lua_console_write);
   lua_register(L, 'sandcat_logerror', @lua_scriptlogerror);
