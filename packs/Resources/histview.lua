@@ -50,8 +50,11 @@ function M:AddURLLogItemToList(sl, item)
  item.url = ctk.html.escape(item.url)
  local id = tostring(unixtime)..'-'..tostring(sl.count)
  local linecontent = '<item id="'..id..'" url="'..item.url..'" name="'..item.name..'"/>'
- if (ctk.string.occur(sl.text, 'url="'..item.url..'"') ~= 0) then
+ if (item.repeaturlallow == false) and (ctk.string.occur(sl.text, 'url="'..item.url..'"') ~= 0) then
    canadd = false
+   if (item.repeaturlwarn == true) then
+     app.showmessage('URL already in list.')
+   end   
  end 
  if (item.repeatnameallow == false) and (ctk.string.occur(sl.text, 'name="'..item.name..'"') ~= 0) then
    canadd = false

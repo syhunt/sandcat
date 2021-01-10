@@ -84,7 +84,7 @@ uses uConst, uUIComponents, CatChromium, CatChromiumLib, uMisc, CatStrings,
 {$ELSE}
   ceflib,
 {$ENDIF}
-  CatCLUtils, CatUI, CatTasks, CatStdSysMenu, CatMsgCromis;
+  CatCLUtils, CatUtils, CatUI, CatTasks, CatStdSysMenu, CatMsgCromis;
 
 {$R *.dfm}
 
@@ -143,7 +143,7 @@ var
   Msg: string;
 begin
   Msg := component + ': ' + s;
-  OutputDebugString(pWideChar(Msg));
+  OutDebug(msg);
   if DebugMode = false then
     exit;
   DebugMemo.Lines.add(Msg);

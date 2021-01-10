@@ -16,6 +16,7 @@ function lua_activecodeedit_cut(L: PLua_State): integer; cdecl;
 function lua_activecodeedit_paste(L: PLua_State): integer; cdecl;
 function lua_activecodeedit_undo(L: PLua_State): integer; cdecl;
 function lua_activecodeedit_redo(L: PLua_State): integer; cdecl;
+function lua_activecodeedit_getfilename(L: PLua_State): integer; cdecl;
 function lua_activecodeedit_getseltext(L: PLua_State): integer; cdecl;
 function lua_activecodeedit_replacesel(L: PLua_State): integer; cdecl;
 function lua_activecodeedit_inserttext(L: PLua_State): integer; cdecl;
@@ -66,6 +67,13 @@ begin
     lua_pushstring(L, uix.ActiveMemo.SelText)
   else
     lua_pushstring(L, emptystr);
+  result := 1;
+end;
+
+function lua_activecodeedit_getfilename(L: PLua_State): integer; cdecl;
+begin
+  // ToDo: implement external file loading...
+  lua_pushstring(L, 'untitled.js');
   result := 1;
 end;
 

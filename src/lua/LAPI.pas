@@ -75,9 +75,9 @@ const
 begin
   lual_register(L, 'browser', @sandcatbrowser_table);
   // sets browser.info, browser.options...
-  plua_SetFieldValue(L,'info', @lua_getappinfo, @lua_setappinfo);
-  plua_SetFieldValue(L,'jsvalues', @lua_method_getjsvalue, @lua_method_getjsvalue);
-  plua_SetFieldValue(L,'options', @lua_getbrowseroption, @lua_setbrowseroption);
+  plua_SetFieldValueRW(L,'info', @lua_getappinfo, @lua_setappinfo);
+  plua_SetFieldValueRW(L,'jsvalues', @lua_method_getjsvalue, @lua_method_getjsvalue);
+  plua_SetFieldValueRW(L,'options', @lua_getbrowseroption, @lua_setbrowseroption);
   lual_register(L, 'debug', @sandcatdebug_table);
 end;
 
@@ -148,18 +148,24 @@ const
   (name: 'write'; func: lua_console_write),
   (name: nil; func: nil)
   );
+const
+  uconsole_table: array [1 .. 4] of luaL_reg = (
+  (name: 'writeln'; func: lua_console_writeln),
+  (name: 'write'; func: lua_console_write),
+  (name: 'errorln'; func: lua_scriptlogerror),
+  (name: nil; func: nil)
+  );
 begin
   lual_register(L, 'console', @sandcatconsole_table);
   lua_register(L, 'print', @lua_console_writeln);
   // for io redirect from Underscript.dll
-  lua_register(L, 'sandcat_writeln', @lua_console_writeln);
-  lua_register(L, 'sandcat_write', @lua_console_write);
-  lua_register(L, 'sandcat_logerror', @lua_scriptlogerror);
+  lual_register(L, 'uconsole', @uconsole_table);
 end;
 
 procedure RegisterActiveCodeEdit(L: plua_State);
 const
-  sandcatcodeedit_table: array [1 .. 12] of luaL_reg = (
+  sandcatcodeedit_table: array [1 .. 13] of luaL_reg = (
+  (name: 'getfilename'; func: lua_activecodeedit_getfilename),
   (name: 'gettext'; func: lua_activecodeedit_gettext),
   (name: 'settext'; func: lua_activecodeedit_settext),
   (name: 'getsel'; func: lua_activecodeedit_getseltext),
@@ -185,7 +191,7 @@ const
 begin
   lual_register(L, 'reqbuilder', @sandcatbuilder_table);
   // sets reqbuilder.request
-  plua_SetFieldValue(L,'request', @lua_builder_getrequestoption, @lua_builder_setrequestoption);
+  plua_SetFieldValueRW(L,'request', @lua_builder_getrequestoption, @lua_builder_setrequestoption);
 end;
 
 procedure RegisterSideBar(L: plua_State);
