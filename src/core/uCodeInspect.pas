@@ -107,7 +107,7 @@ end;
 procedure TSyCodeInspector.LoadFromFile(const filename: string);
 begin
   fSourceFilename := filename;
-  fSource.Lines.LoadFromFile(filename);
+  fSource.LoadFromFile(filename);
 end;
 
 procedure TSyCodeInspector.LoadTabs(const csv: string;
