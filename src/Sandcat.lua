@@ -23,7 +23,7 @@ Sandcat.filename = 'Resources.pak'
 function Sandcat:Init()
  -- Sets a global for acessing the Catarinka library
  -- Described in docs\libraries.catarinka.md
- ctk = require "Catarinka"
+ ctk = require "Catalunya"
  
  -- Sets UI zones for quick manipulation by extensions
  -- Described in docs\objects.uizones.md

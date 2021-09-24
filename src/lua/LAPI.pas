@@ -108,7 +108,7 @@ const
 begin
   lual_register(L, PAnsiChar('app'), @app_table);
   plua_setfieldvalue(L,'dir',extractfilepath(paramstr(0)));
-  plua_setfieldvalue(L,'datadir',GetAppDataDir);
+  plua_setfieldvalue(L,'datadir',GetSandcatAppDataDir);
 end;
 
 procedure RegisterSettings(L: plua_State);

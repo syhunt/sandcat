@@ -9,16 +9,20 @@ M.cfg_expextension = 'scpbak'
 M.cfg_expfilter = 'Preferences Backup files (*.scpbak)|*.scpbak|Basic Preferences files (*.scpref)|*.scpref'
 
 function M:LoadFromFile(file)
+ local updated = false
  file = file or app.openfile(self.cfg_expfilter,self.cfg_expextension)
  if file ~= '' then
   if ctk.file.getext(file) == '.scpbak' then
     ctk.dir.unpackfromtar(file, browser.info.configdir)
+    updated = true
   end 
   if ctk.file.getext(file) == '.scpref' then
     prefs.load(ctk.file.getcontents(file))
+    updated = true
   end
   prefs.update()
  end
+ return updated
 end
 
 function M:SaveToFile(destfile)

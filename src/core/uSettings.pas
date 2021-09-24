@@ -84,8 +84,9 @@ const // Sandcat Settings
 
 var
   IsSandcatPortable: boolean = false;
+  UseLocalAppData: boolean = false;
 
-function GetAppDataDir: string;
+function GetSandcatAppDataDir: string;
 function GetStartupSettings: TSandcatStartupSettings;
 function GetSandcatDir(dir: integer; Create: boolean = false): string;
 procedure OnbeforeCmdLine(const processType: ustring;
@@ -144,13 +145,19 @@ begin
   j.Free;
 end;
 
-function GetAppDataDir: string;
+function GetAppDataDir:string;
+begin
+  if UseLocalAppData = true then // this user
+   result := GetSpecialFolderPath(CSIDL_LOCAL_APPDATA,true) else
+   result := GetSpecialFolderPath(CSIDL_COMMON_APPDATA,true);  // all users
+end;
+
+function GetSandcatAppDataDir: string;
 begin
   if IsSandcatPortable then
     result := extractfilepath(paramstr(0))
   else
-    result := GetSpecialFolderPath(CSIDL_LOCAL_APPDATA, true) +
-      '\Syhunt\Sandcat\';
+    result := GetAppDataDir + '\Syhunt\Sandcat\';
 end;
 
 function GetSandcatDir(dir: integer; Create: boolean = false): string;
@@ -160,23 +167,23 @@ begin
   progdir := extractfilepath(paramstr(0));
   case dir of
     SCDIR_CACHE:
-      s := GetAppDataDir + 'Cache\';
+      s := GetSandcatAppDataDir + 'Cache\';
     SCDIR_PLUGINS:
       s := progdir + 'Packs\Extensions\';
     SCDIR_CONFIG:
-      s := GetAppDataDir + 'Config\';
+      s := GetSandcatAppDataDir + 'Config\';
     SCDIR_CONFIGSITE:
-      s := GetAppDataDir + 'Config\Site\';
+      s := GetSandcatAppDataDir + 'Config\Site\';
     SCDIR_LOGS:
-      s := GetAppDataDir + 'Logs\';
+      s := GetSandcatAppDataDir + 'Logs\';
     SCDIR_HEADERS:
-      s := GetAppDataDir + 'Cache\Headers\';
+      s := GetSandcatAppDataDir + 'Cache\Headers\';
     SCDIR_PREVIEW:
-      s := GetAppDataDir + 'Temp\Preview\';
+      s := GetSandcatAppDataDir + 'Temp\Preview\';
     SCDIR_TEMP:
-      s := GetAppDataDir + 'Temp\';
+      s := GetSandcatAppDataDir + 'Temp\';
     SCDIR_TASKS:
-      s := GetAppDataDir + 'Temp\Tasks\';
+      s := GetSandcatAppDataDir + 'Temp\Tasks\';
   end;
   if Create then
     forcedir(s);

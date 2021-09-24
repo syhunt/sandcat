@@ -38,7 +38,7 @@ tag	| string | Gets or sets an optional tag for the task
 
 ###Additional Functions
 
-In addition to the functions above, all functions above and all functions from the Catarinka library are also available from within a Sandcat Task.
+In addition to the functions above, all functions above and all functions from the Catalunya library are also available from within a Sandcat Task.
 
 * **getappdir** (): Returns the Sandcat installation directory. Returns `string`
 * **parambool** ( key, defaultvalue ): Returns the value of a parameter key as a boolean value. If the supplied key is not found and a default value has been supplied, returns the default value. Returns `boolean`

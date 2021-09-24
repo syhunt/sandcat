@@ -72,7 +72,7 @@ var
   Reg: TRegistry;
 begin
   try
-    Reg := TRegistry.Create;
+    Reg := TRegistry.Create(KEY_READ);
     try
       Reg.RootKey := HKEY_CLASSES_ROOT;
       result := Reg.KeyExists('CLSID\' + GuidToString(CLASS_Sciter));

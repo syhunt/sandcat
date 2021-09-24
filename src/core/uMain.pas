@@ -101,6 +101,8 @@ begin
   s := GetStartupSettings;
   if fileexists(ProgDir + 'Config\Portable.json') then
     IsSandcatPortable := true;
+  if fileexists(ProgDir+'\LocalAppData.json') then
+    UseLocalAppData:=true;
   PluginsDir := GetSandcatDir(SCDIR_PLUGINS);
   CefSingleProcess := false;
 {$IFDEF USEWACEF}

@@ -100,7 +100,7 @@ begin
     pakshortname := changefileext(pakshortname, '');
     module := replacestr(lua_tostring(L, 2), '.', '\');
     module := module + '.lua';
-    outfilename := GetAppDataDir + 'Lib\lua\' + pakshortname + '\' + module;
+    outfilename := GetSandcatAppDataDir + 'Lib\lua\' + pakshortname + '\' + module;
     outdir := extractfilepath(outfilename);
     if ZIPFileExists(scx.PakFilename, module) then
     begin
