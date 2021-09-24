@@ -21,8 +21,8 @@ Sandcat.filename = 'Resources.pak'
 -- For startup speed reasons it will not try to read any compressed 
 -- packs
 function Sandcat:Init()
- -- Sets a global for acessing the Catarinka library
- -- Described in docs\libraries.catarinka.md
+ -- Sets a global for acessing the Catalunya library
+ -- Described in docs\libraries.catalunya.md
  ctk = require "Catalunya"
  
  -- Sets UI zones for quick manipulation by extensions
