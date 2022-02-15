@@ -19,6 +19,7 @@ function lua_setappinfo(L: plua_State): Integer; cdecl;
 function app_askyesorno(L: plua_State): Integer; cdecl;
 function app_bringtofront(L: plua_State): Integer; cdecl;
 function app_editlist(L: plua_State): Integer; cdecl;
+function app_editmemo(L: plua_State): Integer; cdecl;
 function app_gettitle(L: plua_State): Integer; cdecl;
 function app_processmessages(L: plua_State): Integer; cdecl;
 function app_settitle(L: plua_State): Integer; cdecl;
@@ -27,6 +28,7 @@ function app_showalerttext(L: plua_State): Integer; cdecl;
 function app_showalerttextx(L: plua_State): Integer; cdecl;
 function app_showcustomdialog(L: plua_State): Integer; cdecl;
 function app_showinputdialog(L: plua_State): Integer; cdecl;
+function app_showinputdialogpw(L: plua_State): Integer; cdecl;
 function app_showmessage(L: plua_State): Integer; cdecl;
 function app_showmessage_classic(L: plua_State): Integer; cdecl;
 function app_showopendialog(L: plua_State): Integer; cdecl;
@@ -39,7 +41,7 @@ function app_seticonfromfile(L: plua_State): Integer; cdecl;
 implementation
 
 uses uMain, uConst, uSettings, uExtensions, CatStrings, CatListEditor, pLua,
-  uZones, LAPI, CatFiles;
+  uZones, LAPI, CatFiles, CatUI;
 
 type
   TAppInfoType = (info_abouturl, info_cachedir, info_ceflibrary, info_configdir,
@@ -167,6 +169,23 @@ begin
   result := 1;
 end;
 
+function app_editmemo(L: plua_State): Integer; cdecl;
+var
+  s, prevtext, exampletext, wintitle, caption: string;
+begin
+  prevtext := lua_tostring(L, 1);
+  caption := lua_tostring(L, 2);
+  exampletext := lua_tostring(L, 3);
+  wintitle := lua_tostring(L, 4);
+  if wintitle = emptystr then
+    wintitle := 'Edit Text';
+  if ShowEditMemoDialog(prevtext, wintitle, caption, s) then
+    lua_pushstring(L, s)
+  else
+    lua_pushstring(L, prevtext);
+  result := 1;
+end;
+
 function app_seticonfromres(L: plua_State): Integer; cdecl;
 var
   s: string;
@@ -197,6 +216,18 @@ begin
   if caption = emptystr then
     caption := vAppNameShort;
   s := inputbox(caption, lua_tostring(L, 1), lua_tostring(L, 2));
+  lua_pushstring(L, s);
+  result := 1;
+end;
+
+function app_showinputdialogpw(L: plua_State): Integer; cdecl;
+var
+  s, caption: string;
+begin
+  caption := lua_tostring(L, 3);
+  if caption = emptystr then
+    caption := vAppNameShort;
+  s := inputbox(caption, #31+lua_tostring(L, 1), lua_tostring(L, 2));
   lua_pushstring(L, s);
   result := 1;
 end;

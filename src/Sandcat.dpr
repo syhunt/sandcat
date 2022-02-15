@@ -42,7 +42,7 @@ uses
 
 {$R *.res}
 {$R Browser.res}
-{$R uac.res}
+//{$R uac.res}
 
  // Reduces executable size
 {$IFDEF RELEASE}
