@@ -1,7 +1,7 @@
 unit uSettings;
 {
   Sandcat Settings Manager
-  Copyright (c) 2011-2014, Syhunt Informatica
+  Copyright (c) 2011-2023, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 }
@@ -95,7 +95,7 @@ procedure OnbeforeCmdLine(const processType: ustring;
 implementation
 
 uses uMain, uMisc, uConst, CatChromium, CatChromiumLib, CatUI, CatTime,
-  CatStrings, CatFiles, CatHTTP;
+  CatStrings, CatFiles, CatHTTP, CatHashes;
 
 procedure OnbeforeCmdLine(const processType: ustring;
   const commandLine: ICefCommandLine);
@@ -197,12 +197,15 @@ begin
 end;
 
 // Returns the filename of a site preferences file. This is a JSON file that
-// can be used for storing user preferences for each specific host:port
+// can be used for storing user preferences for each specific URL
 function TSandcatSettings.GetSitePrefsFilename(const url: string): string;
+var p:TURLparts;
 begin
-  result := Format('%s [%s].json', [ExtractURLHost(url),
-    IntToStr(ExtractURLPort(url))]);
-  result := CleanFilename(result);
+  p := CrackURL(url);
+  result := Format('%s [%s]', [p.Host, inttostr(p.Port)]);
+  if (p.Path<>emptystr) and (p.path <>'/') then
+  result := result+' ['+MD5Hash(p.Path)+']';
+  result := CleanFilename(result)+'.json';
   result := GetSandcatDir(SCDIR_CONFIGSITE, true) + result;
 end;
 

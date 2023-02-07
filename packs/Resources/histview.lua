@@ -213,6 +213,11 @@ function M:ImportURLLogFileItem(list, line, fileext)
      item.url = self:MakeValidURL(line)
      self:AddURLLogItemToList(list, item)
    end
+   if fileext == '.list' then
+     item = {}
+     item.url = self:MakeValidURL(line)
+     self:AddURLLogItemToList(list, item)
+   end  
    if fileext == '.csv' then
      local csv = ctk.string.loop:new()
      csv.commatext = line

@@ -138,6 +138,8 @@ function M:EditCustom(t)
    if self.confirmed == true then
      -- tells the browser that the settings have changed
      prefs.update()
+     -- save the new settings to the disk
+     prefs.save()
    else
      -- dialog closed or cancel clicked; keep previous settings
      prefs.load(self.backup)

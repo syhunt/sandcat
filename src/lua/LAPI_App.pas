@@ -41,7 +41,7 @@ function app_seticonfromfile(L: plua_State): Integer; cdecl;
 implementation
 
 uses uMain, uConst, uSettings, uExtensions, CatStrings, CatListEditor, pLua,
-  uZones, LAPI, CatFiles, CatUI;
+  uZones, LAPI, CatFiles, CatUI, CatStringLoop;
 
 type
   TAppInfoType = (info_abouturl, info_cachedir, info_ceflibrary, info_configdir,
@@ -354,11 +354,12 @@ begin
   f := replacestr(f, '\\', '\');
   sd := tsavedialog.Create(SandBrowser);
   sd.InitialDir := emptystr;
-  sd.DefaultExt := lua_tostring(L, 2); // eg 'cfg'
   sd.FileName := f;
+  sd.DefaultExt := lua_tostring(L, 2); // eg 'cfg'
   sd.Options := sd.Options + [ofoverwriteprompt];
-  // showmessage(lua_tostring(L,1));
   sd.Filter := lua_tostring(L, 1);
+  sd.FilterIndex :=  GetDialogFilterIndexByExt(sd.filter,sd.DefaultExt);
+  // showmessage(lua_tostring(L,1));
   // eg filter  format: 'Sandcat Configuration File (*.xcfg)|*.xcfg'
   if sd.execute then
     lua_pushstring(L, sd.FileName)

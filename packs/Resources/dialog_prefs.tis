@@ -50,11 +50,24 @@
    Sandcat.PrefsSet(cid,value);
    }
  }
+ function update_option_string(e,value) {
+   var cid = e.attributes["cid"];
+   var atype = e.attributes["type"];
+   if (cid != undefined) {
+     if (value == null) { 
+       if (atype != "number") { 
+       value = "";
+       }
+      }
+   Sandcat.Debug("Updating option "+cid+" with new value: "+value);
+   Sandcat.PrefsSet(cid,value);
+   }
+ } 
  function handle_controlevent(evt) {
   switch(evt.type)
    {
-     case Event.EDIT_VALUE_CHANGED: update_option(this,this.value); return true;
-     case Event.SELECT_SELECTION_CHANGED: update_option(this,this.value); return true;
+     case Event.EDIT_VALUE_CHANGED: update_option_string(this,this.value); return true;
+     case Event.SELECT_SELECTION_CHANGED: update_option_string(this,this.value); return true;
      case Event.BUTTON_STATE_CHANGED: update_option(this,this.value); return true;
    }
  }
