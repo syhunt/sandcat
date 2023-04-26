@@ -17,6 +17,7 @@ type
     Host: string;
     Port: string;
     ReqID: string;
+    ResourceID: int64;
     Details: string;
     Method: string;
     URL: string;

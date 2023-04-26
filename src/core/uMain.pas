@@ -2,18 +2,19 @@ unit uMain;
 
 {
   Syhunt Sandcat Browser
-  Copyright (c) 2011-2017, Syhunt Informatica
+  Copyright (c) 2011-2023, Syhunt Informatica
 
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 
   This software uses the Catarinka components. Catarinka is distributed under
-  the same license as Sandcat. Copyright (c) 2003-2014, Felipe Daragon
+  the same license as Sandcat. Copyright (c) 2003-2023, Felipe Daragon
 }
 
 interface
 
 {$I Catarinka.inc}
+{$I SandcatEngine.inc}
 
 uses
 {$IFDEF DXE2_OR_UP}
@@ -79,8 +80,8 @@ implementation
 
 uses uConst, uUIComponents, CatChromium, CatChromiumLib, uMisc, CatStrings,
   CatFiles,
-{$IFDEF USEWACEF}
-  waceflib,
+{$IFDEF USEWEBVIEW2}
+  uWVLoader,
 {$ELSE}
   ceflib,
 {$ENDIF}
@@ -104,17 +105,23 @@ begin
   if fileexists(ProgDir+'\LocalAppData.json') then
     UseLocalAppData:=true;
   PluginsDir := GetSandcatDir(SCDIR_PLUGINS);
-  CefSingleProcess := false;
-{$IFDEF USEWACEF}
-  CefOnBeforeCommandLineProcessing := Settings.OnbeforeCmdLineWACEF;
-  CefCachePath := GetSandcatDir(SCDIR_CACHE);
+{$IFDEF USEWEBVIEW2}
+  GlobalWebView2Loader := TWVLoader.Create(nil);
+  if IsWindowsSeven = true  then
+  GlobalWebView2Loader.BrowserExecPath := 'C:\SyhuntUtils\Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64\';
+  GlobalWebView2Loader.UserDataFolder := GetSandcatDir(SCDIR_CACHE);
+  if s.AuditXSS = false then
+    GlobalWebView2Loader.AdditionalBrowserArguments := '--disable-xss-auditor';
+  GlobalWebView2Loader.StartWebView2;
 {$ELSE}
+  CefSingleProcess := false;
   CefOnBeforeCommandLineProcessing := OnbeforeCmdLine;
   CefCache := GetSandcatDir(SCDIR_CACHE);
-{$ENDIF}
   CefLocalesDirPath := ProgDir + 'Packs\CEF\Locales\';
   CefResourcesDirPath := ProgDir + 'Packs\CEF\Resources\';
   CefUserAgent := s.UserAgent;
+  CefRemoteDebuggingPort := 8000;
+{$ENDIF}
   if not CatCEFLoadLib then
   begin
     result := true; // This is a CEF renderer process
@@ -285,5 +292,7 @@ begin
   CatCEFShutdown(SHTD_MANUAL);
   Debug('cefshutdown.end');
 end;
+
+
 
 end.

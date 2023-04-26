@@ -1,19 +1,20 @@
 unit uTab;
 {
   Sandcat Browser Tab component
-  Copyright (c) 2011-2017, Syhunt Informatica
+  Copyright (c) 2011-2023, Syhunt Informatica
   License: 3-clause BSD license
-  See https://github.com/felipedaragon/sandcat/ for details.
+  See https://github.com/syhunt/sandcat/ for details.
 
   Important Notes:
   Chromium is on "standby" through TCatChromiumStandBy. By directly accessing
-  the Browser.c property the Chromium browser gets created and ready to use.
+  the Browser.c property the browser tab process gets created and ready to use.
 
 }
 
 interface
 
 {$I Catarinka.inc}
+{$I SandcatEngine.inc}
 
 uses
 {$IFDEF DXE2_OR_UP}
@@ -64,18 +65,25 @@ type
 
 type
   TSandcatTab = class(TCustomControl)
+  protected
+    // It's necessary to handle these messages to call NotifyParentWindowPositionChanged or some page elements will be misaligned.
+    procedure WMMove(var aMessage : TWMMove); message WM_MOVE;
+    procedure WMMoving(var aMessage : TMessage); message WM_MOVING;
   private
     fBrowser: TCatChromiumStandBy;
     fBrowserPanel: TCanvasPanel;
     fCache: TSandCache;
     fCanUpdateSource: boolean;
+    fCustomJSExecutionCount : integer;
     fCustomTab: TSandUIEngine;
     fCustomToolbar: TSandUIEngine;
     fDefaultIcon: string;
     fDownloadsList: TStringList;
     fIsClosing: boolean;
     fLastConsoleLogMessage: string;
+    fLastJSExecutionResult: string;
     fLuaOnLog: TSandJSON;
+    fLuaAfterJS: TSandJSON;
     fLiveHeaders: TLiveHeaders;
     fLoading: boolean;
     fLog: TSandLogMemo;
@@ -130,8 +138,10 @@ type
       const isLoading, canGoBack, canGoForward: boolean);
     procedure CrmLoadError(Sender: TObject; const errorCode: integer;
       const errorText, failedUrl: string);
+    procedure crmRequestDone(const req:TSandcatRequestDetails);
     procedure Debug(const s: string);
     procedure InitChrome(const crm: TCatChromium);
+    procedure HandleJSExecutionEnd(const results:string);
     procedure LogCustomScriptError(const JSON: string);
     procedure RunJSONCmd(const JSON: string);
     procedure RunUserScript(var script: string; const lang: TUserScriptLanguage;
@@ -144,7 +154,7 @@ type
   public
     UserTabScript: TSandcatTabUserScript;
     function Close(const silent: boolean = false): boolean;
-    function EvalJavaScript(const script: string): variant;
+    function EvalJavaScript(const script: string): string;
     function GetScreenshot: string;
     function GetURL: string;
     function IsActiveTab: boolean;
@@ -158,9 +168,9 @@ type
     procedure LoadExtensionToolbar(const html: string);
     procedure LoadSourceFile(const filename: string);
     procedure DoSearch(const term: string);
+    procedure RunLuaAfterJS(const luascript, javascript:string);
     procedure RunLuaOnLog(const msg, lua: string);
-    procedure RunJavaScript(const script: string; const aURL: string = '';
-      const StartLine: integer = 0); overload;
+    procedure RunJavaScript(const script: string); overload;
     procedure RunJavaScript(const script: TCatCustomJSCall); overload;
     procedure SendRequest(const method, URL, postdata: string;
       const load: boolean = false);
@@ -185,6 +195,7 @@ type
     property Icon: string read GetIcon;
     property IsClosing: boolean read fIsClosing;
     property LastConsoleLogMessage: string read fLastConsoleLogMessage;
+    property LastJSExecutionResult: string read fLastJSExecutionResult;
     property LiveHeaders: TLiveHeaders read fLiveHeaders;
     property Loading: boolean read fLoading write SetLoading;
     property Log: TSandLogMemo read fLog;
@@ -248,7 +259,7 @@ implementation
 
 uses
   uMain, uConst, uMisc, uTaskMan, uSettings, uTabV8, CatStrings, CatHTTP,
-  CatUtils, CatFiles, LAPI_Task, LAPI_Browser, LAPI_CEF;
+  CatUtils, CatFiles, LAPI_Task, LAPI_Browser, LAPI_CEF, CatMatch, CatJSON;
 
 var
   SandcatBrowserTab: TSandcatTab;
@@ -402,25 +413,39 @@ procedure TSandcatTab.RunLuaOnLog(const msg, lua: string);
 begin
   Debug('runluaonlog:' + msg + ';' + lua);
   fUseLuaOnLog := true;
-  fLuaOnLog[msg] := lua;
+  fLuaOnLog[strtohex(msg)] := lua;
 end;
 
-// Evaluates some JavaScript (not fully implemented)
-function TSandcatTab.EvalJavaScript(const script: string): variant;
+// Executes a Lua script after a JavaScript has been executed
+procedure TSandcatTab.RunLuaAfterJS(const luascript, javascript:string);
+var
+  s: TCatCustomJSCall;
 begin
-  Result := fBrowser.c.EvalJavaScript(script);
+  Debug('runluaafterjs:' + luascript + ';' + javascript);
+  Inc(fCustomJSExecutionCount);
+  fLuaAfterJS.SetValue(inttostr(fCustomJSExecutionCount),luascript);
+  s.silent := false;
+  s.code := javascript;
+  s.executionid := fCustomJSExecutionCount;
+  RunJavaScript(s);
+end;
+
+// Evaluates a JavaScript code (not fully implemented)
+function TSandcatTab.EvalJavaScript(const script: string): string;
+var
+  s: TCatCustomJSCall;
+begin
+  Inc(fCustomJSExecutionCount);
+  Result := fBrowser.c.EvalJavaScript(script, fCustomJSExecutionCount);
 end;
 
 // Executes a piece of JavaScript code (usually called by the user via some
 // extension)
-procedure TSandcatTab.RunJavaScript(const script: string;
-  const aURL: string = ''; const StartLine: integer = 0);
+procedure TSandcatTab.RunJavaScript(const script: string);
 var
   s: TCatCustomJSCall;
 begin
   s.Code := script;
-  s.URL := aURL;
-  s.StartLine := StartLine;
   s.silent := false;
   RunJavaScript(s);
 end;
@@ -496,6 +521,8 @@ begin
       Resources.AddPageResource(str, fLiveHeaders.GetImageIndexForURL(str));
     CRM_JS_ALERT:
       sanddlg.ShowAlertText(str);
+    CRM_JS_EXECUTION_END:
+      HandleJSExecutionEnd(str);
     CRM_LOG_REQUEST_JSON:
       if fLogBrowserRequests then
         fRequests.LogRequest(BuildRequestDetailsFromJSON(str));
@@ -513,6 +540,20 @@ begin
       sanddlg.SaveResource(str, true);
     CRM_BOOKMARKURL:
       Settings.AddToBookmarks(GetTitle, str);
+  end;
+end;
+
+procedure TSandcatTab.HandleJSExecutionEnd(const results:string);
+var
+  id:integer;
+  json, lua:string;
+begin
+  id := StrToIntDef(before(results,':'),0);
+  json := after(results,':');
+  lua := fLuaAfterJS.GetValue(inttostr(id),emptystr);
+  if (id <> 0) and (lua<>emptystr) then begin
+     fLastJSExecutionResult := json;
+     Extensions.RunLuaCmd(lua);
   end;
 end;
 
@@ -587,16 +628,18 @@ procedure TSandcatTab.CrmConsoleMessage(Sender: TObject;
   const message, source: string; line: integer);
 var
   storemsg: boolean;
+  msgid:string;
 begin
   Debug('Console message:' + message);
   storemsg := true;
   if (fUseLuaOnLog = true) then
   begin
-    if fLuaOnLog.GetValue(message, emptystr) <> emptystr then
+    msgid := strtohex(message);
+    if fLuaOnLog.GetValue(msgid, emptystr) <> emptystr then
     begin
       storemsg := false;
       fUseLuaOnLog := false;
-      Extensions.RunLuaCmd(fLuaOnLog.GetValue(message, emptystr));
+      Extensions.RunLuaCmd(fLuaOnLog.GetValue(msgid, emptystr));
     end;
   end
   else
@@ -735,19 +778,10 @@ begin
   Result := fDefaultIcon;
   if (fBrowser.Available) then
   begin
+    result := fDefaultIcon;
     URL := GetURL;
-    if beginswith(URL, 'http') and (fRetrieveFavIcon = true) then
-    begin
-      if extracturlfilename(URL) = emptystr then
-        Result := URL + cFavIconFileName
-      else
-        Result := replacestr(URL + ' ', '/' + ExtractURLPath(URL) + ' ',
-          '/' + cFavIconFileName);
-      Result := htmlescape(Result);
-      Result := 'url(' + Result + ')';
-      if URL = emptystr then
-        Result := fDefaultIcon;
-    end;
+    if (fRetrieveFavIcon = true) and (URL <> emptystr) then
+      result := 'url(' + htmlescape(fBrowser.c.crm.faviconuri) + ')';
   end;
   if Loading then
     Result := '@ICON_LOADING';
@@ -766,7 +800,7 @@ end;
 procedure TSandcatTab.LoadSettings;
 begin
   Debug('Loading tab Chromium settings...');
-  if fBrowser.Available then // ToDo: check if  fBrowser.Available needed here
+  if fBrowser.Available then
     fBrowser.c.LoadSettings(Settings.preferences.current,
       Settings.preferences.Default);
 end;
@@ -783,7 +817,7 @@ begin
   fSourceInspect.source.highlighter := Highlighters.GetByFileExtension(ext);
 end;
 
-// Called before loading a URL, updates the user interface and resets some
+// Called before loading a URL, updates the user interface and resets some key
 // variables
 procedure TSandcatTab.BeforeLoad(const URL: string);
 begin
@@ -821,24 +855,35 @@ begin
   // If no URL is provided, uses current tab url as the request URL
   if req.URL = emptystr then
     req.URL := GetURL;
-  if load then
-    BeforeLoad(req.URL);
-  fBrowser.c.SendRequest(req, load);
+  if load = false then
+   fBrowser.c.SendRequest(req, load) else
+   showmessage('Load request not avalable in this release.');
+  //if load then
+  //  BeforeLoad(req.URL);
+  //fBrowser.c.SendRequest(req, load);
 end;
 
 // Loads a URL. If a source parameter is supplied, loads the page from the
 // source string
 procedure TSandcatTab.GoToURL(const URL: string; const source: string = '');
+var aurl:string;
 begin
-  Debug('gotourl:' + URL);
-  if (URL <> emptystr) and (URL <> cURL_HOME) then
+  aurl := url;
+  {$IFDEF USEWEBVIEW2}
+  if (pos(':\',aurl) = 0) and (pos(':/',aurl) = 0) and (MatchWildcard(aurl,'*??:?*') = false) then
+  aurl := 'http://'+aurl;
+  {$ENDIF}
+
+  Debug('gotourl:' + aURL);
+  if (aURL <> emptystr) and (aURL <> cURL_HOME) then
   begin
-    BeforeLoad(URL);
+    BeforeLoad(aURL);
     if source = emptystr then
-      fBrowser.c.load(URL) // default load mechanism
+      fBrowser.c.load(aURL) // default load mechanism
     else
     begin
-      fBrowser.c.LoadFromString(source, URL);
+      Debug('loadfromstring');
+      fBrowser.c.LoadFromString(source, aURL);
       fSourceManual := source;
     end;
   end;
@@ -882,6 +927,7 @@ begin
   crm.OnBeforeDownload := CrmBeforeDownload;
   crm.OnDownloadUpdated := CrmDownloadUpdated;
   crm.OnConsoleMessage := CrmConsoleMessage;
+  crm.OnRequestDone := CrmRequestDone;
   // currently not needed:
   // fChrome.OnBeforeContextMenu:=crmBeforeContextMenu;
   // fChrome.OnGetAuthCredentials:=crmAuthCredentials;
@@ -889,6 +935,11 @@ begin
   // fChrome.OnProcessMessageReceived:=crmProcessMessageReceived;
   LoadSettings;
   UpdateV8Handle; // send or resend the v8 handle
+end;
+
+procedure TSandcatTab.crmRequestDone(const req:TSandcatRequestDetails);
+begin
+  fRequests.LogRequest(req);
 end;
 
 // Called before freeing a tab, if there is any active download, asks the user
@@ -1000,6 +1051,18 @@ begin
   fBrowser.c.ViewDevTools;
 end;
 
+procedure TSandcatTab.WMMove(var aMessage : TWMMove);
+begin
+  inherited;
+  fBrowser.c.NotifyParentWindowPositionChanged;
+end;
+
+procedure TSandcatTab.WMMoving(var aMessage : TMessage);
+begin
+  inherited;
+  fBrowser.c.NotifyParentWindowPositionChanged;
+end;
+
 // Creates a side tree that can be used by extensions (invisible by default)
 procedure TSandcatTab.CreateSideTree;
 begin
@@ -1105,8 +1168,12 @@ begin
   fRetrieveFavIcon := true;
   fCanUpdateSource := true;
   fSyncWithTask := false;
+  fLastConsoleLogMessage := emptystr;
+  fLastJSExecutionResult := emptystr;
+  fCustomJSExecutionCount := 0;
   fUserData := TSandJSON.Create;
   fLuaOnLog := TSandJSON.Create;
+  fLuaAfterJS := TSandJSON.Create;
   fDownloadsList := TStringList.Create;
   CreateMainPanel;
   CreateLiveHeaders;
@@ -1142,6 +1209,7 @@ begin
   fResources.Free;
   fBrowserPanel.Free;
   fSubTabs.Free;
+  fLuaAfterJS.Free;
   fLuaOnLog.Free;
   fUserData.Free;
   fState.Free;

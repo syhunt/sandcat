@@ -1,7 +1,7 @@
 unit uRequests;
 {
   Sandcat HTTP Request Logger
-  Copyright (c) 2011-2014, Syhunt Informatica
+  Copyright (c) 2011-2023, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 }
@@ -15,7 +15,6 @@ uses
 type
   TSandcatRequests = class
   private
-    fCriticalSection: TCriticalSection;
     fIsClosing: boolean;
     fLogRequests: boolean;
     fLoggedRequests: integer;
@@ -74,7 +73,10 @@ begin
   if RequestExists(jsonrequestfile) = false then
     exit;
   j := TSandJINI.Create;
+  try
   j.text := Cache.gettextfile(cReqFolder + jsonrequestfile);
+  except
+  end;
   result.URL := aestostr(j.Values['URL'],GetCatKey(CATKEY_REQUESTHEADERS));
   result.response := j.Values['Response'];
   result.MimeType := j.Values['MimeType'];
@@ -112,15 +114,20 @@ begin
   j.Free;
 end;
 
-// main procedure for logging a Sandcat Request (to a json file) - VFS
+// main procedure for logging a Sandcat Request (to a json file) in VFS
 procedure TSandcatRequests.LogRequest(request: TSandcatRequestDetails);
 var
   logfile: TSandJINI;
   hasreqid, canlog: boolean;
+  hdrmethod:string;
   procedure reconstruct_missing_details;
   begin
-    if request.Method = emptystr then // get it from the sent header
-      request.Method := before(request.SentHead, ' ');
+    if request.Method = emptystr then begin // get it from the sent header
+      request.method := 'GET';
+      hdrmethod := before(request.SentHead, ' ');
+      if hdrmethod = 'POST' then
+      request.Method := hdrmethod;
+    end;
     if request.URL = emptystr then
     begin
       // checks if host and port were provided and reconstruct from them
@@ -205,7 +212,11 @@ begin
     end;
   end;
   // showmessage('storing:'+logfile.text);
-  Cache.StoreString(cReqFolder + logfile.Filename, logfile.text);
+  try
+    Cache.StoreString(cReqFolder + logfile.Filename, logfile.text);
+  except
+  end;
+
   logfile.Free;
   if (request.details = 'Browser Request') and (hasreqid = true) then
     exit; // no need to add the request again to the live list
@@ -272,7 +283,6 @@ end;
 constructor TSandcatRequests.Create(AOwner: TWinControl; MsgHandle: HWND);
 begin
   inherited Create;
-  fCriticalSection := TCriticalSection.Create;
   fTabHandle := MsgHandle;
   fLogRequests := true;
   fIsClosing := false;
@@ -281,7 +291,6 @@ end;
 
 destructor TSandcatRequests.Destroy;
 begin
-  fCriticalSection.Free;
   inherited;
 end;
 

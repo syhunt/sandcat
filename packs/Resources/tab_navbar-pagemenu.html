@@ -10,9 +10,9 @@ $(#tbookmarkpage).onClick = function() {
 <li id="topen" onclick="PageMenu:OpenPage()">Open...</li>
 <li id="tsavemenu" style="foreground-image: @ICON_SAVE;">Save Page
  <menu>
- <li id="tsavecached" style="foreground-image: url(Resources.pak#16\icon_savecached.png);" onclick="PageMenu:SaveCachedAs()">Save From Cache As...</li>
- <hr/>
  <li id="tsavefromweb" style="foreground-image: url(Resources.pak#16\icon_dloadpage.png);" onclick="PageMenu:SavePageAs()">Save From Web As...</li>
+ <hr/>
+ <li id="tsavecached" style="foreground-image: url(Resources.pak#16\icon_savecached.png);" onclick="PageMenu:SaveCachedAs()">Save From Cache As...</li>
  </menu>
 </li>
 <li id="tbookmarkpage" style="foreground-image: url(Resources.pak#16\icon_bookmark.png);">Bookmark Page</li>
@@ -33,7 +33,7 @@ $(#tbookmarkpage).onClick = function() {
   <li id="treloadfc" onclick="tab:gotourl(tab.url,tab.source)">Reload From Cache</li>
  </menu>
 </li>
-<li #auth onclick="tab:showauthdialog()">Authenticate...</li>
+<!--li #auth onclick="tab:showauthdialog()">Authenticate...</li-->
 <hr/>
 <li id="tzoom">Zoom
  <menu>

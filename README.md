@@ -10,6 +10,7 @@ Sandcat is a lightweight multi-tabbed web browser that combines the speed and po
  * `/Resources` - resources package (Resources.pak)
 * `/src` - the main executable source and built-in resource files
  * `/core` - user interface source
+ * `/corewv2` - core source code that loads the renderer
  * `/html` - user interface resources (HTML)
  * `/lua` - Lua API source
  
@@ -17,25 +18,24 @@ Sandcat is a lightweight multi-tabbed web browser that combines the speed and po
 
 Compiled binaries for Windows can be downloaded from the links below.
 
-* [6.0 RC2 64-bit](https://dl.syhunt.net/tools/sandcat/sandcat-6.0rc2-win64.exe)
-* [6.0 RC2 32-bit](https://dl.syhunt.net/tools/sandcat/sandcat-6.0rc2-win32.exe)
-* [6.0 RC2 32-bit with Pen-Tester Tools](http://www.syhunt.com/en/?n=Syhunt.DownloadHybridCE) (included as part of Syhunt Community)
+* [7.0 64-bit](https://syhunt.fra1.cdn.digitaloceanspaces.com/tools/sandcat/syhunt-sandcat-7.0.0.exe)
+* [7.0 64-bit with Pen-Tester Tools](http://www.syhunt.com/en/?n=Syhunt.DownloadHybridCE) (included as part of Syhunt Community)
 
 ## Compiling
 
-For compiling Sandcat, you will just need [Catarinka](https://github.com/felipedaragon/catarinka) and [pLua](https://github.com/felipedaragon/pLua-XE).
+For compiling Sandcat, you will just need [Catarinka](https://github.com/exlunaproject/catarinka) and [pLua](https://github.com/exlunaproject/pLua-XE).
  
 The entire Sandcat user interface is created during runtime, so there is no need to install third-party components in the IDE - you can just add the dependencies listed above to the library path and hit compile. It compiles under Delphi 10 Seattle down to XE2.
 
 ## License & Credits
 
-Sandcat was developed by Felipe Daragon, [Syhunt](http://www.syhunt.com/).
+Sandcat was developed by Felipe Daragon, [Syhunt](https://www.syhunt.com/).
 
 This code is licensed under a 3-clause BSD license - see the LICENSE file for details.
 
 Third-party software used in Sandcat include:
 
-* [libcef](http://code.google.com/p/chromiumembedded), based on [Chromium](http://www.chromium.org/), is the engine at the heart of the Sandcat Browser. Sandcat can use the [WACEF3](https://bitbucket.org/WaspAce/wacef) (Chromium Embedded Framework) component or the [DCEF3](https://github.com/hgourvest/dcef3) library). Because we want Sandcat to use the latest Chromium binaries, the most up-to-date and stable wrapper is used for official Sandcat releases.
+* [WebView4Delphi](https://github.com/salvadordf/WebView4Delphi) is now the engine at the heart of the Sandcat Browser 7. In the past, Syhunt used CEF,  now it is built on top of Edge's webview2.
 * [Lua](http://www.lua.org/) - Developed by a small team at Pontifícia Universidade Católica do Rio de Janeiro (PUC-Rio), Lua is the core language used to develop Sandcat extensions as well as portions of the browser itself.
 * [TIScript](http://code.google.com/p/tiscript/) is an extended version of ECMAScript (JavaScript 1.x) developed by Terra Informatica Software and [@AndrewTerra](https://github.com/AndrewTerra), the developers of Sciter. It is used by Sandcat for some of its user interface operations.
 * **Sciter** is the engine currently used by Sandcat for rendering its user interface. Sciter supports TIScript execution and, in Sandcat, it can also execute Lua scripts and be manipulated from Lua scripts.

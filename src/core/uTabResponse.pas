@@ -145,11 +145,11 @@ begin
   if fOSR = nil then
   begin
     fOSR := TCatChromiumOSRX.Create(self);
-    fOSR.OnLoadEnd := LoadEnd;
+    //fOSR.OnLoadEnd := LoadEnd;
     fOSR.OnAfterSetSourceSpecial := SourceAvailable;
   end;
-  if fOSR.isLoading then
-    fOSR.Stop;
+  //if fOSR.isLoading then
+  //  fOSR.Stop;
   fOSR.LoadFromCache(url);
 end;
 
@@ -220,8 +220,8 @@ end;
 
 procedure TTabResponseView.LoadEnd(Sender: TObject; httpStatusCode: integer);
 begin
-  if fOSR.IsCachedURL then
-    fOSR.GetSourceAsText;
+  //if fOSR.IsCachedURL then
+  //  fOSR.GetSourceAsText;
 end;
 
 procedure TTabResponseView.SourceAvailable(const s, headers: string);

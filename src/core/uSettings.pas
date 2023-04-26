@@ -9,12 +9,11 @@ unit uSettings;
 interface
 
 {$I Catarinka.inc}
+{$I SandcatEngine.inc}
 
 uses
   Windows, Classes, Dialogs, Messages, Forms, SysUtils, Controls, Variants,
-{$IFDEF USEWACEF}
-  waceflib, WACefInterfaces, WACefTypes,
-{$ELSE}
+{$IFNDEF USEWEBVIEW2}
   ceflib,
 {$ENDIF}
   uUIComponents, CatPrefs;
@@ -46,8 +45,8 @@ type
       const Limit: integer = 0);
     procedure ClearPrivateData(const DataType: string = '');
     procedure Load;
-    procedure OnbeforeCmdLineWACEF(const processType: ustring;
-      const commandLine: ICefCommandLine);
+    //procedure OnbeforeCmdLineWACEF(const processType: ustring;
+    //  const commandLine: ICefCommandLine);
     procedure Update;
     procedure Save;
     procedure WriteJSValue(const Key: string; const Value: Variant);
@@ -89,14 +88,17 @@ var
 function GetSandcatAppDataDir: string;
 function GetStartupSettings: TSandcatStartupSettings;
 function GetSandcatDir(dir: integer; Create: boolean = false): string;
+{$IFNDEF USEWEBVIEW2}
 procedure OnbeforeCmdLine(const processType: ustring;
   const commandLine: ICefCommandLine);
+{$ENDIF}
 
 implementation
 
 uses uMain, uMisc, uConst, CatChromium, CatChromiumLib, CatUI, CatTime,
   CatStrings, CatFiles, CatHTTP, CatHashes;
 
+{$IFNDEF USEWEBVIEW2}
 procedure OnbeforeCmdLine(const processType: ustring;
   const commandLine: ICefCommandLine);
 var
@@ -126,6 +128,7 @@ begin
     commandLine.AppendSwitch('--disable-xss-auditor');
   // if commandLine.IsValid then ShowMessage(commandLine.CommandLineString);
 end;
+{$ENDIF}
 
 function GetStartupSettings: TSandcatStartupSettings;
 var
@@ -167,7 +170,11 @@ begin
   progdir := extractfilepath(paramstr(0));
   case dir of
     SCDIR_CACHE:
+    {$IFDEF USEWEBVIEW2}
+      s := GetSandcatAppDataDir + 'Cache2\';
+    {$ELSE}
       s := GetSandcatAppDataDir + 'Cache\';
+    {$ENDIF}
     SCDIR_PLUGINS:
       s := progdir + 'Packs\Extensions\';
     SCDIR_CONFIG:
@@ -190,11 +197,11 @@ begin
   result := s;
 end;
 
-procedure TSandcatSettings.OnbeforeCmdLineWACEF(const processType: ustring;
+{procedure TSandcatSettings.OnbeforeCmdLineWACEF(const processType: ustring;
   const commandLine: ICefCommandLine);
 begin
   OnbeforeCmdLine(processType, commandLine);
-end;
+end;  }
 
 // Returns the filename of a site preferences file. This is a JSON file that
 // can be used for storing user preferences for each specific URL
@@ -386,7 +393,7 @@ var
   State: integer;
   procedure load_default_settings;
   begin
-    fPreferences.OptionList.Text := GetCEFDefaults(fPreferences.Default);
+    //fPreferences.OptionList.Text := GetCEFDefaults(fPreferences.Default);
     // Registers the default settings
     fPreferences.RegisterDefault(SCO_STARTUP_WELCOME_METHOD, 'blank');
     fPreferences.RegisterDefault(SCO_STARTUP_HOMEPAGE, emptystr);
@@ -399,7 +406,23 @@ var
     fPreferences.RegisterDefault(SCO_CONSOLE_FONT_COLOR, '#ffffff');
     fPreferences.RegisterDefault(SCO_SECURITY_XSSAUDITOR_ENABLED, true);
     fPreferences.RegisterDefault(SCO_OPTIONS_OPENPOPUPSINNEWTAB, false);
-
+    fPreferences.RegisterDefault('chrome.options.javascript', true);
+    fPreferences.RegisterDefault('chrome.options.javascriptaccessclipboard', true);
+    fPreferences.RegisterDefault('chrome.options.javascriptclosewindows', true);
+    fPreferences.RegisterDefault('chrome.options.javascriptopenwindows', true);
+    fPreferences.RegisterDefault('chrome.options.javascriptdompaste', true);
+    fPreferences.RegisterDefault('chrome.options.imageloading', true);
+    fPreferences.RegisterDefault('chrome.options.imageshrinkstandalonetofit', true);
+    fPreferences.RegisterDefault('chrome.options.plugins', false);
+    fPreferences.RegisterDefault('chrome.options.webgl', true);
+    fPreferences.RegisterDefault('chrome.options.applicationcache',true);
+    fPreferences.RegisterDefault('chrome.options.databases', true);
+    fPreferences.RegisterDefault('chrome.options.localstorage', true);
+    fPreferences.RegisterDefault('chrome.options.tabtolinks', true);
+    fPreferences.RegisterDefault('chrome.options.textarearesize', true);
+    fPreferences.RegisterDefault('chrome.options.websecurity',true);
+    fPreferences.RegisterDefault('chrome.options.fileaccessfromfileurls',true);
+    fPreferences.RegisterDefault('chrome.options.universalaccessfromfileurls', true);
   end;
 
 begin

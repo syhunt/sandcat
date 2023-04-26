@@ -10,6 +10,7 @@ unit uTabV8;
 interface
 
 {$I Catarinka.inc}
+{$I SandcatEngine.inc}
 // {$DEFINE USEV8EXTENSIONS}
 
 uses
@@ -18,27 +19,20 @@ uses
 {$ELSE}
   Classes,
 {$ENDIF}
-{$IFDEF USEWACEF}
-  WACefInterfaces, WACefTypes, WACefOwns, WACefLib, WACefRefs,
-{$ELSE}
+{$IFNDEF USEWEBVIEW2}
   cefvcl, ceflib,
 {$ENDIF}
   CatJSON;
 
+ {$IFNDEF USEWEBVIEW2}
 type
   TSandcatV8Extension = class(TCefv8HandlerOwn)
   private
     fV8MsgHandle: integer;
   protected
-{$IFDEF USEWACEF}
-    function Execute(const name: ustring; const obj: ICefv8Value;
-      ArgumentsCount: csize_t; const arguments: TCefv8ValueArray;
-      var retval: ICefv8Value; var exception: ustring): Boolean; override;
-{$ELSE}
     function Execute(const name: ustring; const obj: ICefv8Value;
       const arguments: TCefv8ValueArray; var retval: ICefv8Value;
       var exception: ustring): Boolean; override;
-{$ENDIF}
   public
     constructor Create; override;
   end;
@@ -52,55 +46,23 @@ type
       : Boolean; override;
     procedure OnWebKitInitialized; override;
   end;
+{$ENDIF}
 
 implementation
 
 uses CatChromium, CatChromiumLib, CatJINI, CatStrings;
 
-{ procedure Send_WriteValue(desthandle: integer; key, value: string);
-  var
-  j: TCatJSON;
-  begin
-  j := TCatJSON.Create;
-  j['k'] := key;
-  j['v'] := value;
-  SendCDMessage(desthandle, CRM_JS_WRITEVALUE, j.text);
-  j.free;
-  end;
-
-  procedure LogRequest(Details, rid, Method, url, rcvdheader, Response: string);
-  var
-  j: tjinilist;
-  begin
-  j := tjinilist.Create;
-  j.values['ReqID'] := rid;
-  j.values['Details'] := Details;
-  j.values['ResponseHeaders'] := rcvdheader;
-  j.values['Method'] := Method;
-  j.values['URL'] := url;
-  j.values['ResponseFilename'] := SaveResponseToFile(Response);
-  SendCDMessage(fV8MsgHandle, CRM_XHR_LOG, j.text);
-  j.free;
-  end;
-}
+{$IFNDEF USEWEBVIEW2}
 
 constructor TSandcatV8Extension.Create;
 begin
   inherited Create;
 end;
 
-{$IFDEF USEWACEF}
-
-function TSandcatV8Extension.Execute(const name: ustring;
-  const obj: ICefv8Value; ArgumentsCount: csize_t;
-  const arguments: TCefv8ValueArray; var retval: ICefv8Value;
-  var exception: ustring): Boolean;
-{$ELSE}
 
 function TSandcatV8Extension.Execute(const name: ustring; const obj: ICefv8Value;
       const arguments: TCefv8ValueArray; var retval: ICefv8Value;
       var exception: ustring): Boolean;
-{$ENDIF}
 begin
   result := false;
   if (name = 'base64encode') then
@@ -122,64 +84,6 @@ begin
     end;
     retval := StrToCEFV8Value(base64decode(arguments[0].GetStringValue));
     result := true;
-    { end
-      else if (name = 'consoleoutput') then
-      begin
-      if (Length(arguments) = 0) or (not arguments[0].IsBool) then
-      begin
-      Result := false;
-      exit;
-      end;
-      if arguments[0].GetBoolValue = false then
-      SendCDMessage(fV8MsgHandle, CRM_CONSOLE_ENDEXTERNALOUTPUT, emptystr);
-      Result := true;
-      end
-      else if (name = 'logrequest') then
-      begin
-      if (Length(arguments) <> 6) or (not arguments[0].IsString) or
-      (not arguments[1].IsString) or (not arguments[2].IsString) or
-      (not arguments[3].IsString) or (not arguments[4].IsString) or
-      (not arguments[5].IsString) then
-      begin
-      Result := false;
-      exit;
-      end;
-      LogRequest(arguments[0].GetStringValue, arguments[1].GetStringValue,
-      arguments[2].GetStringValue, arguments[3].GetStringValue,
-      arguments[4].GetStringValue, arguments[5].GetStringValue);
-      Result := true;
-      end
-      else if (name = 'writevalue') then
-      begin
-      if (Length(arguments) <> 2) or (not arguments[0].IsString) or
-      (not arguments[1].IsString) then
-      begin
-      Result := false;
-      exit;
-      end;
-      Send_WriteValue(fV8MsgHandle, arguments[0].GetStringValue,
-      CEFV8ValueToStr(arguments[1]));
-      Result := true;
-      end
-      else if (name = 'writeln') then
-      begin
-      if (Length(arguments) <> 1) then
-      begin
-      Result := false;
-      exit;
-      end;
-      SendCDMessage(fV8MsgHandle, CRM_JS_WRITELN, CEFV8ValueToStr(arguments[0]));
-      Result := true;
-      end
-      else if (name = 'write') then
-      begin
-      if (Length(arguments) <> 1) then
-      begin
-      Result := false;
-      exit;
-      end;
-      SendCDMessage(fV8MsgHandle, CRM_JS_WRITE, CEFV8ValueToStr(arguments[0]));
-      Result := true; }
   end;
 end;
 
@@ -197,13 +101,8 @@ const
     + '})();';
 begin
   fSandcatV8Extension := TSandcatV8Extension.Create;
-{$IFDEF USEWACEF}
-  TWACef.RegisterExtension('v8/browser', v8extension,
-    fSandcatV8Extension as ICefV8Handler);
-{$ELSE}
   CefRegisterExtension('v8/browser', v8extension,
     fSandcatV8Extension as ICefV8Handler);
-{$ENDIF}
 end;
 
 function TCustomRenderProcessHandler.OnProcessMessageReceived
@@ -225,10 +124,14 @@ begin
   end;
 end;
 
+{$ENDIF}
+
 initialization
 
 {$IFDEF USEV8EXTENSIONS}
+  {$IFNDEF USEWEBVIEW2}
   CefRenderProcessHandler := TCustomRenderProcessHandler.Create;
+  {$ENDIF}
 {$ENDIF}
 
 end.

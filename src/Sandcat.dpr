@@ -9,6 +9,10 @@ uses
   Windows,
   {$IFEND}
   uMain in 'core\uMain.pas' {SandBrowser} ,
+  CatChromium in 'corewv2\CatChromium.pas',
+  CatChromiumLib in 'corewv2\CatChromiumLib.pas',
+  CatChromiumOSRX in 'corewv2\CatChromiumOSRX.pas',
+  CatChromiumSB in 'corewv2\CatChromiumSB.pas',
   uZones in 'core\uZones.pas',
   uTaskMon in 'core\uTaskMon.pas',
   uUIComponents in 'core\uUIComponents.pas',

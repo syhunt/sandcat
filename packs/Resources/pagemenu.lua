@@ -90,7 +90,7 @@ function PageMenu:SaveCachedAs_Ask(filename)
  end
 end
 
-function PageMenu:SaveCachedAs(url)
+function PageMenu:SaveCachedAs_CEF(url)
   if url == nil then
    url = tab.url
   end
@@ -105,6 +105,10 @@ function PageMenu:SaveCachedAs(url)
    end
    c:loadcached(url)
   end
+end
+
+function PageMenu:SaveCachedAs(url)
+  app.showmessage('This option is not available in this release.')
 end
 
 function PageMenu:SavePageAs()

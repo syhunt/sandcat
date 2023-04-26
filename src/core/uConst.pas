@@ -80,7 +80,7 @@ const // Sandcat sub directories
   SCDIR_CACHE = 7;
   SCDIR_TASKS = 8;
   SCDIR_CONFIGSITE = 9;
-  
+
 const // Sciter related
   // Do not remove &nbsp - workaround for a weird AxSciter error when loading a blank html
   cBlank_Htm = '<html>&nbsp;</html>';

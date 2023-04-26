@@ -5,13 +5,13 @@ function about:addcredits()
   browser.addlibinfo('Cromis','1.6.1','Iztok Kacin','browser.newtab([[http://www.opensource.org/licenses/bsd-license.php]])')
   if browser.info.ceflibrary == 'dcef' then
     browser.addlibinfo('DCEF library','3','Henri Gourvest')
-  end
+    browser.addlibinfo('libcef library','file:libcef.dll','The Chromium Embedded Framework Authors','browser.newtab([[chrome://license/]])')
+  end  
   browser.addlibinfo('DCPcrypt','v2 beta 2','David Barton','browser.newtab([[http://opensource.org/licenses/mit-license.php]])')
   browser.addlibinfo('Ext JS wrapper','0.9.8','Wanderlan Santos dos Anjos','browser.newtab([[http://www.opensource.org/licenses/bsd-license.php]])')
   browser.addlibinfo('FatCow Icons','3.5.0','<a href="#" onclick="browser.newtab([[http://www.fatcow.com/free-icons]])">FatCow</a>','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_FatCowIcons.txt]])')
   browser.addlibinfo('Fugue Icons','3.3.5','<a href="#" onclick="browser.newtab([[http://p.yusukekamiyamane.com/]])">Yusuke Kamiyamane</a>','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_FugueIcons.txt]])')
   browser.addlibinfo('ICU library','','IBM Corporation and others','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_icudt.txt]])')
-  browser.addlibinfo('libcef library','file:libcef.dll','The Chromium Embedded Framework Authors','browser.newtab([[chrome://license/]])')
   browser.addlibinfo('Lua','file:lua5.1.dll','Tecgraf/PUC-Rio','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_Lua5.txt]])')
   browser.addlibinfo('Custom Lua icon','','Yarin Kaul')
   browser.addlibinfo('ObjectCache library','1.0','Colin Wilson')
@@ -24,6 +24,10 @@ function about:addcredits()
   if browser.info.ceflibrary == 'wacef' then
     browser.addlibinfo('WACEF library','3','WaspAce Architector')
   end
+  if browser.info.ceflibrary == 'webview2' then
+    browser.addlibinfo('WebView2 library','file:WebView2Loader.dll','Microsoft Corporation')
+    browser.addlibinfo('WebView2 wrapper','','Salvador Díaz Fau','Sandcat:ShowLicense(Sandcat.filename,[[docs\\License_WebView4Delphi.txt]])')
+  end  
 end
 
 function about:show()

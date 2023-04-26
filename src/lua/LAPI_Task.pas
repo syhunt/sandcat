@@ -12,7 +12,7 @@ unit LAPI_Task;
 interface
 
 uses
-  Windows, Classes, Forms, Messages, SysUtils, Dialogs, Lua, ShellAPI,
+  Windows, Classes, Forms, Messages, SysUtils, Dialogs, Lua, ShellAPI, Variants,
   TypInfo, SyncObjs, LuaObject, uUIComponents;
 
 type
@@ -227,22 +227,20 @@ end;
 
 function lua_Params_getParam(L: PLua_State): Integer; cdecl;
 var
-  s: string;
+  v: variant;
 begin
   if UserParams.HasPath(lua_tostring(L, 2)) then
   begin
-    s := UserParams.sObject.s[lua_tostring(L, 2)];
-    lua_pushstring(L, s);
-  end
-  else
-    lua_pushstring(L, emptystr);
+    v := UserParams.GetValue(lua_tostring(L, 2),variants.null);
+    plua_pushvariant(L, v);
+  end;
   result := 1;
 end;
 
 function lua_Params_SetParam(L: PLua_State): Integer; cdecl;
 begin
   if UserParams.HasPath(lua_tostring(L, 2)) then
-    UserParams.sObject.s[lua_tostring(L, 2)] := lua_tostring(L, 3);
+    UserParams.SetValue(lua_tostring(L, 2),plua_tovariant(L, 3));
   Task_SetParam(tabhandle, TaskID, lua_tostring(L, 2), lua_tostring(L, 3));
   result := 1;
 end;

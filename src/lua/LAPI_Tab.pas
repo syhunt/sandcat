@@ -1,7 +1,7 @@
 unit LAPI_Tab;
 {
   Sandcat Tab LUA Object
-  Copyright (c) 2011-2014, Syhunt Informatica
+  Copyright (c) 2011-2023, Syhunt Informatica
   License: 3-clause BSD license
   See https://github.com/felipedaragon/sandcat/ for details.
 }
@@ -77,7 +77,7 @@ var
 begin
   if tabmanager.ActiveTab <> nil then
     r := tabmanager.ActiveTab.evaljavascript(lua_tostring(L, 2));
-  plua_pushvariant(L, r);
+  lua_pushstring(L, r);
   result := 1;
 end;
 
@@ -88,8 +88,7 @@ begin
     if lua_istable(L, 2) then // user provided a Lua table
       tabmanager.ActiveTab.runjavascript(BuildJSCallFromLuaTable(L))
     else
-      tabmanager.ActiveTab.runjavascript(lua_tostring(L, 2), lua_tostring(L, 3),
-        lua_tointeger(L, 4));
+      tabmanager.ActiveTab.runjavascript(lua_tostring(L, 2));
   end;
   result := 1;
 end;
@@ -436,6 +435,12 @@ begin
   result := 1;
 end;
 
+function method_runluaafterjs(L: PLua_State): integer; cdecl;
+begin
+  tabmanager.ActiveTab.RunLuaAfterJS(lua_tostring(L, 2), lua_tostring(L, 3));
+  result := 1;
+end;
+
 function method_loadheaders(L: PLua_State): integer; cdecl;
 begin
   tabmanager.ActiveTab.liveheaders.loadfromfile(lua_tostring(L, 2));
@@ -520,7 +525,7 @@ begin
 end;
 
 type
-  TProps = (activepage, datafilename, handle, icon, lastjslogmsg, loadend,
+  TProps = (activepage, datafilename, handle, icon, lastjslogmsg, lastjsexecresult, loadend,
     loadendjs, capture, capturebrowser, capturerealtime, captureurls,
     downloadfiles, headersfilter, logtext, mode, name, rcvdheaders, reslist,
     screenshot, sentheaders, showtree, siteprefsfilename, Source,
@@ -550,6 +555,8 @@ begin
       result := tab.liveheaders.FilterEdit.Text;
     lastjslogmsg:
       result := tab.LastConsoleLogMessage;
+    lastjsexecresult:
+      result := tab.LastJSExecutionResult;
     logtext:
       result := tab.log.lines.Text;
     name:
@@ -656,7 +663,6 @@ begin
   RegisterMethod(L, 'cache_requestexists', method_request_exists, classTable);
   RegisterMethod(L, 'clearlog', method_clearlog, classTable);
   RegisterMethod(L, 'clearheaders', method_clearheaders, classTable);
-  RegisterMethod(L, 'evaljs', method_evaljavascript, classTable);
   RegisterMethod(L, 'goback', method_goback, classTable);
   RegisterMethod(L, 'goforward', method_goforward, classTable);
   RegisterMethod(L, 'gotosrcline', method_gotosrcline, classTable);
@@ -682,7 +688,9 @@ begin
   RegisterMethod(L, 'response_loadheaders', method_response_loadheaders,
     classTable);
   RegisterMethod(L, 'runluaonlog', method_runluaonlog, classTable);
+  RegisterMethod(L, 'runluaafterjs', method_runluaafterjs, classTable);
   RegisterMethod(L, 'runjs', method_runjavascript, classTable);
+  RegisterMethod(L, 'runjseval', method_evaljavascript, classTable);
   RegisterMethod(L, 'runsrccmd', method_runsourcecommand, classTable);
   RegisterMethod(L, 'runtask', method_runluatask, classTable);
   RegisterMethod(L, 'saveheaders', method_saveheaders, classTable);

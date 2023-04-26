@@ -48,15 +48,18 @@ details - a short description for the request
 
 * **tab:reload** ( ignorecache ): Reloads the page. If the first parameter is supplied and is true, the cache will be ignored.
 
-* **tab:runjs** ( jscode [,url, startline]): Executes a JavaScript code in the loaded page. The last two parameters are optional.
+* **tab:runjseval** ( jscode): Executes a JavaScript code in the loaded page and returns its result as JSON string.
+
+* **tab:runjs** ( jscode): Executes a JavaScript code in the loaded page.
 
 * **tab:runjs** ( luatable ): Performs a custom JavaScript call in the loaded page. The following keys can be provided:
  * code (required): the JavaScript code
  * url: the JS URL
  * startln: the start line number (default is 0)
  * silent: If supplied, and is true, JS execution errors are not reported. Default false.
+ 
+* **tab:runluaafterjs** (luacode,jscode): Runs a Lua script after executing a JavaScript code. It is possible to obtain the result of the JS execution through tab.lastjsexecresult in the form of a string.
 
-* **tab:runluaonlog** (msg,luacode): Sets a Lua script to be executed after a certain message is received through the JS console.log() method. This method should be used with caution.
 
 * **tab:runtask** ( luacode [,json, menuhtml] ): Executes a Lua code in an isolated process. The second parameter is optional and can be used to pass parameters to the task process. Returns an unique task ID. Returns `string`
 
@@ -81,6 +84,7 @@ capturebrowser|boolean|Enables or disables the live headers capture just for bro
 downloadfiles|boolean|Enables or disables the download capability
 headersfilter|string|Gets or sets the live headers filter
 icon|string|Gets or sets the tab icon
+lastjsexecresult|string|Gets the last JS result from a tab:runluaafterjs() call
 lastjslogmsg|string|Gets the last message from a JS console.log() call
 loadend|string|Sets a Lua script to be executed after the page finishes loading
 loadendjs|string|Sets a JavaScript to be executed after the page finishes loading

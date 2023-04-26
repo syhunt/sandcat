@@ -20,7 +20,7 @@ uses
   Windows, Classes, Forms, SysUtils, Controls, ExtCtrls, Dialogs, Graphics,
   StdCtrls, CommCtrl, ImgList, pngimage, TypInfo, ComCtrls,
 {$IFEND}
-  SynUnicode, CatChromium, CatChromiumLib, CatChromiumOSR, CatChromiumSB,
+  SynUnicode, CatChromium, CatChromiumLib, CatChromiumSB,
   CatConsole, CatPanels, uReqBuilder, uRequests, uUIComponents, uTaskMon, Lua,
   pLuaTable;
 

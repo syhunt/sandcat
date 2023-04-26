@@ -160,8 +160,8 @@ begin
   Result.method := j.GetValue(REQUESTKEY_METHOD, emptystr);
   Result.URL := j.GetValue(REQUESTKEY_URL, emptystr);
   Result.postdata := j.GetValue(REQUESTKEY_POSTDATA, emptystr);
-  Result.StatusCode := j.GetValue('status', emptystr);
-  Result.Length := j.GetValue('length', emptystr);
+  Result.StatusCode := j.GetValue('status', 0);
+  Result.Length := j.GetValue('length', 0);
   Result.MimeType := j.GetValue('mimetype', emptystr);
   Result.details := j.GetValue(REQUESTKEY_DETAILS, emptystr);
   Result.reqid := j.GetValue('reqid', emptystr);
@@ -212,11 +212,11 @@ var
   outfilename: string;
 begin
   outfilename := lua_tostring(L, 2);
-  ht := TSandOSR(LuaToTLuaObject(L, 1));
+  {ht := TSandOSR(LuaToTLuaObject(L, 1));
   if outfilename = emptystr then
     outfilename := get_temp_preview_filename(ht.obj.GetURL);
   ht.obj.SaveToFile(outfilename);
-  lua_pushstring(L, outfilename);
+  lua_pushstring(L, outfilename);   }
   Result := 1;
 end;
 
@@ -226,7 +226,7 @@ var
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
   ht.obj.reset;
-  ht.obj.load(lua_tostring(L, 2));
+  //ht.obj.load(lua_tostring(L, 2));
   Result := 1;
 end;
 
@@ -245,7 +245,7 @@ var
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
   ht.obj.reset;
-  ht.obj.loadfromstring(lua_tostring(L, 2), lua_tostring(L, 3));
+  //ht.obj.loadfromstring(lua_tostring(L, 2), lua_tostring(L, 3));
   Result := 1;
 end;
 
@@ -281,11 +281,11 @@ var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
-  if lua_istable(L, 2) then // user provided a Lua table
+  {if lua_istable(L, 2) then // user provided a Lua table
     ht.obj.RunJavaScript(BuildJSCallFromLuaTable(L))
   else
     ht.obj.RunJavaScript(lua_tostring(L, 2), lua_tostring(L, 3),
-      lua_tointeger(L, 4));
+      lua_tointeger(L, 4)); }
   Result := 1;
 end;
 
@@ -294,7 +294,7 @@ var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
-  ht.obj.ShowAuthDialog(lua_tostring(L, 2), lua_tostring(L, 3));
+  //ht.obj.ShowAuthDialog(lua_tostring(L, 2), lua_tostring(L, 3));
   Result := 1;
 end;
 
@@ -307,7 +307,7 @@ begin
   igncache := false;
   if lua_isnone(L, 2) = false then
     igncache := lua_toboolean(L, 2);
-  ht.obj.Reload(igncache);
+  //ht.obj.Reload(igncache);
   Result := 1;
 end;
 
@@ -316,7 +316,7 @@ var
   ht: TSandOSR;
 begin
   ht := TSandOSR(LuaToTLuaObject(L, 1));
-  ht.obj.Stop;
+  //ht.obj.Stop;
   Result := 1;
 end;
 
@@ -413,7 +413,7 @@ end;
 procedure TSandOSR.SendRequest(const method, URL, postdata: string;
   const load: boolean = false);
 begin
-  obj.SendRequest(buildrequest(method, URL, postdata), load);
+  //obj.SendRequest(buildrequest(method, URL, postdata), load);
 end;
 
 // Sends (and optionally loads) a custom HTTP request
@@ -421,9 +421,9 @@ procedure TSandOSR.SendRequestCustom(req: TCatChromiumRequest;
   load: boolean = false);
 begin
   // If no URL is provided, uses current tab url as the request URL
-  if req.URL = emptystr then
-    req.URL := obj.GetURL;
-  obj.SendRequest(req, load);
+  //if req.URL = emptystr then
+  //  req.URL := obj.GetURL;
+  //obj.SendRequest(req, load);
 end;
 
 procedure TSandOSR.SourceAvailable(const s, headers: string);
@@ -456,10 +456,10 @@ begin
   begin
     if obj.iscachedurl then
       fgetsourceastext := true;
-    if fgetsourceastext then
+    {if fgetsourceastext then
       obj.GetSourceAsText
     else
-      obj.GetSource;
+      obj.GetSource; }
   end;
 end;
 
@@ -498,7 +498,7 @@ begin
   inherited Create(LuaState, AParent);
   fGetSourceAsText := false;
   obj := TCatChromiumOSRX.Create(nil);
-  obj.OnLoadEnd := LoadEnd;
+  {obj.OnLoadEnd := LoadEnd;
   obj.OnAfterSetSourceSpecial := SourceAvailable;
   obj.OnBrowserMessage := BrowserMessage;
   obj.OnConsoleMessage := ConsoleMessage;
@@ -507,12 +507,12 @@ begin
   obj.OnLoadingStateChange := LoadingStateChange;
   obj.OnBeforePopup := BeforePopup;
   obj.OnBeforeDownload := BeforeDownload;
-  obj.LoadSettings(settings.preferences.current, settings.preferences.Default);
+  obj.LoadSettings(settings.preferences.current, settings.preferences.Default);   }
 end;
 
 function TSandOSR.GetPropValue(propName: String): Variant;
 begin
-  if CompareText(propName, 'captureurls') = 0 then
+  {if CompareText(propName, 'captureurls') = 0 then
     Result := obj.LogURLs
   else if CompareText(propName, 'downloadfiles') = 0 then
     Result := obj.EnableDownloads
@@ -526,7 +526,7 @@ begin
     Result := obj.GetURLSpecial
   else if CompareText(propName, 'urllist') = 0 then
     Result := obj.URLLog.text
-  else
+  else    }
     Result := inherited GetPropValue(propName);
 end;
 
@@ -534,7 +534,7 @@ function TSandOSR.SetPropValue(propName: String; const AValue: Variant)
   : boolean;
 begin
   Result := true;
-  if CompareText(propName, 'captureurls') = 0 then
+  {if CompareText(propName, 'captureurls') = 0 then
     obj.LogURLs := AValue
   else if CompareText(propName, 'downloadfiles') = 0 then
     obj.EnableDownloads := AValue
@@ -548,7 +548,7 @@ begin
     obj.load(string(AValue))
   else if CompareText(propName, 'urllist') = 0 then
     Result := true // readonly
-  else
+  else   }
     Result := inherited SetPropValue(propName, AValue);
 end;
 

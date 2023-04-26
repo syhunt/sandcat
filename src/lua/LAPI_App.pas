@@ -10,6 +10,7 @@ unit LAPI_App;
 interface
 
 {$I Catarinka.inc}
+{$I SandcatEngine.inc}
 
 uses Lua, Classes, Windows, Messages, SysUtils, Forms, Dialogs, TypInfo,
   FileCtrl, ShellAPI;
@@ -106,7 +107,7 @@ begin
     info_cachedir:
       lua_pushstring(L, GetSandcatDir(SCDIR_CACHE));
     info_ceflibrary:
-      lua_pushstring(L, {$IFDEF USEWACEF}'wacef'{$ELSE}'dcef'{$ENDIF});
+      lua_pushstring(L, {$IFDEF USEWEBVIEW2}'webview2'{$ELSE}'dcef'{$ENDIF});
     info_commands:
       lua_pushstring(L, extensions.GetCommandList);
     info_configdir:
