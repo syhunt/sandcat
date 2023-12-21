@@ -1,7 +1,7 @@
   select.tag-list { 
       padding:0; 
       display:block; 
-      flow:horizontal; 
+      flow:horizontal;
       width:*; 
       height:2.2em; 
       overflow-x:scroll-indicator; 
@@ -9,6 +9,8 @@
       vertical-align:middle;
     }
     select.tag-list > option { 
+      border-radius: 3px;
+      border-left: 0px;
       prototype:ArrowLabel; 
       /*border:1px solid threedshadow;*/
       background-color:#FFF; 
@@ -21,6 +23,7 @@
     }
     select.tag-list > option:current 
     { 
+      border-bottom: 2px solid lime;
       background-color:threeddarkshadow; 
       color:highlighttext;  
     }
@@ -28,4 +31,45 @@
     { 
       background-color:highlight; 
       color:highlighttext;  
+      border-bottom: 2px solid lime;
+    }
+
+
+  div.tag-list { 
+      padding:0; 
+      display:block; 
+      flow:horizontal; 
+      width:*; 
+      height:2.2em; 
+      overflow-x:scroll-indicator; 
+      overflow-y:none; 
+      vertical-align:middle;
+      border:1px solid #808080;
+    }
+    div.tag-list > div.tag-option { 
+      behavior:check;
+      border:1px ridge threedshadow;
+      prototype:ArrowLabel; 
+      background-color:#FFF; 
+      vertical-align:center;
+      width:max-intrinsic; 
+      height:*;
+      margin:3px; 
+      padding:1px 0.4em 0px 0.7em;
+      hit-margin:3px 6px;
+      border-radius: 3px;
+    }
+    div.tag-list > div.tag-option:checked 
+    { 
+      background-color:threeddarkshadow; 
+      color:highlighttext;  
+    }
+    div.tag-list:focus > div.tag-option:checked 
+    { 
+      background-color:highlight; 
+      color:highlighttext;  
+    }
+        div.tag-list > div.tag-option:not(:checked)
+    { 
+      /*background-color:#FFF;  /*
     }

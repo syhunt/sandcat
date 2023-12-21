@@ -13,7 +13,7 @@ interface
 
 uses
   Windows, Classes, Forms, Messages, SysUtils, Dialogs, Lua, ShellAPI, Variants,
-  TypInfo, SyncObjs, LuaObject, uUIComponents;
+  TypInfo, SyncObjs, LuaObject, uUIComponents, CatChromiumLib;
 
 type
   TSandcatTaskProcess = class(TComponent)
@@ -171,13 +171,15 @@ end;
 
 function lua_console_writeln(L: PLua_State): Integer; cdecl;
 begin
-  result := SendCromisMessage(tabhandle, SCBM_LOGWRITELN,
+  SendCromisMessage(tabhandle, SCBM_LOGWRITELN,
     plua_AnyToString(L, 1));
+  result := 1;
 end;
 
 function lua_console_write(L: PLua_State): Integer; cdecl;
 begin
-  result := SendCromisMessage(tabhandle, SCBM_LOGWRITE, plua_AnyToString(L, 1));
+  SendCromisMessage(tabhandle, SCBM_LOGWRITE, plua_AnyToString(L, 1));
+  result := 1;
 end;
 
 function lua_ScriptLogError(L: PLua_State): Integer; cdecl;
@@ -408,17 +410,20 @@ end;
 
 function lua_request_send(L: PLua_State): Integer; cdecl;
 begin
-  result := SendCromisMessage(tabhandle, SCBM_REQUEST_SEND, lua_tostring(L, 2));
+  SendCromisMessage(tabhandle, SCBM_REQUEST_SEND, lua_tostring(L, 2));
+  result := 1;
 end;
 
 function lua_browser_dostring(L: PLua_State): Integer; cdecl;
 begin
-  result := SendCromisMessage(tabhandle, SCBM_LUA_RUN, lua_tostring(L, 2));
+  SendCromisMessage(tabhandle, SCBM_LUA_RUN, lua_tostring(L, 2));
+  result := 1;
 end;
 
 function lua_browser_newtab(L: PLua_State): Integer; cdecl;
 begin
-  result := SendCromisMessage(tabhandle, SCBM_NEWTAB, lua_tostring(L, 2));
+  SendCromisMessage(tabhandle, SCBM_NEWTAB, lua_tostring(L, 2));
+  result := 1;
 end;
 
 function lua_setprogress(L: PLua_State): Integer; cdecl;
@@ -455,8 +460,9 @@ begin
   j['cmd'] := 'setscript';
   j['e'] := event;
   j['s'] := script;
-  result := SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.Text);
+  SendCromisMessage(tabhandle, SCBM_TASK_RUNJSONCMD, j.Text);
   j.free;
+  result := 1;
 end;
 
 function lua_showmessage(L: PLua_State): Integer; cdecl;

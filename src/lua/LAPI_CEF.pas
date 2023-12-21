@@ -60,7 +60,7 @@ procedure lua_pushrequestdetails(L: PLua_State; r: TSandcatRequestDetails);
 implementation
 
 uses uMain, uConst, uUIComponents, uSettings, pLuaTable, CatCEFCache, CatFiles,
-  CatHTTP, CatStrings;
+  CatHTTP, CatHTML, CatStrings;
 
 const
   REQUESTKEY_METHOD = 'method';

@@ -42,7 +42,7 @@ function app_seticonfromfile(L: plua_State): Integer; cdecl;
 implementation
 
 uses uMain, uConst, uSettings, uExtensions, CatStrings, CatListEditor, pLua,
-  uZones, LAPI, CatFiles, CatUI, CatStringLoop;
+  uZones, LAPI, CatFiles, CatUI, CatStringLoop, CatChromiumLib;
 
 type
   TAppInfoType = (info_abouturl, info_cachedir, info_ceflibrary, info_configdir,

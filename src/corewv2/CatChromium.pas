@@ -25,8 +25,8 @@ uses
   uWVLibFunctions, uWVLoader, uWVInterfaces, uWVCoreWebView2Args,
   uWVBrowserBase, uWVCoreWebView2HttpRequestHeaders,uWVCoreWebView2Delegates,
   uWVCoreWebView2HttpResponseHeaders,uWVCoreWebView2HttpHeadersCollectionIterator,
-  uWVCoreWebView2WebResourceRequest, uLiveHeaders,
-  CatJSON, CatMsg, CatMsgCromis, CatChromiumLib, CatUtils,
+  uWVCoreWebView2WebResourceRequest, uWVCoreWebView2CookieList,
+  CatJSON, CatMsg, CatMsgCromis, CatChromiumLib, CatUtils, uWVCoreWebView2Cookie,
   CatAxUtils;
 
 type
@@ -70,14 +70,21 @@ type
     fOnRequestDone: TCatChromiumOnRequestDone;
     fPreventPopup: Boolean;
     fResourceList: TStringList;
+    fEnableResourceScheme: boolean;
     fSentRequests: integer;
     fSource: string;
     fSplitter: TSplitter;
     fURLLog: TStringList;
     fUserAgent:string;
+    fCookie:string;
+    function GetUserAgent:string;
+    procedure GetResponseFromResources(const URL:string; var resp:ICoreWebView2WebResourceResponse);
     procedure CreateBrowser(const clearrd:boolean);
     procedure ClearRequestData;
     procedure UpdateNavButtons(const aIsNavigating : boolean);
+    procedure WVBrowser1AfterCreated(Sender: TObject);
+    procedure WVBrowser1GetCookiesCompleted(Sender: TObject;
+  aResult: HRESULT; const aCookieList: ICoreWebView2CookieList);
     procedure WVBrowser1StatusBarTextChanged(Sender: TObject; const aWebView: ICoreWebView2);
     procedure WVBrowser1WebMessageReceived(Sender: TObject; const aWebView: ICoreWebView2; const aArgs: ICoreWebView2WebMessageReceivedEventArgs);
     procedure WVBrowser1WebResourceResponseReceived(Sender: TObject;
@@ -88,14 +95,17 @@ type
     procedure WVBrowser1RetrieveTextCompleted(Sender: TObject; aResult: Boolean; const aText: wvstring);
     procedure WVBrowser1URLChanged(Sender: TObject; const aWebView: ICoreWebView2; const aArgs: ICoreWebView2SourceChangedEventArgs);
     procedure WVBrowser1WebResourceResponseViewGetContentCompleted(Sender: TObject; aErrorCode: HRESULT; const aContents: IStream; aResourceID: Integer);
-    procedure LogRequest(const json: string);
+    procedure WVBrowser1WebResourceRequested(Sender: TObject;
+      const aWebView: ICoreWebView2;
+      const aArgs: ICoreWebView2WebResourceRequestedEventArgs);
+    procedure LogRequest(const r: TSandcatRequestDetails);
+    procedure LogRequestFromJSON(const json: string);
     procedure LogURL(const url: string);
     procedure SendMessageToTab(const id: integer; const s: string);
     procedure SetZoomLevel(const zl: double);
     function GetZoomLevel: double;
     function GetURLShort: string;
     procedure WMCopyData(const msgid: integer; const str: string);
-    procedure WVBrowser1AfterCreated(Sender: TObject);
     procedure WVBrowser1InitializationError(Sender: TObject;
        aErrorCode: HRESULT; const aErrorMessage: wvstring);
     procedure WVBrowser1DocumentTitleChanged(Sender: TObject);
@@ -104,7 +114,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function EvalJavaScript(const script: string;ExecutionID:integer): string;
+    function EvalJavaScript(const script: string;const ExecutionID:integer=-1): string;
     function GetURL: string;
     procedure AddToResourceList(const url: string);
     procedure GoBack;
@@ -137,8 +147,11 @@ type
     property AdjustSourceDisplayMethod: Boolean read fAdjustSourceDisplayMethod
       write fAdjustSourceDisplayMethod;
     property Crm: TWVBrowser read fCrm;
+    property Cookie: string read fCookie;
     property EnableDownloads: Boolean read fEnableDownloads
       write fEnableDownloads;
+    property EnableResourceScheme: Boolean read fEnableResourceScheme write
+     fEnableResourceScheme;
     property Headers: TCatRequestHeaders read fHeaders;
     property InterceptRequests: Boolean read fInterceptRequests
       write fInterceptRequests;
@@ -149,7 +162,7 @@ type
     property title: string read fLastTitle;
     property URLLog: TStringList read fURLLog;
     property URLShort: string read GetURLShort;
-    property UserAgent: string read fUserAgent write SetUserAgent;
+    property UserAgent: string read GetUserAgent write SetUserAgent;
     property ZoomLevel: double read GetZoomLevel write SetZoomLevel;
   published
     property OnAfterSetSource: TCatChromiumOnAfterSetSource
@@ -186,10 +199,23 @@ type
       write fOnLoadError;
   end;
 
+    procedure GlobalWebView2Loader_OnGetCustomSchemes(Sender: TObject; var aCustomSchemes: TWVCustomSchemeInfoArray);
+    procedure InitializeGlobalWebView2;
+
 implementation
 
-uses uAuthentication, CatStringLoop, CatCSCommand, CatUI, CatStrings, CatMatch, CatHTTP,
- uSettings, uConst, CatFiles;
+uses uAuthentication, CatStringLoop, CatCSCommand, CatUI, CatStrings, CatMatch, CatHTML,
+  CatFiles, CatMimePart, CatHTTP;
+
+procedure InitializeGlobalWebView2;
+begin
+  GlobalWebView2Loader := TWVLoader.Create(nil);
+  if IsWindowsSeven = true  then
+  GlobalWebView2Loader.BrowserExecPath := 'C:\SyhuntUtils\Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64\';
+  GlobalWebView2Loader.UserDataFolder := GetSandcatDir(SCDIR_CACHE);
+  GlobalWebView2Loader.OnGetCustomSchemes := GlobalWebView2Loader_OnGetCustomSchemes;
+  GlobalWebView2Loader.StartWebView2;
+end;
 
 // ------------------------------------------------------------------------//
 // TCatChromium                                                            //
@@ -222,6 +248,11 @@ begin
   m.getArgumentList.SetInt(0, SCTM_SET_V8_MSGHANDLE);
   m.getArgumentList.SetInt(1, handle);
   fCrm.Browser.SendProcessMessage(PID_RENDERER, m);  }
+end;
+
+function TCatChromium.GetUserAgent:string;
+begin
+  result := fcrm.useragent;
 end;
 
 procedure TCatChromium.SetUserAgent(const ua:string);
@@ -308,7 +339,7 @@ function ExtractURLHostShort(const url:string):string;
 var
   u:string;
 begin
-    u := CatHTTP.ExtractURLHost(u);
+    u := CatHTML.ExtractURLHost(u);
     u := lowercase(u);
     if beginswith(u, 'www.') then
     begin
@@ -333,7 +364,7 @@ begin
     Result := ExtractURLHostShort(u);
 end;
 
-function TCatChromium.EvalJavaScript(const script: string; ExecutionID:integer): string;
+function TCatChromium.EvalJavaScript(const script: string; const ExecutionID:integer=-1): string;
 var
   evalresult: string;
   ms:int64;
@@ -645,10 +676,50 @@ procedure TCatChromium.WVBrowser1NavigationStarting(Sender: TObject; const aWebV
 begin
   //if IsMain(Browser, frame) = false then
   //  exit;
+  fCookie := emptystr;
   UpdateNavButtons(true);
   fResourceList.clear;
   if assigned(OnLoadStart) then
     OnLoadStart(Sender);
+end;
+
+procedure TCatChromium.WVBrowser1GetCookiesCompleted(Sender: TObject;
+  aResult: HRESULT; const aCookieList: ICoreWebView2CookieList);
+var
+  TempCookieList : TCoreWebView2CookieList;
+  TempCookie : TCoreWebView2Cookie;
+  i : cardinal;
+  ck:string;
+begin
+  TempCookieList := nil;
+  TempCookie     := nil;
+
+  ck:=emptystr;
+
+  if assigned(aCookieList) then
+    try
+       TempCookieList := TCoreWebView2CookieList.Create(aCookieList);
+       TempCookie     := TCoreWebView2Cookie.Create(nil);
+
+       i := 0;
+       while (i < TempCookieList.Count) do
+         begin
+           TempCookie.BaseIntf := TempCookieList.Items[i];
+           if ck=emptystr then
+           ck := TempCookie.Name+'='+TempCookie.Value
+           else
+           ck := ck+';'+TempCookie.Name+'='+TempCookie.Value;
+           //CookiesLb.Items.Add(TempCookie.Name + ' - ' + TempCookie.Domain);
+           inc(i);
+         end;
+    finally
+      if assigned(TempCookieList) then
+        FreeAndNil(TempCookieList);
+
+      if assigned(TempCookie) then
+        FreeAndNil(TempCookie);
+    end;
+    fCookie := ck;
 end;
 
 procedure TCatChromium.WVBrowser1NavigationCompleted(Sender: TObject; const aWebView: ICoreWebView2; const aArgs: ICoreWebView2NavigationCompletedEventArgs);
@@ -656,6 +727,7 @@ var
   TempArgs : TCoreWebView2NavigationCompletedEventArgs;
   httpStatusCode:integer;
 begin
+  fcrm.GetCookies(geturl);
   TempArgs := TCoreWebView2NavigationCompletedEventArgs.Create(aArgs);
   httpStatusCode := TempArgs.HttpStatusCode;
   TempArgs.Free;
@@ -879,7 +951,20 @@ begin
     fURLLog.Add(url);
 end;
 
-procedure TCatChromium.LogRequest(const json: string);
+procedure TCatChromium.LogRequest(const r: TSandcatRequestDetails);
+begin
+  if fLogURLs = true then
+    LogURL(r.URL);
+  if r.MimeType <> 'text/html' then
+    AddToResourceList(r.URL);
+  if (fHeaders.StatusCode = emptystr) and (r.url = getURL) and (r.RcvdHead <> emptystr) then  begin
+   fHeaders.SentHead := r.SentHead;
+   fHeaders.RcvdHead := r.RcvdHead;
+   fHeaders.StatusCode := IntToStr(r.StatusCode);
+  end;
+end;
+
+procedure TCatChromium.LogRequestFromJSON(const json: string);
 var
   j: TCatJSON;
 begin
@@ -905,7 +990,7 @@ procedure TCatChromium.WMCopyData(const msgid: integer; const str: string);
 begin
   case msgid of
     CRM_LOG_REQUEST_JSON:
-      LogRequest(str);
+      LogRequestFromJSON(str);
   end;
   if assigned(OnBrowserMessage) then
     OnBrowserMessage(msgid, str);
@@ -1002,6 +1087,7 @@ begin
   self.UpdateSize;
   fcrm.AddWebResourceRequestedFilter('*', COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE);
   fcrm.AddWebResourceRequestedFilter('*', COREWEBVIEW2_WEB_RESOURCE_CONTEXT_MEDIA);
+  fcrm.AddWebResourceRequestedFilter('*', COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 end;
 
 procedure TCatChromium.WVBrowser1InitializationError(Sender: TObject;
@@ -1068,43 +1154,27 @@ begin
   end;
 
  // todo: logrequest() adds items to resources... is that needed for resources tab?
-
 end;
 
-procedure TCatChromium.WVBrowser1WebResourceResponseReceived(Sender: TObject;
-const aWebView: ICoreWebView2; const aArgs: ICoreWebView2WebResourceResponseReceivedEventArgs);
+procedure WV2RequestToRequestDetails(var req:TSandcatRequestDetails;arequest:ICoreWebView2WebResourceRequest);
 var
- req:TSandcatRequestDetails;
- a:TCoreWebView2WebResourceResponseReceivedEventArgs;
- uri, method, headerso, reason:PWideChar;
- headerName, headerValue:wvstring;
+ uri, method:PWideChar;
  content: IStream;
- infs: TInterfaceStream;
  headers:ICoreWebView2HttpRequestHeaders;
- hdr:TCoreWebView2HttpRequestHeaders;
- rcvdhdr:TCoreWebView2HttpResponseHeaders;
+ path, httpver:string;
  aIterator: TCoreWebView2HttpHeadersCollectionIterator;
- aResponse: ICoreWebView2WebResourceResponseViewGetContentCompletedHandler;
- TempHeaders  : ICoreWebView2HttpResponseHeaders;
- TempIterator : TCoreWebView2HttpHeadersCollectionIterator;
- headerStr, contentstr, path, httpver:string;
- anext,statuscode:integer;
+ headerName, headerValue:wvstring;
+ hdr:TCoreWebView2HttpRequestHeaders;
+ infs: TInterfaceStream;
 begin
-  if fInterceptRequests = false then
-    exit;
-  if Browser = nil then
-    exit;
- Inc(fLoggedRequestsCount);
- req.postdata := emptystr;
- a := TCoreWebView2WebResourceResponseReceivedEventArgs.Create(aArgs);
- a.Request.Get_uri(uri);
- a.Request.Get_Method(method);
- a.Request.Get_Content(content);
- a.Request.Get_Headers(headers);
- a.Response.Get_StatusCode(statuscode);
- a.Response.Get_ReasonPhrase(reason);
  httpver := 'HTTP/1.1';
-
+ req.postdata := emptystr;
+ aRequest.Get_uri(uri);
+ aRequest.Get_Method(method);
+ aRequest.Get_Content(content);
+ aRequest.Get_Headers(headers);
+ req.URL := WideCharToString(uri);
+ req.Method := WideCharToString(method);
  path := '/'+extracturlpath(WideCharToString(uri));
  req.SentHead := WideCharToString(method)+' '+path+' '+httpver+crlf;
  try
@@ -1124,28 +1194,6 @@ begin
  except
  end;
 
-
- a.Response.Get_Headers(TempHeaders);
-  req.RcvdHead := httpver+' '+inttostr(statuscode)+' '+GetStatusCodeDescription(statuscode)+crlf;
- try
-  rcvdhdr := TCoreWebView2HttpResponseHeaders.Create(TempHeaders);
-  aIterator:= TCoreWebView2HttpHeadersCollectionIterator.Create(rcvdhdr.Iterator);
-  while aIterator.HasCurrentHeader do
-  begin
-    if aIterator.GetCurrentHeader(headerName, headerValue) then begin
-      req.RcvdHead :=  req.RcvdHead+headerName + ': ' + headerValue+crlf;
-    end;
-    aIterator.MoveNext;
-  end;
-
- req.Length := strtointdef(cathttp.GetField('content-length',req.RcvdHead),0);
- freeandnil(rcvdhdr);
- freeandnil(aIterator);
- except
- end;
-
-
-
  if (content <> nil) then begin
    infs := TInterfaceStream.Create;
    infs.Clear;
@@ -1157,14 +1205,69 @@ begin
    end;
   infs.Free;
  end;
+end;
 
- req.URL := WideCharToString(uri);
- req.Method := WideCharToString(method);
+procedure WV2ResponseViewToRequestDetails(var req:TSandcatRequestDetails;
+  aresponse:ICoreWebView2WebResourceResponseView);
+var
+ statuscode:integer;
+ TempHeaders  : ICoreWebView2HttpResponseHeaders;
+ rcvdhdr:TCoreWebView2HttpResponseHeaders;
+ reason:PWideChar;
+ httpver:string;
+ headerName, headerValue:wvstring;
+ aIterator: TCoreWebView2HttpHeadersCollectionIterator;
+begin
+ httpver := 'HTTP/1.1';
+ aResponse.Get_StatusCode(statuscode);
+ aResponse.Get_ReasonPhrase(reason);
+ aResponse.Get_Headers(TempHeaders);
  req.StatusCode := statuscode;
- req.ResourceID := fLoggedRequestsCount;
-  SetLength(fLoggedRequests, length(fLoggedRequests) + 1);
-  fLoggedRequests[High(fLoggedRequests)] := req;
+  req.RcvdHead := httpver+' '+inttostr(statuscode)+' '+GetStatusCodeDescription(statuscode)+crlf;
+ try
+  rcvdhdr := TCoreWebView2HttpResponseHeaders.Create(TempHeaders);
+  aIterator:= TCoreWebView2HttpHeadersCollectionIterator.Create(rcvdhdr.Iterator);
+  while aIterator.HasCurrentHeader do
+  begin
+    if aIterator.GetCurrentHeader(headerName, headerValue) then begin
+      req.RcvdHead :=  req.RcvdHead+headerName + ': ' + headerValue+crlf;
+    end;
+    aIterator.MoveNext;
+  end;
+ req.Length := strtointdef(cathttp.GetField('content-length',req.RcvdHead),0);
+ freeandnil(rcvdhdr);
+ freeandnil(aIterator);
+ except
+ end;
+ req.MimeType := GetField('Content-Type',req.RcvdHead);
+ if pos(';',req.MimeType)<>0 then
+ req.MimeType := trim(before(req.MimeType,';'));
+end;
 
+procedure TCatChromium.WVBrowser1WebResourceResponseReceived(Sender: TObject;
+const aWebView: ICoreWebView2; const aArgs: ICoreWebView2WebResourceResponseReceivedEventArgs);
+var
+ req:TSandcatRequestDetails;
+ a:TCoreWebView2WebResourceResponseReceivedEventArgs;
+ headerso:PWideChar;
+ aResponse: ICoreWebView2WebResourceResponseViewGetContentCompletedHandler;
+ TempIterator : TCoreWebView2HttpHeadersCollectionIterator;
+ headerStr, contentstr:string;
+ anext:integer;
+begin
+  if fInterceptRequests = false then
+    exit;
+  if Browser = nil then
+    exit;
+ Inc(fLoggedRequestsCount);
+
+ a := TCoreWebView2WebResourceResponseReceivedEventArgs.Create(aArgs);
+ WV2RequestToRequestDetails(req,a.Request);
+ WV2ResponseViewToRequestDetails(req,a.Response);
+ req.ResourceID := fLoggedRequestsCount;
+ SetLength(fLoggedRequests, length(fLoggedRequests)+ 1);
+ fLoggedRequests[High(fLoggedRequests)] := req;
+ LogRequest(req);
 
  aResponse  := TCoreWebView2WebResourceResponseViewGetContentCompletedHandler.Create(fcrm, fLoggedRequestsCount);
  a.Response.GetContent(aResponse);
@@ -1176,9 +1279,57 @@ begin
  end;    }
  a.Free;
 
-// if Assigned(fOnRequestDone) then
- //  fOnRequestDone(req);
+  //if Assigned(fOnRequestDone) then
+  // fOnRequestDone(req);
  // todo: logrequest() adds items to resources... is that needed for resources tab?
+end;
+
+procedure TCatChromium.GetResponseFromResources(const URL:string; var resp:ICoreWebView2WebResourceResponse);
+var
+  TempAdapter  : IStream;
+  rs: TResourceStream;
+  resname,fn:string;
+  TempResponse : ICoreWebView2WebResourceResponse;
+begin
+  resname := url;
+  resname := after(resname,'res://');
+  if endswith(resname,'/') = true then
+  resname := removelastchar(resname);
+  fn := extracturlfilename(resname);
+  resname := replacestr(resname,'.','_');
+  resname := replacestr(resname,'/',emptystr);
+  resname := uppercase(resname);
+  rs := TResourceStream.Create(hInstance, ResName, RT_RCDATA);
+  try
+    TempAdapter := TStreamAdapter.Create(rs, soOwned);
+    fcrm.CoreWebView2Environment.CreateWebResourceResponse(TempAdapter, 200, 'OK', 'Content-Type: '+GetFileMIMETypeFromCache(fn), TempResponse);
+  finally
+    resp := tempresponse;
+    rs.Free;
+    TempAdapter  := nil;
+    TempResponse := nil;
+  end;
+end;
+
+procedure TCatChromium.WVBrowser1WebResourceRequested(Sender: TObject;
+  const aWebView: ICoreWebView2;
+  const aArgs: ICoreWebView2WebResourceRequestedEventArgs);
+var
+ a:TCoreWebView2WebResourceRequestedEventArgs;
+ req:TSandcatRequestDetails;
+ tempresponse: ICoreWebView2WebResourceResponse;
+begin
+  if Browser = nil then
+    exit;
+   a:=TCoreWebView2WebResourceRequestedEventArgs.Create(aArgs);
+   WV2RequestToRequestDetails(req, a.Request);
+   LogRequest(req);
+   if (fEnableResourceScheme = true) and (beginswith(req.URL,'res://')) then begin
+     GetResponseFromResources(req.URL,  tempresponse);
+     a.Response := tempresponse;
+     tempresponse := nil;
+   end;
+   a.Free;
 end;
 
 procedure TCatChromium.WVBrowser1StatusBarTextChanged(Sender: TObject; const aWebView: ICoreWebView2);
@@ -1222,6 +1373,7 @@ begin
   fInterceptRequests := true;
   fLogURLs := false;
   fEnableDownloads := true;
+  fEnableResourceScheme := false;
   fAdjustSourceDisplayMethod := true;
   fAutoGetSource := false;
   fLogJavaScriptErrors := false;
@@ -1240,11 +1392,11 @@ begin
   fDevTools.Parent := self;
   fDevTools.Splitter := fSplitter;
   fCrm := TWVBrowser.Create(self);
-  fcrm.OnAfterCreated := WVBrowser1AfterCreated;
   fcrm.OnInitializationError := WVBrowser1InitializationError;
   Self.Browser := fCrm;
 
   fcrm.OnNavigationStarting := WVBrowser1NavigationStarting;
+  fcrm.OnAfterCreated := WVBrowser1AfterCreated;
   fcrm.OnNavigationCompleted := WVBrowser1NavigationCompleted;
   fcrm.OnRetrieveHTMLCompleted := WVBrowser1RetrieveHTMLCompleted;
   fcrm.OnRetrieveTextCompleted := WVBrowser1RetrieveTextCompleted;
@@ -1253,9 +1405,13 @@ begin
   fcrm.OnWebMessageReceived := WVBrowser1WebMessageReceived;
   fcrm.OnWebResourceResponseReceived := WVBrowser1WebResourceResponseReceived;
   fcrm.OnWebResourceResponseViewGetContentCompleted := WVBrowser1WebResourceResponseViewGetContentCompleted;
+
+  fcrm.OnWebResourceRequested :=  WVBrowser1WebResourceRequested;
+
   fcrm.OnStatusBarTextChanged := WVBrowser1StatusBarTextChanged;
   fcrm.OnOfflineCompleted :=  WVBrowser1OfflineCompleted;
   fcrm.OnExecuteScriptCompleted := WVBrowser1ExecuteScriptCompleted;
+  fcrm.OnGetCookiesCompleted := WVBrowser1GetCookiesCompleted;
 
   //fcrm.OnDevToolsProtocolEventReceived :=
 
@@ -1450,6 +1606,17 @@ begin
   fResourceList.Free;
   fCriticalSection.Free;
   inherited Destroy;
+end;
+
+procedure GlobalWebView2Loader_OnGetCustomSchemes(Sender: TObject; var aCustomSchemes: TWVCustomSchemeInfoArray);
+begin
+  // We can register multiple schemes but this demo only register 1
+  SetLength(aCustomSchemes, 1);
+
+  aCustomSchemes[0].SchemeName            := 'res'; // The name of the custom scheme to register.
+  aCustomSchemes[0].TreatAsSecure         := True; // Whether the sites with this scheme will be treated as a Secure Context like an HTTPS site.
+  aCustomSchemes[0].AllowedDomains        := '*'; // Comma separated list of origins that are allowed to issue requests with the custom scheme, such as XHRs and subresource requests that have an Origin header.
+  aCustomSchemes[0].HasAuthorityComponent := True; // Set this property to true if the URIs with this custom scheme will have an authority component (a host for custom schemes).
 end;
 
 end.

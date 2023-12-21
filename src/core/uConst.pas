@@ -32,7 +32,7 @@ const
   cTabNamePrefix = 'tab-';
   cBookmarksFile = 'Bookmarks.sclist';
   cHistoryFile = 'History.sclist';
-  cSourceActiveLineColor = $00E6E6E6;
+  cSourceActiveLineColor = $0060f5e5;
   cFavIconFileName = 'favicon.ico';
 
 const // Resource related
@@ -69,17 +69,6 @@ const // Index of images from Live Headers imagelist
   ICONIDX_SCRIPT_VULNERABLE = 26;
   ICONIDX_SERVER_CLOUD = 27;
   ICONIDX_FORM_FIELD = 28;
-
-const // Sandcat sub directories
-  SCDIR_LOGS = 1;
-  SCDIR_HEADERS = 2;
-  SCDIR_TEMP = 3;
-  SCDIR_PREVIEW = 4;
-  SCDIR_CONFIG = 5;
-  SCDIR_PLUGINS = 6;
-  SCDIR_CACHE = 7;
-  SCDIR_TASKS = 8;
-  SCDIR_CONFIGSITE = 9;
 
 const // Sciter related
   // Do not remove &nbsp - workaround for a weird AxSciter error when loading a blank html

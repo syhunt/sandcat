@@ -55,7 +55,8 @@ function ElemValueToText(value: string): string;
 implementation
 
 uses
-  uMain, plua, uUIComponents, uMisc, CatStrings, CatHTTP, uZones, uTab, uConst;
+  uMain, plua, uUIComponents, uMisc, CatStrings, CatHTTP, CatHTML, uZones,
+   uTab, uConst;
 
 function ElemValueToText(value: string): string;
 begin

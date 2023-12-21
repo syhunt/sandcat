@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Forms, Classes, SysUtils, Controls, ExtCtrls, SyncObjs, Dialogs,
-  uUIComponents, uLiveHeaders;
+  uUIComponents, uLiveHeaders, CatChromiumLib;
 
 type
   TSandcatRequests = class
@@ -19,11 +19,13 @@ type
     fLogRequests: boolean;
     fLoggedRequests: integer;
     fTabHandle: HWND;
+    fCacheIDs:TStringList;
   public
     Cache: TSandCache;
     Headers: TLiveHeaders;
     procedure Clear;
     function GetRequest(const jsonrequestfile: string): TSandcatRequestDetails;
+    function GetRequestByURL(const url:string):TSandcatRequestDetails;
     function RequestExists(const jsonrequestfile: string): boolean;
     procedure LogRequest(request: TSandcatRequestDetails);
     procedure LogDynamicRequest(const json: string);
@@ -45,13 +47,14 @@ const
 
 implementation
 
-uses uMain, CatDCP, uMisc, CatTime, CatChromium, CatHTTP, CatStrings,
+uses uMain, CatDCP, uMisc, CatTime, CatChromium, CatHTTP, CatHTML, CatStrings,
   CatFiles, uSettings, uConst, CatCryptKey;
 
 procedure TSandcatRequests.Clear;
 begin
   Headers.Clear;
   Cache.Clear;
+  fCacheIDs.Clear;
 end;
 
 procedure TSandcatRequests.TabWillClose;
@@ -64,14 +67,24 @@ begin
   result := Cache.cachedFileExists(cReqFolder + jsonrequestfile);
 end;
 
+function TSandcatRequests.GetRequestByURL(const url:string):TSandcatRequestDetails;
+var fn:string;
+begin
+  fn := fcacheids.values[url];
+  if fcacheids.values[url] <> emptystr then
+  result := GetRequest(fn);
+end;
+
 function TSandcatRequests.GetRequest(const jsonrequestfile: string)
   : TSandcatRequestDetails;
 var
   j: TSandJINI;
   responsefile: string;
 begin
+  result.found := false;
   if RequestExists(jsonrequestfile) = false then
     exit;
+  result.found := true;
   j := TSandJINI.Create;
   try
   j.text := Cache.gettextfile(cReqFolder + jsonrequestfile);
@@ -218,6 +231,7 @@ begin
   end;
 
   logfile.Free;
+  fCacheIDs.values[request.url]:=request.filename;
   if (request.details = 'Browser Request') and (hasreqid = true) then
     exit; // no need to add the request again to the live list
   if fLogRequests then
@@ -287,10 +301,12 @@ begin
   fLogRequests := true;
   fIsClosing := false;
   fLoggedRequests := 0;
+  fCacheIDs := TStringList.Create;
 end;
 
 destructor TSandcatRequests.Destroy;
 begin
+  fCacheIDs.Free;
   inherited;
 end;
 

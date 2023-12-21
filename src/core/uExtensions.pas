@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Forms, Controls, Dialogs, TypInfo, ExtCtrls,
-  Lua, uUIComponents;
+  Lua, uUIComponents, CatChromiumLib;
 
 type
  TUserScriptLanguage = (usCSS, usJS, usLua, usTIS);
@@ -90,7 +90,7 @@ implementation
 
 uses uMain, pLua, uZones, uConst, uSettings, CatConsole, LAPI_SCX, CatRes,
   CatStrings, CatFiles, CatZIP, CatHTTP, LAPI, LAPI_Browser, LAPI_Tab, LAPI_Cmd,
-  LAPI_Element, LAPI_App, LAPI_CEF;
+  LAPI_Element, LAPI_App, LAPI_CEF, CatHTML;
 
 const
   cLicLink =

@@ -21,7 +21,41 @@ uses
   Classes, Windows, Messages, Controls, Graphics, Forms, SysUtils, SyncObjs,
   Dialogs, Clipbrd, TypInfo, StdCtrls, ExtCtrls,
 {$ENDIF}
-  superobject, CatJSON, CatMsg, CatPanels, uLiveHeaders, uConst;
+  superobject, CatJSON, CatMsg, CatPanels;
+  
+const // Sandcat sub directories
+  SCDIR_LOGS = 1;
+  SCDIR_HEADERS = 2;
+  SCDIR_TEMP = 3;
+  SCDIR_PREVIEW = 4;
+  SCDIR_CONFIG = 5;
+  SCDIR_PLUGINS = 6;
+  SCDIR_CACHE = 7;
+  SCDIR_TASKS = 8;
+  SCDIR_CONFIGSITE = 9;  
+  
+type
+  TSandcatRequestDetails = record
+    Found: boolean;
+    Host: string;
+    Port: string;
+    ReqID: string;
+    ResourceID: int64;
+    Details: string;
+    Method: string;
+    URL: string;
+    PostData: string;
+    StatusCode: integer;
+    MimeType: string;
+    Length: integer;
+    SentHead: string;
+    RcvdHead: string;
+    Response: string;
+    ResponseFilename: string;
+    IsRedir: boolean;
+    IsLow: boolean;
+    Filename: string;
+  end;
 
 type
   TCatChromiumOnRequestDone  = procedure (const req:TSandcatRequestDetails) of object;
@@ -154,15 +188,21 @@ const // Shutdown modes
 
 //function CertErrorCodeToErrorName(c: TCefErrorCode): string;
 function CatCEFLoadLib:boolean;
+function GetSandcatAppDataDir: string;
+function GetSandcatDir(dir: integer; Create: boolean = false): string;
 function DownloadStateToStr(i: integer): string;
 function BuildRequest(Method, url: string; PostData: string = '')
   : TCatChromiumRequest;
 procedure CatCEFShutdown(mode: integer);
 function SaveResponseToFile(s: string): string;
 
+var
+  UseLocalAppData: boolean = false;
+  IsSandcatPortable: boolean = false;
+
 implementation
 
-uses CatTasks, CatStrings, CatHTTP, CatTime, CatMsgCromis, uSettings;
+uses CatTasks, CatStrings, CatHTTP, CatFiles, CatTime, CatUI, CatMsgCromis;
 
 var
   TempFileCount: integer = 0;
@@ -171,6 +211,55 @@ var
 function CatCEFLoadLib:boolean;
 begin
   result := true;
+end;
+
+function GetAppDataDir:string;
+begin
+  if UseLocalAppData = true then // this user
+   result := GetSpecialFolderPath(CSIDL_LOCAL_APPDATA,true) else
+   result := GetSpecialFolderPath(CSIDL_COMMON_APPDATA,true);  // all users
+end;
+
+function GetSandcatAppDataDir: string;
+begin
+  if IsSandcatPortable then
+    result := extractfilepath(paramstr(0))
+  else
+    result := GetAppDataDir + '\Syhunt\Sandcat\';
+end;
+
+function GetSandcatDir(dir: integer; Create: boolean = false): string;
+var
+  s, progdir: string;
+begin
+  progdir := extractfilepath(paramstr(0));
+  case dir of
+    SCDIR_CACHE:
+    {$IFDEF USEWEBVIEW2}
+      s := GetSandcatAppDataDir + 'Cache2\';
+    {$ELSE}
+      s := GetSandcatAppDataDir + 'Cache\';
+    {$ENDIF}
+    SCDIR_PLUGINS:
+      s := progdir + 'Packs\Extensions\';
+    SCDIR_CONFIG:
+      s := GetSandcatAppDataDir + 'Config\';
+    SCDIR_CONFIGSITE:
+      s := GetSandcatAppDataDir + 'Config\Site\';
+    SCDIR_LOGS:
+      s := GetSandcatAppDataDir + 'Logs\';
+    SCDIR_HEADERS:
+      s := GetSandcatAppDataDir + 'Cache\Headers\';
+    SCDIR_PREVIEW:
+      s := GetSandcatAppDataDir + 'Temp\Preview\';
+    SCDIR_TEMP:
+      s := GetSandcatAppDataDir + 'Temp\';
+    SCDIR_TASKS:
+      s := GetSandcatAppDataDir + 'Temp\Tasks\';
+  end;
+  if Create then
+    forcedir(s);
+  result := s;
 end;
 
 function BuildRequest(Method, url: string; PostData: string = '')

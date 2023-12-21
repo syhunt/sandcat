@@ -72,7 +72,7 @@ type
 
 implementation
 
-uses uMain, uZones, uConst, uMisc, CatChromium, CatChromiumLib, CatHTTP,
+uses uMain, uZones, uConst, uMisc, CatChromium, CatChromiumLib, CatHTTP, CatHTML,
   CatStrings;
 
 const
@@ -168,7 +168,7 @@ begin
   tab := TSandcatTab(ASender);
   case msgid of
     SCBT_GETSCREENSHOT:
-      fActiveTab.SetActivePage('browser');
+      fActiveTab.SetActivePage('page');
     SCBT_NEWTITLE:
       begin
         if fActiveTab.UID = tab.UID then

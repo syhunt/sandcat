@@ -81,13 +81,7 @@ const // Sandcat Settings
   SCO_OPTIONS_OPENPOPUPSINNEWTAB =
     'sandcat.options.openpopupsinnewtab';
 
-var
-  IsSandcatPortable: boolean = false;
-  UseLocalAppData: boolean = false;
-
-function GetSandcatAppDataDir: string;
 function GetStartupSettings: TSandcatStartupSettings;
-function GetSandcatDir(dir: integer; Create: boolean = false): string;
 {$IFNDEF USEWEBVIEW2}
 procedure OnbeforeCmdLine(const processType: ustring;
   const commandLine: ICefCommandLine);
@@ -96,7 +90,7 @@ procedure OnbeforeCmdLine(const processType: ustring;
 implementation
 
 uses uMain, uMisc, uConst, CatChromium, CatChromiumLib, CatUI, CatTime,
-  CatStrings, CatFiles, CatHTTP, CatHashes;
+  CatStrings, CatFiles, CatHTTP, CatHTML, CatHashes;
 
 {$IFNDEF USEWEBVIEW2}
 procedure OnbeforeCmdLine(const processType: ustring;
@@ -146,55 +140,6 @@ begin
     j.getvalue(SCO_STARTUP_MULTIPLE_INSTANCES, false);
   result.UserAgent := j.getvalue(SCO_USERAGENT, emptystr);
   j.Free;
-end;
-
-function GetAppDataDir:string;
-begin
-  if UseLocalAppData = true then // this user
-   result := GetSpecialFolderPath(CSIDL_LOCAL_APPDATA,true) else
-   result := GetSpecialFolderPath(CSIDL_COMMON_APPDATA,true);  // all users
-end;
-
-function GetSandcatAppDataDir: string;
-begin
-  if IsSandcatPortable then
-    result := extractfilepath(paramstr(0))
-  else
-    result := GetAppDataDir + '\Syhunt\Sandcat\';
-end;
-
-function GetSandcatDir(dir: integer; Create: boolean = false): string;
-var
-  s, progdir: string;
-begin
-  progdir := extractfilepath(paramstr(0));
-  case dir of
-    SCDIR_CACHE:
-    {$IFDEF USEWEBVIEW2}
-      s := GetSandcatAppDataDir + 'Cache2\';
-    {$ELSE}
-      s := GetSandcatAppDataDir + 'Cache\';
-    {$ENDIF}
-    SCDIR_PLUGINS:
-      s := progdir + 'Packs\Extensions\';
-    SCDIR_CONFIG:
-      s := GetSandcatAppDataDir + 'Config\';
-    SCDIR_CONFIGSITE:
-      s := GetSandcatAppDataDir + 'Config\Site\';
-    SCDIR_LOGS:
-      s := GetSandcatAppDataDir + 'Logs\';
-    SCDIR_HEADERS:
-      s := GetSandcatAppDataDir + 'Cache\Headers\';
-    SCDIR_PREVIEW:
-      s := GetSandcatAppDataDir + 'Temp\Preview\';
-    SCDIR_TEMP:
-      s := GetSandcatAppDataDir + 'Temp\';
-    SCDIR_TASKS:
-      s := GetSandcatAppDataDir + 'Temp\Tasks\';
-  end;
-  if Create then
-    forcedir(s);
-  result := s;
 end;
 
 {procedure TSandcatSettings.OnbeforeCmdLineWACEF(const processType: ustring;

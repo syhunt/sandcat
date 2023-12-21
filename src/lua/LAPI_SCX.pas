@@ -34,7 +34,7 @@ procedure RegisterSCX(L: PLua_State);
 implementation
 
 uses
-  uMain, CatStrings, CatFiles, CatZIP, pLua, uSettings, uConst;
+  uMain, CatStrings, CatFiles, CatZIP, pLua, uSettings, uConst, CatChromiumLib;
 
 type
   TProps = (prop_filename);

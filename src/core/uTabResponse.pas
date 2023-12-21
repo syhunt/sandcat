@@ -20,7 +20,7 @@ uses
   Tabs, Dialogs,
 {$ENDIF}
   uUIComponents, uLiveHeaders, CatChromiumOSRX, SynEditHighlighter,
-  ExtPascalUtils;
+  ExtPascalUtils, CatChromiumLib;
 
 type
   TSandcatPreviewSettings = record
@@ -73,7 +73,7 @@ type
 
 implementation
 
-uses uMain, CatStrings, CatHTTP, CatUI, uMisc, LAPI_Element;
+uses uMain, CatStrings, CatHTTP, CatHTML, CatUI, uMisc, LAPI_Element;
 
 const
   cPageNames: array [1 .. 3] of string = ('Preview', 'Headers',

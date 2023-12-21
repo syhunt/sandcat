@@ -22,7 +22,7 @@ procedure RegisterActiveCodeEdit(L: plua_State);
 implementation
 
 uses pLua, pLuaTable, LAPI_Browser, uSettings, uTaskMan, LAPI_Console, LAPI_App,
-  LAPI_CodeEdit, LAPI_TaskMan, LAPI_CEF;
+  LAPI_CodeEdit, LAPI_TaskMan, LAPI_CEF, CatChromiumLib;
 
 procedure RegisterBrowser(L: plua_State);
 const

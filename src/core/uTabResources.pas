@@ -30,6 +30,7 @@ type
     fPage: TSandUIEngine;
     fPopupMenu: TPopupMenu;
     fLastSortedColumn: integer;
+    fResourceURLList: TStringList;
     procedure ListViewDblClick(Sender: TObject);
     procedure ListViewClick(Sender: TObject);
     procedure ListviewColumnClick(Sender: TObject; Column: TListColumn);
@@ -39,6 +40,7 @@ type
     destructor Destroy; override;
     procedure AddPageResource(const URL: string; ImgIdx: integer);
     procedure AddCustomItem(const JSON: string);
+    procedure Clear;
     procedure LoadHTML(const html: string);
     procedure RedefineColumns(const def, clickfunc, dblclickfunc: string);
     procedure UpdateHTMLPage(const csvlist: string);
@@ -49,7 +51,7 @@ type
 
 implementation
 
-uses uMain, uZones, CatStrings, CatHTTP, CatUI;
+uses uMain, uZones, CatStrings, CatHTTP, CatHTML, CatUI;
 
 // Sorts the resources page listview columns
 function Resources_SortByColumn(Item1, Item2: TListItem; Data: integer)
@@ -113,10 +115,13 @@ procedure TTabResourceList.AddPageResource(const URL: string; ImgIdx: integer);
 begin
   if fCustomized then
     exit; // no longer update URL resources if this is a custom user resources tab
+  if fResourceURLList.indexof(URL) <> -1 then
+    exit;
   with fLv.Items.Add do
   begin
     Caption := extracturlfilename(URL);
     SubItems.Add(URL);
+    fResourceURLList.add(URL);
     imageindex := ImgIdx;
   end;
 end;
@@ -225,6 +230,12 @@ begin
     GetLVItemAsString(fLv, fLv.Selected, true);
 end;
 
+procedure TTabResourceList.Clear;
+begin
+  flv.items.clear;
+  fResourceURLList.clear;
+end;
+
 constructor TTabResourceList.Create(AOwner: TComponent);
 var
   mi: TMenuItem;
@@ -232,6 +243,7 @@ begin
   inherited Create(AOwner);
   ControlStyle := ControlStyle + [csAcceptsControls];
   fCustomized := false;
+  fResourceURLList := TStringList.Create;
   fLv := TListView.Create(self);
   fLv.Parent := self;
   fLv.Align := alClient;
@@ -268,6 +280,7 @@ destructor TTabResourceList.Destroy;
 begin
   if fPage <> nil then
     fPage.Free;
+  fResourceURLList.free;
   fPopupMenu.Free;
   fLv.Free;
   inherited Destroy;

@@ -526,11 +526,11 @@ end;
 
 type
   TProps = (activepage, datafilename, handle, icon, lastjslogmsg, lastjsexecresult, loadend,
-    loadendjs, capture, capturebrowser, capturerealtime, captureurls,
+    loadendjs, capture, capturebrowser, capturerealtime, captureurls, cookie,
     downloadfiles, headersfilter, logtext, mode, name, rcvdheaders, reslist,
     screenshot, sentheaders, showtree, siteprefsfilename, Source,
     sourcefilename, statuscode, status, Title, tree_loaditemfunc, updatesource, url, urldev,
-    urllist, zoomlevel);
+    urllist, zoomlevel, useragent);
 
 function TSCBTabObject.GetPropValue(propName: String): Variant;
 var
@@ -551,6 +551,9 @@ begin
     captureurls:
       if tab.Browser.Available then
         result := tab.Browser.c.LogURLs;
+    cookie:
+      if tab.Browser.Available then
+      result := tab.browser.c.Cookie;
     headersfilter:
       result := tab.liveheaders.FilterEdit.Text;
     lastjslogmsg:
@@ -592,6 +595,9 @@ begin
     urllist:
       if tab.Browser.Available then
         result := tab.Browser.c.URLLog.Text;
+    useragent:
+      if tab.Browser.Available then
+        result := tab.browser.c.UserAgent;
     zoomlevel:
       if tab.Browser.Available then
         result := tab.Browser.c.zoomlevel;

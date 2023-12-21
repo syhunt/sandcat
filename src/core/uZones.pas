@@ -363,7 +363,7 @@ function GetZoneID(const name: string): integer;
 
 implementation
 
-uses uMain, uTab, CatMatch, CatCEFCache, CatStrings, CatHTTP, uConst,
+uses uMain, uTab, CatMatch, CatCEFCache, CatStrings, CatHTTP, uConst, CatHTML,
   uLiveHeaders, uSettings, uMisc, CatFiles, CatUI, CatZIP, CatRes;
 
 procedure Debug(const s: string; const component: string = cUIX);
@@ -1478,7 +1478,7 @@ end;
 procedure TSandcatBottomBar.ClosePage(const name: string);
 begin
   // PageBar.ShowPage(name, false);
-  // SetActivePage('browser');
+  // SetActivePage('page');
 end;
 
 function TSandcatBottomBar.PageExists(const name: string): boolean;
@@ -1572,7 +1572,7 @@ end;
 procedure TSandcatBottomBar.ShowURL(const URL: string;
   const source: string = '');
 begin
-  SetActivePage('browser');
+  SetActivePage('page');
   if source = emptystr then
     fBrowser.c.Load(URL)
   else
@@ -1631,7 +1631,7 @@ begin
   fTabStrip.Width := 22;
   fTabStrip.TabPosition := tpBottom; // tpRight;
   fTabStrip.Tabs.add(fReqBuilderPageName);
-  fTabStrip.Tabs.add('browser');
+  fTabStrip.Tabs.add('page');
   fTabStrip.Tabs.add(cTaskMessagesPageName);
   fTabStrip.TabIndex := 0;
   fTabStrip.OnChange := TabStrip1Change;
@@ -1646,7 +1646,7 @@ begin
   fNote.Parent := Self;
   fNote.Color := clWindow;
   fNote.Align := alClient;
-  fNote.Pages.add('browser');
+  fNote.Pages.add('page');
   fNote.Pages.add(fReqBuilderPageName);
   fNote.Pages.add(cTaskMessagesPageName);
   fNote.ActivePage := 'default';
@@ -1662,7 +1662,7 @@ begin
   fTaskMsgs.Align := alClient;
 
   fBrowser := TCatChromiumStandBy.Create(StatBar);
-  fBrowser.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('browser')]);
+  fBrowser.Parent := TPage(fNote.Pages.Objects[fNote.Pages.IndexOf('page')]);
   fBrowser.Align := alClient;
   fBrowser.OnInitialize := uix.InitChrome;
 end;

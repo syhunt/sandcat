@@ -10,7 +10,7 @@ unit LAPI_Browser;
 interface
 
 uses Windows, Messages, Classes, Forms, SysUtils, Dialogs, Controls,
-  StdCtrls, Lua, uTabMan;
+  StdCtrls, Lua, uTabMan, CatChromiumLib;
 
 function lua_addlibraryinfo(L: plua_State): integer; cdecl;
 function lua_scriptlogerror(L: plua_State): integer; cdecl;
@@ -70,7 +70,7 @@ function lua_sandcatsettings_loadfromfile(L: plua_State): integer; cdecl;
 implementation
 
 uses uMain, pLua, CatStrings, CatFiles, CatTime, uUIComponents, uConst,
-  CatTasks, CatZIP, CatHTTP, CatChromium, CatChromiumLib, uSettings, TypInfo,
+  CatTasks, CatZIP, CatHTTP, CatChromium, uSettings, TypInfo,
   uZones, uTab, uMisc, LAPI_Task, LAPI_Tab, CatConsole, CatPrefs, uTaskMan;
 
 type

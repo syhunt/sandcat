@@ -9,30 +9,8 @@ unit uLiveHeaders;
 
 interface
 
-uses Forms, SysUtils, Windows, Controls, Graphics, Classes, StdCtrls,
-  ExtCtrls, Types, Menus, ComCtrls;
-
-type
-  TSandcatRequestDetails = record
-    Host: string;
-    Port: string;
-    ReqID: string;
-    ResourceID: int64;
-    Details: string;
-    Method: string;
-    URL: string;
-    PostData: string;
-    StatusCode: integer;
-    MimeType: string;
-    Length: integer;
-    SentHead: string;
-    RcvdHead: string;
-    Response: string;
-    ResponseFilename: string;
-    IsRedir: boolean;
-    IsLow: boolean;
-    Filename: string;
-  end;
+uses Forms, SysUtils, Windows, Controls, Graphics, Classes, StdCtrls, Dialogs,
+  ExtCtrls, Types, Menus, ComCtrls, CatChromiumLib;
 
 type
   TLiveHeadersFilter = record
@@ -104,8 +82,8 @@ type
 
 implementation
 
-uses uMain, uZones, uConst, CatFiles, CatStrings, CatUI, CatHTTP, CatMatch,
-  uMisc;
+uses uMain, uZones, uConst, CatFiles, CatStrings, CatUI, CatHTTP, CatHTML,
+  CatMatch, uMisc;
 
 function GetSearchParam(line, param: string; def_value: string = ''): string;
 begin
@@ -187,12 +165,14 @@ begin
 end;
 
 procedure TLiveHeaders.HeadersListViewClick(Sender: TObject);
+var
+ fn:string;
 begin
   if (fFrontLv.Selected = nil) then
     exit;
   application.ProcessMessages;
-  tabmanager.ActiveTab.ShowRequest(fFrontLv.Selected.SubItems
-    [fFrontLv.Selected.SubItems.Count - 1]);
+  fn := fFrontLv.Selected.SubItems[fFrontLv.Selected.SubItems.Count - 1];
+  tabmanager.ActiveTab.ShowRequest(fn);
 end;
 
 procedure TLiveHeaders.ClearBtnClick(Sender: TObject);

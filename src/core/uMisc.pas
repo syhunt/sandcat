@@ -106,6 +106,8 @@ end;
 
 procedure ConfigSynEdit(s: TSandSynEdit);
 begin
+  //s.SelectedColor.Background := clLime;
+  //s.SelectedColor.Foreground := clBlack;
   s.Gutter.ShowLineNumbers := true;
   s.Gutter.Font.Color := $00808080;
   s.Gutter.Font.Size := 8;

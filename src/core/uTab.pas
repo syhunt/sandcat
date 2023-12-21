@@ -82,6 +82,7 @@ type
     fIsClosing: boolean;
     fLastConsoleLogMessage: string;
     fLastJSExecutionResult: string;
+    fFirstURLLoaded: boolean;
     fLuaOnLog: TSandJSON;
     fLuaAfterJS: TSandJSON;
     fLiveHeaders: TLiveHeaders;
@@ -221,7 +222,7 @@ type
   end;
 
 const
-  cTabSubPageNames: array [1 .. 7] of string = ('browser', 'source', 'log',
+  cTabSubPageNames: array [1 .. 7] of string = ('page', 'source', 'log',
     'extension', 'resources', 'response', 'results');
 
 const // tab events to be sent to the tab manager
@@ -259,7 +260,8 @@ implementation
 
 uses
   uMain, uConst, uMisc, uTaskMan, uSettings, uTabV8, CatStrings, CatHTTP,
-  CatUtils, CatFiles, LAPI_Task, LAPI_Browser, LAPI_CEF, CatMatch, CatJSON;
+  CatHTML, CatUtils, CatFiles, LAPI_Task, LAPI_Browser, LAPI_CEF, CatMatch,
+  CatJSON;
 
 var
   SandcatBrowserTab: TSandcatTab;
@@ -281,11 +283,19 @@ begin
   Result := UID = tabmanager.ActiveTabID;
 end;
 
-// Loads a URL from the browser cache
+// Loads a URL from the browser cache (if already cached), otherwise will open
+// the request URL in a newtab
 procedure TSandcatTab.LoadCachedURL(const URL: string);
+var
+  r:TSandcatRequestDetails;
 begin
-  SetActivePage('response');
-  fResponse.LoadCachedURL(URL);
+  r := fRequests.GetRequestByURL(url);
+  if r.found = true then begin
+    SetActivePage('response');
+    fResponse.LoadFromRequest(r)
+  end else
+  tabmanager.newtab(url);
+  //fResponse.LoadCachedURL(URL);
 end;
 
 // Loads a source code from a file in the source page
@@ -576,7 +586,6 @@ begin
     fSourceInspect.setsource(emptystr);
   fState.ProtoIcon := '@ICON_GLOBE';
   fState.IsBookmarked := false;
-  fResources.Lv.Items.Clear;
   if IsActiveTab then
   begin
     // update the nav bar only if this is not a tab loading in the background
@@ -588,6 +597,7 @@ end;
 // Called when the URL of this tab changes
 procedure TSandcatTab.CrmAddressChange(Sender: TObject; const URL: string);
 begin
+  fResources.clear;
   state.URL := URL;
   if Assigned(OnMessage) then
     OnMessage(self, SCBT_URLCHANGE, [URL]);
@@ -773,15 +783,19 @@ end;
 // favicon URL)
 function TSandcatTab.GetIcon: string;
 var
-  URL: string;
+  URL, faviconuri: string;
 begin
   Result := fDefaultIcon;
   if (fBrowser.Available) then
   begin
     result := fDefaultIcon;
     URL := GetURL;
-    if (fRetrieveFavIcon = true) and (URL <> emptystr) then
-      result := 'url(' + htmlescape(fBrowser.c.crm.faviconuri) + ')';
+    if (fRetrieveFavIcon = true) and (URL <> emptystr) then begin
+      faviconuri := fBrowser.c.crm.faviconuri;
+      if faviconuri = emptystr then
+      result := '@ICON_EMPTY' else
+      result := 'url(' + htmlescape(faviconuri) + ')';
+    end;
   end;
   if Loading then
     Result := '@ICON_LOADING';
@@ -877,6 +891,10 @@ begin
   Debug('gotourl:' + aURL);
   if (aURL <> emptystr) and (aURL <> cURL_HOME) then
   begin
+    if fFirstURLLoaded = false then begin
+      fFirstURLLoaded := true;
+      SetActivePage('page');
+    end;
     BeforeLoad(aURL);
     if source = emptystr then
       fBrowser.c.load(aURL) // default load mechanism
@@ -897,7 +915,7 @@ begin
   if fBrowser.c.IsFrameNil then
     exit;
   OnMessage(self, SCBT_GETSCREENSHOT, []);
-  SetActivePage('browser');
+  SetActivePage('page');
   fBrowser.c.RunJavaScript(Format(hidesbscript, ['hidden']));
   // hide the scrollbar
   catdelay(250);
@@ -1046,7 +1064,7 @@ begin
 {$IFNDEF USEWACEF}
   // DCEF will display the DevTools as part of the browser tab instead of a
   // new window, so switch to it
-  SetActivePage('browser');
+  SetActivePage('page');
 {$ENDIF}
   fBrowser.c.ViewDevTools;
 end;
@@ -1098,7 +1116,7 @@ begin
     fSubTabs.Pages.Add(cTabSubPageNames[i]);
   // Creates the browser page
   fBrowserPanel := TCanvasPanel.Create(fMainPanel);
-  fBrowserPanel.Parent := GetPage('browser');
+  fBrowserPanel.Parent := GetPage('page');
   ConfigPanel(fBrowserPanel, AlClient);
   fBrowser := TCatChromiumStandBy.Create(fBrowserPanel);
   fBrowser.Parent := fBrowserPanel;
@@ -1162,6 +1180,7 @@ begin
   fState := TTabState.Create;
   fDefaultIcon := '@ICON_EMPTY';
   fIsClosing := false;
+  fFirstURLLoaded := false;
   fLoading := false;
   fUseLuaOnLog := false;
   fLogBrowserRequests := true;
@@ -1230,7 +1249,7 @@ begin
   ShowTabsStrip := true;
   HasConsole := false;
   HasCustomToolbar := false;
-  ActivePage := 'browser';
+  ActivePage := 'page';
   ProtoIcon := '@ICON_BLANK';
   URL := emptystr;
   StatusBarText := emptystr;

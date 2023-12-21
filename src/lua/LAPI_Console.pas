@@ -26,7 +26,7 @@ function lua_console_setcurrentline(L: plua_State): integer; cdecl;
 
 implementation
 
-uses uMain, pLua, CatHTTP, uZones, CatConsole;
+uses uMain, pLua, CatHTTP, uZones, CatConsole, CatHTML;
 
 function lua_addconsolecommand(L: plua_State): integer; cdecl;
 begin
